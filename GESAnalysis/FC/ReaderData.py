@@ -1,6 +1,8 @@
 import os
 import csv
-import sys
+import pandas
+import openpyxl
+
 
 class ReaderData:
     """ Classe permettant la lecture des données depuis un fichier csv, tsv, txt et xlsx
@@ -8,17 +10,17 @@ class ReaderData:
     
     __accepted_extension = [".csv", ".txt", ".tsv", ".xlsx"]
     
-    
     def __init__(self):
         self.__error_msg = None
 
         
-    def read_file(self, filename, sep=None):
+    def read_file(self, filename, sep=None, engine='pandas'):
         """ Lecture du fichier filename avec ou sans délimiteur
 
         Args:
             filename (str): chemin vers le fichier
-            sep (str, optional): délimiteur pour les fichiers csv, tsv et txt. Defaults to None.
+            sep (str, optional): délimiteur pour les fichiers csv, tsv et txt. Par défaut None.
+            engine (str, optional): Moteur pour la lecture des fichiers excel (pandas, openpyxl). Par défaut pandas
 
         Returns:
             dict | None: Dictionnaire avec les données du fichier si la lecture est correcte, sinon None
@@ -36,7 +38,7 @@ class ReaderData:
             return self.__read_csv_tsv_txt(filename, delimiter)
         
         # Si ce n'est aucun des 3 extensions, alors on lit le fichier xlsx
-        return self.__read_xlsx(filename)
+        return self.__read_xlsx(filename, engine)
         
     
     def __verify_file(self, filename):
@@ -175,22 +177,24 @@ class ReaderData:
                 pass
 
 
-    def __read_xlsx(self, filename):
-        """ Lecture d'un fichier excel
+    def __read_xlsx(self, filename, engine='pandas'):
+        """ Lecture d'un fichier excel avec comme moteur pandas ou openpyxl
 
         Args:
             filename (str): chemin vers le fichier
+            engine (str, optional): Moteur de lecture, soit pandas, soit openpyxl. Defaults to 'pandas'.
 
         Returns:
             dict | None: Dictionnaire avec les données du fichier si la lecture est correcte, sinon None
         """
-        # Commence par le lire le fichier avec pandas
-        d = self.__read_xlsx_pandas(filename)
-        
-        # Si ça n'a pas marché, on lit avec openpyxl
-        if d is None:
-            return self.__read_xlsx_openpyxl(filename)
-        return d
+        match engine:
+            case 'pandas':
+                return self.__read_xlsx_pandas(filename)
+            case 'openpyxl':
+                return self.__read_xlsx_openpyxl(filename)
+            case _:
+                self.__error_msg = "Erreur : La lecture des fichiers excel se fait soit avec 'pandas', soit 'openpyxl'"
+                return None
             
        
     def __read_xlsx_pandas(self, filename):
@@ -203,17 +207,15 @@ class ReaderData:
             dict | None: Dictionnaire avec les données du fichier si la lecture est correcte, sinon None
         """
         try:
-            # Si pandas n'a pas été importé, on l'importe
-            if 'pandas' not in sys.modules:
-                import pandas as pd
-            
             # Lecture du fichier
-            data = pd.read_csv(filename)
+            data = pandas.read_excel(filename)
             # retourne un dictionnaire de la même forme qu'avec des fichiers csv, tsv et txt
-            return data.to_dict('r')            
+            return self.__transform_data_pandas(data.to_dict('split'))       
         except:
+            self.__error_msg = "Erreur : Problème rencontré. Impossibilité de charger le fichier excel avec pandas.\n Essayez avec un autre moteur"
             return None
-            
+    
+    
     def __read_xlsx_openpyxl(self, filename):
         """ Lecture d'un fichier excel avec openpyxl
 
@@ -224,9 +226,6 @@ class ReaderData:
             dict | None: Dictionnaire avec les données du fichier si la lecture est correcte, sinon None
         """
         try:
-            if 'openpyxl' not in sys.modules:
-                import openpyxl
-            
             # Ouverture du fichier et activation de la feuille de calcul
             wb = openpyxl.load_workbook(filename=filename)
             sheet = wb.active
@@ -254,8 +253,33 @@ class ReaderData:
 
             return data
         except:
-            self.__error_msg = "Erreur : Problème rencontré. Impossibilité de charger le fichier excel"
+            self.__error_msg = "Erreur : Problème rencontré. Impossibilité de charger le fichier excel avec openpyxl.\n Essayez avec un autre moteur"
             return None
+        
+        
+    def __transform_data_pandas(self, data):
+        """ Transforme un dataframe vers notre format de dictionnaire
+        Dictionnaire pandas :
+        {
+            'index': [noms des lignes],
+            'columns: [noms des colonnes],
+            'data': [liste de données pour chaque ligne]
+        }
+
+        Args:
+            data (dict): Dictionnaire du dataframe
+
+        Returns:
+            dict: dictionnaire du bon format
+        """
+        columns = data['columns']
+        values_columns = data['data']
+        data_transform = {}
+        for c in range(len(columns)):
+            data_transform[str(columns[c])] = []
+            for l in range(len(values_columns)):
+                data_transform[str(columns[c])].append(values_columns[l][c])
+        return data_transform
 
     
     def get_error(self):
