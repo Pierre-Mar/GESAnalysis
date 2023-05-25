@@ -86,6 +86,8 @@ class ExportData:
             # Ecriture des lignes
             elems_columns = list(data.values())
             if not self.__verif_number_lines(elems_columns):
+                file_out.close()
+                os.remove(fileout)
                 return False
             
             nb_lines = len(elems_columns[0])
