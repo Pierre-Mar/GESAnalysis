@@ -23,7 +23,6 @@ class ReaderData:
         """
         # Vérification du fichier
         if not self.__verify_file(filename):
-            self.__error_msg = "Erreur : Le fichier n'existe pas ou n'est pas pris en charge par le logiciel"
             return None
         
         # Lecture du fichier csv, tsv ou txt avec le délimiteur
@@ -47,10 +46,23 @@ class ReaderData:
         Returns:
             bool: retourne Vrai si le fichier existe et qu'il peut être lu, sinon Faux
         """
-        # Recupère l'extension du fichier
         root_filename, self.__ext = os.path.splitext(filename)
         
-        return os.path.isfile(filename) and self.__ext in self.__accepted_extension
+        # Récupère le nom du fichier, en enlevant son chemin
+        path_to_file = root_filename.split('/')
+        file = path_to_file[len(path_to_file) - 1]
+        
+        # Vérifie que le fichier existe
+        if not os.path.isfile(filename):
+            self.__error_msg = "Erreur : Le fichier '{0}' n'existe pas".format(file + self.__ext)
+            return False
+        
+        # Vérifie que le fichier soit supportable
+        root_filename, self.__ext = os.path.splitext(filename)
+        if not self.__ext in self.__accepted_extension:
+            self.__error_msg = "Erreur : Le fichier '{0}' n'est pas pris en charge par l'application".format(file + self.__ext)
+            return False
+        return True
     
     
     def __detect_delimiter(self, filename):
@@ -198,7 +210,6 @@ class ReaderData:
             # retourne un dictionnaire de la même forme qu'avec des fichiers csv, tsv et txt
             return data.to_dict('r')            
         except:
-            self.__error_msg = "Erreur : Problème rencontré. Impossible de lire le ficher excel"
             return None
             
     def __read_xlsx_openpyxl(self, filename):
