@@ -3,6 +3,8 @@ import csv
 import sys
 
 class ReaderData:
+    """ Classe permettant la lecture des données depuis un fichier csv, tsv, txt et xlsx
+    """
     
     __accepted_extension = [".csv", ".txt", ".tsv", ".xlsx"]
     
