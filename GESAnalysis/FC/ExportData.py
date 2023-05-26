@@ -70,36 +70,43 @@ class ExportData:
         Args:
             data (dict): Dictionnaire contenant les données (fait avec ReaderData)
             fileout (str): chemin vers le fichier de sortie
-            sep (str): seprateur entre les données
+            sep (str): separateur entre les données
 
         Returns:
             bool: Retourne Vrai si les données sont écrites dans fileout, sinon Faux
         """
-        with open(fileout, "w") as file_out:
-            # Ecriture des colonnes
-            columns = list(data.keys())
-            nb_columns = len(columns)
-            name_columns = sep.join(columns) + '\n'
-            
-            file_out.write(name_columns)
-            
-            # Ecriture des lignes
-            elems_columns = list(data.values())
-            if not self.__verif_number_lines(elems_columns):
-                file_out.close()
-                os.remove(fileout)
-                return False
-            
-            nb_lines = len(elems_columns[0])
-            for l in range(nb_lines):
-                ph = ""
-                for c in range(nb_columns):
-                    if c == nb_columns-1:
-                        ph += str(elems_columns[c][l]) + '\n'
-                    else:
-                        ph += str(elems_columns[c][l]) + sep
+        try:
+            with open(fileout, "w") as file_out:
+                # Ecriture des colonnes
+                columns = list(data.keys())
+                nb_columns = len(columns)
+                name_columns = sep.join(columns) + '\n'
                 
-                file_out.write(ph)
+                file_out.write(name_columns)
+                
+                # Ecriture des lignes
+                elems_columns = self.__get_data(data)
+                print(elems_columns)
+                if not self.__verif_number_lines(elems_columns):
+                    file_out.close()
+                    os.remove(fileout)
+                    return False
+                
+                nb_lines = len(elems_columns[0])
+                for l in range(nb_lines):
+                    ph = ""
+                    for c in range(nb_columns):
+                        if c == nb_columns-1:
+                            ph += str(elems_columns[c][l]) + '\n'
+                        else:
+                            ph += str(elems_columns[c][l]) + sep
+                    
+                    file_out.write(ph)
+        except Exception as e:
+            print(e)
+            self.__error_msg = "Erreur : problème rencontré pendant l'exportation"
+            os.remove(fileout)
+            return False
             
         return True
     
@@ -120,9 +127,25 @@ class ExportData:
                 return False
             
         return True
+
+
+    def __get_data(self, data_dict):
+        """ Récupères les données de chaque colonne et les mets dans une liste
+
+        Args:
+            data_dict (dict): Dictionnaire de données (ReaderData)
+
+        Returns:
+            list: liste des données
+        """
+        val = list(data_dict.values())
+        list_data = []
+        for l in val:
+            list_data.append(l["data"])
+        return list_data
     
     
-    def get_error_msg(self):
+    def get_error(self):
         """ Retournes le dernier message d'erreur
 
         Returns:
