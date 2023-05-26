@@ -15,11 +15,31 @@ def test_valid_csv_file():
     """ Vérifie que la lecture d'un fichier csv se fasse correctement
     """
     correct_data = {
-        'SR.': [1, 2, 3, 4, 5],
-        'NAME': ['Dett', 'Nern', 'Kallsie', 'Siuau', 'Shennice'],
-        'GENDER': ['Male', 'Female', 'Male', 'Female', 'Male'],
-        'AGE': [18, 19, 20, 21, 22],
-        'DATE': ['21/05/2015', '15/10/2017', '16/08/2016', '21/05/2015', '21/05/2016']
+        'SR': {
+            "name": ["SR"],
+            "unit": None,
+            "data": [1, 2, 3, 4, 5]
+        },
+        'NAME': {
+            "name": ["NAME"],
+            "unit": None,
+            "data": ['Dett', 'Nern', 'Kallsie', 'Siuau', 'Shennice']
+        },
+        'GENDER': {
+            "name": ["GENDER"],
+            "unit": None,
+            "data": ['Male', 'Female', 'Male', 'Female', 'Male']
+        },
+        'AGE': {
+            "name": ["AGE"],
+            "unit": None,
+            "data": [18, 19, 20, 21, 22]
+        },
+        'DATE': {
+            "name": ["DATE"],
+            "unit": None,
+            "data": ['21/05/2015', '15/10/2017', '16/08/2016', '21/05/2015', '21/05/2016']
+        }
     }
     assert correct_data == reader.read_file("tests/resources/people.csv", sep=",")
 
@@ -28,9 +48,21 @@ def test_valid_tsv_file():
     """ Pareil mais avec un fichier tsv
     """
     correct_data = {
-        'Index': [1, 2, 3, 4, 5],
-        '" Height(Inches)"""': [65.78, 71.52, 69.4, 68.22, 67.79],
-        '" ""Weight(Pounds)"""': [112.99, 136.49, 153.03, 142.34, 144.3]
+        "Index": {
+            "name": ["Index"],
+            "unit": None,
+            "data": [1, 2, 3, 4, 5]
+        },
+        "height.cm": {
+            "name": ["height"],
+            "unit": ["cm"],
+            "data": [165.1, 180.49, 175.26, 172.72, 170.18]
+        },
+        "weight.kg": {
+            "name": ["weight"],
+            "unit": ["kg"],
+            "data": [50.80, 61.69, 69.4, 64.41, 65.32]
+        }
     }
     assert correct_data == reader.read_file("tests/resources/hw_5.tsv")
 
@@ -39,10 +71,26 @@ def test_valid_txt_file():
     """ Pareil mais avec un fichier txt
     """
     correct_data = {
-        'Username': ['booker12', 'grey07', 'johnson81', 'jenkins46', 'smith79'],
-        'Registered': [True, False, False, True, True],
-        'First name': ['Rachel', 'Laura', 'Craig', 'Mary', 'Jamie'],
-        'Last name': ['Booker', 'Grey', 'Johnson', 'Jenkins', 'Smith']
+        "Username": {
+            "name": ["Username"],
+            "unit": None,
+            "data": ['booker12', 'grey07', 'johnson81', 'jenkins46', 'smith79']
+        },
+        "Registered": {
+            "name": ["Registered"],
+            "unit": None,
+            "data": [True, False, False, True, True]
+        },
+        "First name": {
+            "name": ["First name"],
+            "unit": None,
+            "data": ['Rachel', 'Laura', 'Craig', 'Mary', 'Jamie']
+        },
+        "Last name": {
+            "name": ["Last name"],
+            "unit": None,
+            "data": ['Booker', 'Grey', 'Johnson', 'Jenkins', 'Smith']
+        } 
     }
     assert correct_data == reader.read_file("tests/resources/username.txt")
 
@@ -51,14 +99,46 @@ def test_valid_xlsx_file_pandas():
     """ Pareil mais avec un fichier excel et avec pandas
     """
     correct_data = {
-        '0': [1, 2, 3, 4, 5, 6, 7, 8, 9],
-        'First Name': ['Dulce', 'Mara', 'Philip', 'Kathleen', 'Nereida', 'Gaston', 'Etta', 'Earlean', 'Vincenza'],
-        'Last Name': ['Abril', 'Hashimoto', 'Gent', 'Hanner', 'Magwood', 'Brumm', 'Hurn', 'Melgar', 'Weiland'],
-        'Gender': ['Female', 'Female', 'Male', 'Female', 'Female', 'Male', 'Female', 'Female', 'Female'],
-        'Country': ['United States', 'Great Britain', 'France', 'United States', 'United States', 'United States', 'Great Britain', 'United States', 'United States'],
-        'Age': [32, 25, 36, 25, 58, 24, 56, 27, 40],
-        'Date': ['15/10/2017', '16/08/2016', '21/05/2015', '15/10/2017', '16/08/2016', '21/05/2015', '15/10/2017', '16/08/2016', '21/05/2015'],
-        'Id': [1562, 1582, 2587, 3549, 2468, 2554, 3598, 2456, 6548]
+        "0": {
+            "name": ["0"],
+            "unit": None,
+            "data": [1, 2, 3, 4, 5, 6, 7, 8, 9]
+        },
+        "First Name": {
+            "name": ["First Name"],
+            "unit": None,
+            "data": ['Dulce', 'Mara', 'Philip', 'Kathleen', 'Nereida', 'Gaston', 'Etta', 'Earlean', 'Vincenza']
+        },
+        "Last Name": {
+            "name": ["Last Name"],
+            "unit": None,
+            "data": ['Abril', 'Hashimoto', 'Gent', 'Hanner', 'Magwood', 'Brumm', 'Hurn', 'Melgar', 'Weiland']
+        },
+        "Gender": {
+            "name": ["Gender"],
+            "unit": None,
+            "data": ['Female', 'Female', 'Male', 'Female', 'Female', 'Male', 'Female', 'Female', 'Female']
+        },
+        "Country": {
+            "name": ["Country"],
+            "unit": None,
+            "data": ['United States', 'Great Britain', 'France', 'United States', 'United States', 'United States', 'Great Britain', 'United States', 'United States']
+        },
+        "Age": {
+            "name": ["Age"],
+            "unit": None,
+            "data": [32, 25, 36, 25, 58, 24, 56, 27, 40]
+        },
+        "Date": {
+            "name": ["Date"],
+            "unit": None,
+            "data": ['15/10/2017', '16/08/2016', '21/05/2015', '15/10/2017', '16/08/2016', '21/05/2015', '15/10/2017', '16/08/2016', '21/05/2015']
+        },
+        "Height.cm": {
+            "name": ["Height"],
+            "unit": ["cm"],
+            "data": [156.2, 158.25, 158.74, 154.92, 146.89, 155.46, 159.87, 145.61, 154.8]
+        }
     }
     assert correct_data == reader.read_file("tests/resources/file_example_XLSX_10.xlsx")
 
@@ -67,14 +147,46 @@ def test_valid_xlsx_file_openpyxl():
     """ Pareil mais avec un fichier excel et avec openpyxl
     """
     correct_data = {
-        '0': [1, 2, 3, 4, 5, 6, 7, 8, 9],
-        'First Name': ['Dulce', 'Mara', 'Philip', 'Kathleen', 'Nereida', 'Gaston', 'Etta', 'Earlean', 'Vincenza'],
-        'Last Name': ['Abril', 'Hashimoto', 'Gent', 'Hanner', 'Magwood', 'Brumm', 'Hurn', 'Melgar', 'Weiland'],
-        'Gender': ['Female', 'Female', 'Male', 'Female', 'Female', 'Male', 'Female', 'Female', 'Female'],
-        'Country': ['United States', 'Great Britain', 'France', 'United States', 'United States', 'United States', 'Great Britain', 'United States', 'United States'],
-        'Age': [32, 25, 36, 25, 58, 24, 56, 27, 40],
-        'Date': ['15/10/2017', '16/08/2016', '21/05/2015', '15/10/2017', '16/08/2016', '21/05/2015', '15/10/2017', '16/08/2016', '21/05/2015'],
-        'Id': [1562, 1582, 2587, 3549, 2468, 2554, 3598, 2456, 6548]
+        "0": {
+            "name": ["0"],
+            "unit": None,
+            "data": [1, 2, 3, 4, 5, 6, 7, 8, 9]
+        },
+        "First Name": {
+            "name": ["First Name"],
+            "unit": None,
+            "data": ['Dulce', 'Mara', 'Philip', 'Kathleen', 'Nereida', 'Gaston', 'Etta', 'Earlean', 'Vincenza']
+        },
+        "Last Name": {
+            "name": ["Last Name"],
+            "unit": None,
+            "data": ['Abril', 'Hashimoto', 'Gent', 'Hanner', 'Magwood', 'Brumm', 'Hurn', 'Melgar', 'Weiland']
+        },
+        "Gender": {
+            "name": ["Gender"],
+            "unit": None,
+            "data": ['Female', 'Female', 'Male', 'Female', 'Female', 'Male', 'Female', 'Female', 'Female']
+        },
+        "Country": {
+            "name": ["Country"],
+            "unit": None,
+            "data": ['United States', 'Great Britain', 'France', 'United States', 'United States', 'United States', 'Great Britain', 'United States', 'United States']
+        },
+        "Age": {
+            "name": ["Age"],
+            "unit": None,
+            "data": [32, 25, 36, 25, 58, 24, 56, 27, 40]
+        },
+        "Date": {
+            "name": ["Date"],
+            "unit": None,
+            "data": ['15/10/2017', '16/08/2016', '21/05/2015', '15/10/2017', '16/08/2016', '21/05/2015', '15/10/2017', '16/08/2016', '21/05/2015']
+        },
+        "Height.cm": {
+            "name": ["Height"],
+            "unit": ["cm"],
+            "data": [156.2, 158.25, 158.74, 154.92, 146.89, 155.46, 159.87, 145.61, 154.8]
+        }
     }
     assert correct_data == reader.read_file("tests/resources/file_example_XLSX_10.xlsx", engine='openpyxl')
 # ------------------------------------------------------------------------------------------------------------------------
