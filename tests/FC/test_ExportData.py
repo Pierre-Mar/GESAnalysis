@@ -85,7 +85,7 @@ def test_invalid_file_export():
         "Mot": ["Bonjour", "Hello"]
     }
     assert False == export.export_data(data, "tests/resources/export_invalid.py")
-    assert "Erreur : le fichier 'export_invalid.py' doit être un fichier CSV, TSV ou TXT pour l'exportation" == export.get_error_msg()
+    assert "Erreur : le fichier 'export_invalid.py' doit être un fichier CSV, TSV ou TXT pour l'exportation" == export.get_error()
 
 
 def test_invalid_data():
@@ -93,17 +93,25 @@ def test_invalid_data():
     """
     data = None
     assert False == export.export_data(data, tmp_file+".txt")
-    assert "Erreur : les données ne peuvent pas être lues" == export.get_error_msg()
+    assert "Erreur : les données ne peuvent pas être lues" == export.get_error()
 
 
 def test_nb_elem_col_diff_data():
     """ Vérifies que les données incorrectes ici, nous renvoie une erreur
     """
     data = {
-        "Langage": ["Français", "Anglais"],
-        "Mot": ["Bonjour"]
+        "Langage": {
+            "name": ["Langage"],
+            "unit": None,
+            "data": ["Français", "Anglais"]   
+        },
+        "Mot": {
+            "name": ["Mot"],
+            "unit": None,
+            "data": ["Bonjour"]
+        }
     }
     assert False == export.export_data(data, tmp_file+".txt")
-    assert "Erreur : Le nombre d'éléments de la ligne 2 est différent" == export.get_error_msg()
+    assert "Erreur : Le nombre d'éléments de la ligne 2 est différent" == export.get_error()
 # ------------------------------------------------------------------------------------------------------------------------
 # ------------------------------------------------------------------------------------------------------------------------
