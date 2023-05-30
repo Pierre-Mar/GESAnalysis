@@ -1,4 +1,5 @@
 import os
+import platform
 import csv
 import pandas
 import openpyxl
@@ -79,7 +80,12 @@ class ReaderData:
         root_filename, self.__ext = os.path.splitext(filename)
         
         # Récupère le nom du fichier, en enlevant son chemin
-        path_to_file = root_filename.split('/')
+        # Chemin du fichier différent de l'OS
+        os_name = platform.system()
+        sep_path = '/'
+        if os_name == "Windows":
+            sep_path = '\\'
+        path_to_file = root_filename.split(sep_path)
         file = path_to_file[len(path_to_file) - 1]
         
         # Vérifie que le fichier existe
