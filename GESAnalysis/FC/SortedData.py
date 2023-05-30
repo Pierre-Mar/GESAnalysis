@@ -49,7 +49,6 @@ class SortedData:
         name_col = list(data.keys())
         for c in name_col:
             if column == " ".join(data[c]["name"]):
-                print(c)
                 return c
         return None
     
