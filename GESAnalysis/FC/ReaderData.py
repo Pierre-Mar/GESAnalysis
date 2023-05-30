@@ -23,7 +23,6 @@ class ReaderData:
         self.__error_msg = None
 
 
-    @staticmethod
     def read_file(self, filename, sep=None, engine='pandas'):
         """ Lecture du fichier filename avec ou sans délimiteur, pour les fichiers CSV, TSV et TXT, et
             un moteur de lecture, pour les fichiers XLSX

@@ -7,7 +7,7 @@ class SortedData:
         self.__error_msg = None
         pass
     
-    @staticmethod
+    
     def sorted_by_column(self, data, column, reversed=False):
         """ Trie les données selon une colonne column.
 
