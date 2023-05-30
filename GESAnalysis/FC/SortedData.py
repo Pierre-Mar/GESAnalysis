@@ -2,6 +2,8 @@ import operator
 
 
 class SortedData:
+    """ Classe permettant de trier les données selon une colonne
+    """
     
     def __init__(self):
         self.__error_msg = None
