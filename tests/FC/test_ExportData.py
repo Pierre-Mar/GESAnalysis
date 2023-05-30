@@ -18,7 +18,7 @@ excel = "tests/resources/file_example_XLSX_10.xlsx"
 export_invalid = "tests/resources/export_invalid.py"
 if os_name == 'Windows':
     people = r"tests\resources\people.csv"
-    hw_5 = r"tests\resources\w_5.tsv"
+    hw_5 = r"tests\resources\hw_5.tsv"
     username = r"tests\resources\username.txt"
     excel = r"tests\resources\file_example_XLSX_10.xlsx"
     export_invalid = r"tests\resources\export_invalid.py"

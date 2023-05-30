@@ -138,7 +138,8 @@ class ReaderData:
             column = file.readline()
             
             # Enlève les caractères inutiles
-            column = column.strip("\ufeff") 
+            column = column.strip("\ufeff")
+            column = column.strip("ï»¿") 
             column = column.strip("\n")
             name_column = column.split(sep)
             nb_column = len(name_column) # Nombre de colonnes

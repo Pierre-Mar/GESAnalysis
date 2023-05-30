@@ -1,6 +1,18 @@
 import pytest
+import platform
 from GESAnalysis.FC.ManipData import ManipData
 import os
+
+
+# Définition des chemins de fichiers selon l'OS
+os_name = platform.system()
+people = "tests/resources/people.csv"
+export_invalid = "tests/resources/export_invalid.py"
+not_exist = "tests/resources/not_exist"
+if os_name == 'Windows':
+    people = r"tests\resources\people.csv"
+    export_invalid = r"tests\resources\export_invalid.py"
+
 
 
 # ------------------------------------------------------------------------------------------------------------------------
@@ -9,7 +21,7 @@ import os
 def test_initialisation():
     """ Test l'initialisation de la classe et la lecture du fichier
     """
-    m = ManipData("tests/resources/people.csv")
+    m = ManipData(people)
     correct_data = {
         'SR': {
             "name": ["SR"],
@@ -37,7 +49,7 @@ def test_initialisation():
             "data": ['21/05/2015', '15/10/2017', '16/08/2016', '21/05/2015', '21/05/2016']
         }
     }
-    assert "tests/resources/people.csv" == m.get_filename()
+    assert people == m.get_filename()
     assert correct_data == m.get_data()
     assert None == m.get_error()
     
@@ -45,8 +57,8 @@ def test_initialisation():
 def test_initialisation_incorrect():
     """ Test quand l'initialisation est incorrect
     """
-    m = ManipData("tests/resources/export_invalid.py")
-    assert "tests/resources/export_invalid.py" == m.get_filename()
+    m = ManipData(export_invalid)
+    assert export_invalid == m.get_filename()
     assert None == m.get_data()
     assert "Erreur : Le fichier 'export_invalid.py' n'est pas pris en charge par l'application" == m.get_error()
     
@@ -87,8 +99,8 @@ def test_read_file():
             "data": ['21/05/2015', '15/10/2017', '16/08/2016', '21/05/2015', '21/05/2016']
         }
     }
-    m.read_file("tests/resources/people.csv")
-    assert "tests/resources/people.csv" == m.get_filename()
+    m.read_file(people)
+    assert people == m.get_filename()
     assert correct_data == m.get_data()
     assert None == m.get_error()
     
@@ -97,7 +109,7 @@ def test_read_file_incorrect():
     """ Test la lecture du fichier quand il y a une erreur
     """
     m = ManipData()
-    m.read_file("tests/resources/export_invalid.py")
+    m.read_file(export_invalid)
     assert "Erreur : Le fichier 'export_invalid.py' n'est pas pris en charge par l'application" == m.get_error()
     
 
@@ -107,7 +119,7 @@ def test_read_file_incorrect():
 def test_export():
     """ Test l'exportation des données vers un fichier
     """
-    m = ManipData("tests/resources/people.csv")
+    m = ManipData(people)
     m.export("tmp.csv")
     assert None == m.get_error()
     os.remove("tmp.csv")
