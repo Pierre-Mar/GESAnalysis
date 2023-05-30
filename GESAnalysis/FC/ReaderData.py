@@ -1,4 +1,5 @@
 import os
+import platform
 import csv
 import pandas
 import openpyxl
@@ -61,8 +62,6 @@ class ReaderData:
             # Si le delimiteur n'est pas indiqué, on le détectes automatiquement
             if delimiter is None:
                 delimiter = self.__detect_delimiter(filename)
-            if delimiter == '\t':
-                print("Bon delimiteur")
             return self.__read_csv_tsv_txt(filename, delimiter)
         
         # Si ce n'est aucune des 3 extensions, alors on lit un fichier xlsx
@@ -81,7 +80,12 @@ class ReaderData:
         root_filename, self.__ext = os.path.splitext(filename)
         
         # Récupère le nom du fichier, en enlevant son chemin
-        path_to_file = root_filename.split('/')
+        # Chemin du fichier différent de l'OS
+        os_name = platform.system()
+        sep_path = '/'
+        if os_name == "Windows":
+            sep_path = '\\'
+        path_to_file = root_filename.split(sep_path)
         file = path_to_file[len(path_to_file) - 1]
         
         # Vérifie que le fichier existe

@@ -11,7 +11,7 @@ class ExportData:
         self.__error_msg = None
         pass
     
-    
+
     def export_data(self, data, fileout):
         """ Exporte les données de data dans le fichier fileout
 
