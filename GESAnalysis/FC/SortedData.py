@@ -21,13 +21,17 @@ class SortedData:
         """
         check_column = self.__check_column(data, column)
         if check_column is None:
-            self.__error_msg = "Erreur : il n'y a pas de colonne {0}".format(column)
+            self.__error_msg = "Erreur : il n'y a pas de colonne '{0}'".format(column)
             return None
         
         list_data = data[check_column]["data"]
         
-        index_sort_list_data = [i[0] for i in sorted(enumerate(list_data), key=operator.itemgetter(1), reverse=reversed)]
-        return index_sort_list_data
+        sorted_list_data = [i for i in sorted(enumerate(list_data), key=operator.itemgetter(1), reverse=reversed)]
+        # Correspondance entre l'index de la donnée avant et après le tri
+        sorted_index_list_data = [0 for i in range(len(sorted_list_data))]
+        for i in range(len(sorted_list_data)):
+            sorted_index_list_data[sorted_list_data[i][0]] = i
+        return sorted_index_list_data
     
     
     def __check_column(self, data, column):
