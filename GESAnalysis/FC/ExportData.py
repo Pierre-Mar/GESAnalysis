@@ -1,4 +1,5 @@
 import os
+import platform
 
 
 class ExportData:
@@ -53,7 +54,12 @@ class ExportData:
         root_filename, self.__file_ext = os.path.splitext(fileout)
         
         # Récupère le nom du fichier, en enlevant son chemin
-        path_to_file = root_filename.split('/')
+        # Chemin du fichier différent de l'OS
+        os_name = platform.system()
+        sep_path = '/'
+        if os_name == "Windows":
+            sep_path = '\\'
+        path_to_file = root_filename.split(sep_path)
         file = path_to_file[len(path_to_file) - 1]
         
         if not self.__file_ext in self.__accepted_extension:
