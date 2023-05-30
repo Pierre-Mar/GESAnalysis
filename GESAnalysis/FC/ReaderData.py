@@ -61,8 +61,6 @@ class ReaderData:
             # Si le delimiteur n'est pas indiqué, on le détectes automatiquement
             if delimiter is None:
                 delimiter = self.__detect_delimiter(filename)
-            if delimiter == '\t':
-                print("Bon delimiteur")
             return self.__read_csv_tsv_txt(filename, delimiter)
         
         # Si ce n'est aucune des 3 extensions, alors on lit un fichier xlsx
