@@ -1,0 +1,6 @@
+Username;Registered;First name;Last name
+booker12;true;Rachel;Booker
+grey07;false;Laura;Grey
+johnson81;false;Craig;Johnson
+jenkins46;true;Mary;Jenkins
+smith79;true;Jamie;Smith
