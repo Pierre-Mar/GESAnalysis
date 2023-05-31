@@ -1,18 +1,12 @@
 from GESAnalysis.FC.ReaderData import ReaderData
-from GESAnalysis.FC.ExportData import ExportData
+from GESAnalysis.UI.plot.DistanceMode import DistanceMode
 
 def run():
     r = ReaderData()
-    e = ExportData()
-    d = r.read_file("tests/resources/file_example_XLSX_10.xlsx")
-    if d is None:
-        print(r.get_error())
-    else:
-        if not e.export_data(d, "here.tsv"):
-            print(e.get_error_msg())
-        else:
-            print(r.read_file("here.tsv", '\t'))
-
+    d = r.read_file("/home/pierre/Documents/python/files_gesanalyser/files/2019_missions.txt")
+    
+    dist = DistanceMode([(d, "2019"), (d, '2020')])
+    
 
 if __name__ == "__main__":
     # Print a simple "Hello World !"
