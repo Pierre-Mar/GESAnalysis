@@ -5,8 +5,8 @@ def run():
     r = ReaderData()
     d = r.read_file("/home/pierre/Documents/python/files_gesanalyser/files/2019_missions.txt")
     
-    dist = DistanceMode([(d, "2019")])
-    dist.draw()
+    dist = DistanceMode([(d, "2019"), (d, '2020')])
+    
 
 if __name__ == "__main__":
     # Print a simple "Hello World !"
