@@ -1,12 +1,11 @@
 from GESAnalysis.FC.ExportData import ExportData
 from GESAnalysis.FC.ReaderData import ReaderData
-from GESAnalysis.FC.SortedData import SortedData
 
 class ManipData:
     
     __reader = ReaderData()
     __export = ExportData()
-    __sort = SortedData()
+
     
     def __init__(self, filename=None):
         """ Initialisation de la classe et lecture du fichier 'filename'
