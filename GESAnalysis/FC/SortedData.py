@@ -2,61 +2,64 @@ import operator
 
 
 class SortedData:
-    """ Classe permettant de trier les données selon une colonne
+    """ Class to sort data
     """
     
     def __init__(self):
+        """ Initialisation of class
+        """
         self.__error_msg = None
         pass
     
     
-    def sorted_by_column(self, data, column, reversed=False):
-        """ Trie les données selon une colonne column.
+    def sorted_by_column(self, data_dict, column, reversed=False):
+        """ Sort data according to the column 'column'
 
         Args:
-            data (dict): Dictionnaire de données (ReaderData)
-            column (str): un nom de colonne
-            reverse (bool, optional): Ordre décroissant si reverse est vrai. Sinon ordre croissant. Par défaut False.
+            data_dict (dict): Dictionary of data (format from ReaderData)
+            column (str): Column name
+            reverse (bool, optional): Sort by descending order if reverse is True. Else by acsending order. Defaults to False
 
         Returns:
-            list | None: Liste d'index indiquant la position des données si elle était triée
+            list | None: List of index indicating the position of the data. None if there are no column 'column' in data
         """
-        check_column = self.__check_column(data, column)
+        check_column = self.__check_column(data_dict, column)
         if check_column is None:
             self.__error_msg = "Erreur : il n'y a pas de colonne '{0}'".format(column)
             return None
         
-        list_data = data[check_column]["data"]
-        
+        list_data = data_dict[check_column]["data"]
+
         sorted_list_data = [i for i in sorted(enumerate(list_data), key=operator.itemgetter(1), reverse=reversed)]
-        # Correspondance entre l'index de la donnée avant et après le tri
+        
+        # Link between the index of data before and after the sort
         sorted_index_list_data = [0 for i in range(len(sorted_list_data))]
         for i in range(len(sorted_list_data)):
             sorted_index_list_data[sorted_list_data[i][0]] = i
         return sorted_index_list_data
     
     
-    def __check_column(self, data, column):
-        """ Vérifie si column est bien le nom d'une colonne de data
+    def __check_column(self, data_dict, column):
+        """ Check if 'column' is a column of the dictionary 'data'
 
         Args:
-            data (dict): Dictionnaire de données (ReaderData)
-            column (str): Nom de colonnes où chaque mot est séparé par un espace
+            data_dict (dict): Dictionary of data (format from ReaderData)
+            column (str): Column name where each word is separated by a space
 
         Returns:
-            str | None: Retourne le nom de la clé si column est une colonne de data. Sinon None
+            str | None: Returns the key if 'column' is a column of 'data'. Else None
         """
-        name_col = list(data.keys())
+        name_col = list(data_dict.keys())
         for c in name_col:
-            if column == " ".join(data[c]["name"]):
+            if column == " ".join(data_dict[c]["name"]):
                 return c
         return None
     
     
     def get_error(self):
-        """ Retourne le message d'erreur en cours
+        """ Returns the last error message
 
         Returns:
-            str: Message d'erreur
+            str: Error message
         """
         return self.__error_msg

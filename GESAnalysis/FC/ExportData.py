@@ -3,58 +3,60 @@ import platform
 
 
 class ExportData:
-    """ Classe permettant l'export des données vers un fichier csv, tsv et txt
+    """ Class to export data into a CSV, TSV and TXT file
     """
     
     __accepted_extension = [".csv", ".tsv", ".txt"]
     
     def __init__(self):
+        """ Initialisation of the class
+        """
         self.__error_msg = None
         pass
     
 
-    def export_data(self, data, fileout):
-        """ Exporte les données de data dans le fichier fileout
+    def export_data(self, data_dict, fileout):
+        """ Export the dictionary of data into the file 'fileout'
 
         Args:
-            data (dict): Dictionnaire contenant les données
-            fileout (str): Chemin vers le fichier
+            data_dict (dict): Dictionary of data
+            fileout (str): Path to the file to write the data
 
         Returns:
-            bool: Retournes Vrai si les données ont été écrits dans le fichiers, sinon Faux
+            bool: True if all the data has been written in the file, else False
         """
-        if data is None:
+        if data_dict is None:
             self.__error_msg = "Erreur : les données ne peuvent pas être lues"
             return False
         
         
-        # Vérification du nom du fichier
+        # Check the name of file
         if not self.__verif_fileout(fileout):
             return False
         
         match self.__file_ext:
             case ".csv":
-                return self.__write_in_file(data, fileout, ',')
+                return self.__write_in_file(data_dict, fileout, ',')
             case ".tsv":
-                return self.__write_in_file(data, fileout, '\t')
+                return self.__write_in_file(data_dict, fileout, '\t')
             case _:
-                return self.__write_in_file(data, fileout, ',')
+                return self.__write_in_file(data_dict, fileout, ',')
     
     
     def __verif_fileout(self, fileout):
-        """ Vérifie que le fichier de sortie est un fichier CSV, TSV ou TXT
+        """ Check 'fileout' if it's a CSV, TSV or TXT file
 
         Args:
-            fileout (str): chemin vers le fichier
+            fileout (str): Path to the file to write the data
 
         Returns:
-            bool: retourne Vrai si le fichier a la bonn extension sinon Faux
+            bool: True if the file is a CSV, TSV or TXT file, else False
         """
-        # Récupère l'extension du fichier
+        # Get the extension of the file
         root_filename, self.__file_ext = os.path.splitext(fileout)
         
-        # Récupère le nom du fichier, en enlevant son chemin
-        # Chemin du fichier différent de l'OS
+        # Get the name of the file, remove the path
+        # The path is different between OS
         os_name = platform.system()
         sep_path = '/'
         if os_name == "Windows":
@@ -71,26 +73,26 @@ class ExportData:
     
     
     def __write_in_file(self, data, fileout, sep):
-        """ Ecriture des données data dans le fichier fileout avec sep comme separateur
+        """ Write the dictionary of data into the file 'fileout' where separator between values is 'sep'
 
         Args:
-            data (dict): Dictionnaire contenant les données (fait avec ReaderData)
-            fileout (str): chemin vers le fichier de sortie
-            sep (str): separateur entre les données
+            data (dict): Dictionary of data
+            fileout (str): Path to the file to write the data
+            sep (str): Separator between values
 
         Returns:
-            bool: Retourne Vrai si les données sont écrites dans fileout, sinon Faux
+            bool: True if the data is write into the file, else False
         """
         try:
             with open(fileout, "w") as file_out:
-                # Ecriture des colonnes
+                # Write columns
                 columns = list(data.keys())
                 nb_columns = len(columns)
                 name_columns = sep.join(columns) + '\n'
                 
                 file_out.write(name_columns)
                 
-                # Ecriture des lignes
+                # Write row
                 elems_columns = self.__get_data(data)
                 print(elems_columns)
                 if not self.__verif_number_lines(elems_columns):
@@ -108,8 +110,7 @@ class ExportData:
                             ph += str(elems_columns[c][l]) + sep
                     
                     file_out.write(ph)
-        except Exception as e:
-            print(e)
+        except:
             self.__error_msg = "Erreur : problème rencontré pendant l'exportation"
             os.remove(fileout)
             return False
@@ -118,13 +119,13 @@ class ExportData:
     
     
     def __verif_number_lines(self, elems_col):
-        """ Vérifie que le nombre d'éléments de chaque colonne est égal
+        """ Check that the number of elements of each row is the same
 
         Args:
-            elems_col (list): une liste de liste avec les données de chaque colonnes dans une liste
+            elems_col (list): List where the values of each columns is in a list
 
         Returns:
-            bool: retourne Vrai si ce nombre est égal, sinon Faux
+            bool: True if this number is equal, else False
         """
         nb_elements = len(elems_col[0])
         for i in range(1, len(elems_col)):
@@ -136,13 +137,13 @@ class ExportData:
 
 
     def __get_data(self, data_dict):
-        """ Récupères les données de chaque colonne et les mets dans une liste
+        """ Get the data of each column and put it in a list
 
         Args:
-            data_dict (dict): Dictionnaire de données (ReaderData)
+            data_dict (dict): Dictionary of data
 
         Returns:
-            list: liste des données
+            list: List where the values of each columns is in a list
         """
         val = list(data_dict.values())
         list_data = []
@@ -152,9 +153,9 @@ class ExportData:
     
     
     def get_error(self):
-        """ Retournes le dernier message d'erreur
+        """ Return the last error message
 
         Returns:
-            str: message d'erreur
+            str: Error message
         """
         return self.__error_msg

@@ -6,42 +6,42 @@ import openpyxl
 
 
 class ReaderData:
-    """ Classe permettant la lecture des données depuis un fichier CSV, TSV, TXT et XLSX
+    """ Class to read data from a CSV, TSV, TXT or XLSX file
     """
     
     __accepted_extension = [".csv", ".txt", ".tsv", ".xlsx"]
     
-    # Unités utilisés pour les données
-    __units = ["t", "kg", "g", "mg",                     # Unités de masse
-              "km", "hm", "dam", "m", "dm", "cm", "mm", # Unités de longueur
-              "co2e"                                    # Unité pour le CO2
+    
+    # Units accepted for data
+    __units = ["t", "kg", "g", "mg",                    # Units for mass
+              "km", "hm", "dam", "m", "dm", "cm", "mm", # Units for length
+              "co2e"                                    # Unit for CO2
             ]
     
     
     def __init__(self):
-        """ Initialisation de la classe
+        """ Initialisation of the class
         """
         self.__error_msg = None
 
 
     def read_file(self, filename, sep=None, engine='pandas'):
-        """ Lecture du fichier filename avec ou sans délimiteur, pour les fichiers CSV, TSV et TXT, et
-            un moteur de lecture, pour les fichiers XLSX
+        """ Read the file 'filename' with or without a separator, for CSV, TSV and TXT files, and
+            a reading engine, for XLSX files
 
         Args:
-            filename (str): chemin vers le fichier
-            sep (str, optional): délimiteur pour les fichiers CSV, TSV et TXT. Par défaut None.
-            engine (str, optional): Moteur pour la lecture des fichiers XLSX (pandas, openpyxl). Par défaut pandas
+            filename (str): Path to file
+            sep (str, optional): Separator between values in a CSV, TSV and TXT files. Defaults to None
+            engine (str, optional): Reading engine for XLSX file (pandas, openpyxl). Defaults to pandas
 
         Returns:
-            dict | None: Dictionnaire contenant le nom, l'unité et les données de chaque colonne du fichier si la lecture est correcte.
-            Sinon None.
-            Exemple : Forme du fichier :
+            dict | None: Dictionary with the name, unit and data of each column in the file if the reading is correct. Else None
+            Exemple : File format :
                 nom_col1,nom_col2.unite,nom_col3.suite_nom.unite,nom_col4.suite_nom.unite.suite_unite
                 d11,d12,d13,d14,
                 d21,d22,d23,d24
                 
-            Le dictionnaire sera donc :
+            The dictionary will be :
             {
                 "nom_col1": { "name": ["nom_col1"], "unit": None, "data": [d11, d21] },
                 "nom_col2.unite": { "name": ["nom_col2"], "unit": ["unite"], "data": [d12, d22] },
@@ -49,38 +49,38 @@ class ReaderData:
                 "nom_col4.suite_nom.unite.suite_unite": { "name": ["nom_col4", "suite_nom"], "unit": ["unite", "suite_unite"], "data": [d14, d24] },
             }
         """
-        # Vérification du fichier
+        # Verification of the file
         if not self.__verify_file(filename):
             return None
         
-        # Lecture du fichier csv, tsv ou txt avec le délimiteur
+        # Reading of the CSV, TSV or TXT file with a separator
         if self.__ext in [".csv", ".tsv", ".txt"]:
-            # Si le fichier est un fichier TSV, on change le délimiteur our '\t'
+            # If it's a TSV file, then the separator is '\t'
             if self.__ext == ".tsv":
                 delimiter = "\t"
             delimiter = sep
-            # Si le delimiteur n'est pas indiqué, on le détectes automatiquement
+            # If the separator is not given, then it automatically detects
             if delimiter is None:
                 delimiter = self.__detect_delimiter(filename)
             return self.__read_csv_tsv_txt(filename, delimiter)
         
-        # Si ce n'est aucune des 3 extensions, alors on lit un fichier xlsx
+        # If it's not a CSV, TSV or TXT file, then it's a XLSX file
         return self.__read_xlsx(filename, engine)
         
     
     def __verify_file(self, filename):
-        """ Vérifie que le fichier existe et qu'il peut être lu
+        """ Check if the file 'filename' exists and it can be read
 
         Args:
-            filename (str): chemin vers le fichier
+            filename (str): Path to file
 
         Returns:
-            bool: retourne Vrai si le fichier existe et qu'il peut être lu, sinon Faux
+            bool: Return True if the file exists and it can be read, else False
         """
         root_filename, self.__ext = os.path.splitext(filename)
         
-        # Récupère le nom du fichier, en enlevant son chemin
-        # Chemin du fichier différent de l'OS
+        # Get the name of file and remove the path
+        # The path is different between OS
         os_name = platform.system()
         sep_path = '/'
         if os_name == "Windows":
@@ -88,12 +88,12 @@ class ReaderData:
         path_to_file = root_filename.split(sep_path)
         file = path_to_file[len(path_to_file) - 1]
         
-        # Vérifie que le fichier existe
+        # Check if the file exists
         if not os.path.isfile(filename):
             self.__error_msg = "Erreur : Le fichier '{0}' n'existe pas".format(file + self.__ext)
             return False
         
-        # Vérifie que le fichier soit supportable pour la lecture
+        # Check if the file is supported by the application
         root_filename, self.__ext = os.path.splitext(filename)
         if not self.__ext in self.__accepted_extension:
             self.__error_msg = "Erreur : Le fichier '{0}' n'est pas pris en charge par l'application".format(file + self.__ext)
@@ -102,18 +102,17 @@ class ReaderData:
     
     
     def __detect_delimiter(self, filename):
-        """ Détectes le délimiteur qui se trouve dans le fichier filename
+        """ Detects the separator inside the file 'filename'
 
         Args:
-            filename (str): chemin vers le fichier
+            filename (str): Path to file
 
         Returns:
-            str: le délimiteur dans le fichier filename
+            str: The separator inside the file
         """
         sniffer = csv.Sniffer()
         
-        # Récupère la 1ère ligne (nom des colonnes)
-        # pour trouver le délimiteur
+        # Get the 1st line (column names) to found the separator
         head_line = None
         with open(filename, "r") as f:
             head_line = f.readline()
@@ -123,29 +122,29 @@ class ReaderData:
     
 
     def __read_csv_tsv_txt(self, filename, sep=','):
-        """ Lecture des données depuis un fichier csv, tsv ou txt et un délimiteur
+        """ Reading the data from a CSV, TSV or TXT file and the separator between values
 
         Args:
-            filename (str): chemin vers le fichier
-            sep (str, optional): un délimiteur dans le fichier filename. Par défaut ','.
+            filename (str): Path to file
+            sep (str, optional): Separator between values in the file. Defaults to ','
 
         Returns:
-            dict | None: Dictionnaire avec les données du fichier si la lecture est correcte, sinon None
+            dict | None: Dictionary with the data of file if the reading is correct, else None
         """
         data = {}
         with open(filename, "r") as file:
-            # Lecture de la 1ère ligne (contient le nom des colonnes)
+            # Read the 1st line (column names)
             column = file.readline()
             
-            # Enlève les caractères inutiles
+            # Remove useless caracters (encoding + end of line)
             column = column.strip("\ufeff")
-            column = column.strip("ï»¿") 
+            column = column.strip("ï»¿")
             column = column.strip("\n")
             name_column = column.split(sep)
-            nb_column = len(name_column) # Nombre de colonnes
+            nb_column = len(name_column) # Number of columns
 
-            # Ajout dans data
-            # Chaque clé correspond au nom d'une colonne
+            # Add into data (dictionary)
+            # Each key correspond to a column
             for i in range(nb_column):
                 data[name_column[i]] = {}
                 n, u = self.__parser_name_unit(name_column[i])
@@ -153,37 +152,37 @@ class ReaderData:
                 data[name_column[i]]["unit"] = u
                 data[name_column[i]]["data"] = []
             
-            # Lecture du reste des lignes
+            # Read the rest of the file
             lines = file.readline()
             lines = lines.strip('\n')
             lines_iter = 1
             while lines != "":
                 list_lines = lines.split(sep)
                 
-                # Vérifie que le nombre d'éléments de la ligne est égal au nombre de colonnes
+                # Check that the number of elements of a row is equal to the number of columns
                 if len(list_lines) != nb_column:
                     self.__error_msg = "Erreur : le nombre d'éléments à la ligne {0} est différent du nombre de colonnes {1}".format(
                         lines_iter, nb_column
                     )
                     return None
                 
-                # Ajout des éléments d'une ligne dans data
-                # Les éléments se trouvent dans une liste où la clé est le nom de la colonne
+                # Add the row elements into data
+                # The elements are in a list where the key is the name of the column
                 for elem_index in range(len(list_lines)):
                     new_elem = self.__convert_element(list_lines[elem_index])
                     
-                    # Vérifie que l'élément est du bon type
-                    # Si c'est le 1er élément, on le saute
+                    # Check that the element is the same type
+                    # If it's the 1st element, we skip it
                     if lines_iter != 1 and type(new_elem) != type(data[name_column[elem_index]]["data"][0]):
                         self.__error_msg = "Erreur : L'élément de la colonne {0} et de la ligne {1} est différent des éléments de cette colonne".format(
                             name_column[elem_index], lines_iter
                         )
                         return None
                     
-                    # Ajout dans data
+                    # Add into data
                     data[name_column[elem_index]]["data"].append(new_elem)
                     
-                # Ligne suivante
+                # Next line
                 lines = file.readline()
                 lines = lines.strip('\n')
                 lines_iter += 1
@@ -192,21 +191,21 @@ class ReaderData:
     
     
     def __convert_element(self, elem):
-        """ Convertit l'élément elem dans son bon type
+        """ Convert the element 'elem' in his corresponding type
 
         Args:
-            elem (str): élément à convertir
+            elem (str): Element to convert
 
         Returns:
-            bool | int | float | str : l'élément dans son bon type
+            bool | int | float | str : Element in the good type
         """
-        # Vérifie d'abord si elemn est un booléen
+        # Check if elem is a boolean
         if elem.lower() == "true":
             return True
         elif elem.lower() == "false":
             return False
 
-        # Test chaque type pour trouver le bon type
+        # Check each type to get the good type
         contructors = [int, float, str]
         for c in contructors:
             try:
@@ -216,10 +215,10 @@ class ReaderData:
             
     
     def __parser_name_unit(self, name_col):
-        """ Analyse le nom d'une colonne pour donner son nom et son unité séparemment
+        """ Parse the 'name' of a column to get the 'original' name and the unit
 
         Args:
-            name_col (str): nom de colonne de la forme suivante :
+            name_col (str): Format of the column name :
                 - nom
                 - nom.unite
                 - nom.nom.unite
@@ -228,7 +227,8 @@ class ReaderData:
                 etc...
 
         Returns:
-            tuple: Retourne un tuple contenant le nom et l'unité de name_col. Par exemple :
+            tuple: Returns a tuple with the name and the unit of 'name_col'.
+            For example :
                 - 'distance'            -> (['distance'], None)
                 - 'distance.km'         -> (['distance'], ['km'])
                 - 'vitesse.km.h'        -> (['vitesse'], ['km', 'h'])
@@ -236,14 +236,14 @@ class ReaderData:
         """
         name_list = name_col.split('.')
         
-        # Cherche l'index de la 1ère unité
+        # Search the index of the 1st unit
         index_spe_name_unit = -1
         for i in range(len(name_list)):
             if name_list[i] in self.__units:
                 index_spe_name_unit = i
                 break
         
-        # Si y'a pas d'unité, alors que le nom de colonne
+        # If there are no units, then there is only the name of the column
         if index_spe_name_unit == -1:
             return (name_list, None)
         
@@ -251,14 +251,15 @@ class ReaderData:
 
 
     def __read_xlsx(self, filename, engine='pandas'):
-        """ Lecture d'un fichier excel avec comme moteur pandas ou openpyxl
+        """ Read a XLSX file with the engine 'pandas' or 'openpyxl'
+        Lecture d'un fichier excel avec comme moteur pandas ou openpyxl
 
         Args:
-            filename (str): chemin vers le fichier
-            engine (str, optional): Moteur de lecture, soit pandas, soit openpyxl. Defaults to 'pandas'.
+            filename (str): Path to file
+            engine (str, optional): Reading engine ('pandas', 'openpyxl'). Defaults to 'pandas'.
 
         Returns:
-            dict | None: Dictionnaire avec les données du fichier si la lecture est correcte, sinon None
+            dict | None: Dictionary with the data of the file if the reading is correct, else None
         """
         match engine:
             case 'pandas':
@@ -271,18 +272,17 @@ class ReaderData:
             
        
     def __read_xlsx_pandas(self, filename):
-        """ Lecture d'un fichier excel avec pandas
+        """ Read a XLSX file with pandas
 
         Args:
-            filename (str): chemin vers le fichier
+            filename (str): Path to file
 
         Returns:
-            dict | None: Dictionnaire avec les données du fichier si la lecture est correcte, sinon None
+            dict | None: Dictionary with the data of the file if the reading is correct, else None
         """
         try:
-            # Lecture du fichier
+            # Read the file
             data = pandas.read_excel(filename)
-            # retourne un dictionnaire de la même forme qu'avec des fichiers csv, tsv et txt
             return self.__transform_data_pandas(data.to_dict('split'))       
         except:
             self.__error_msg = "Erreur : Problème rencontré. Impossibilité de charger le fichier excel avec pandas.\n Essayez avec un autre moteur"
@@ -290,29 +290,28 @@ class ReaderData:
     
     
     def __read_xlsx_openpyxl(self, filename):
-        """ Lecture d'un fichier excel avec openpyxl
+        """ Read a XLSX file with openpyxl
 
         Args:
-            filename (str): chemin vers le fichier
+            filename (str): Path to file
 
         Returns:
-            dict | None: Dictionnaire avec les données du fichier si la lecture est correcte, sinon None
+            dict | None: Dictionary with the data of the file if the reading is correct, else None
         """
         try:
-            # Ouverture du fichier et activation de la feuille de calcul
+            # Open the file and activate the sheet
             wb = openpyxl.load_workbook(filename=filename)
             sheet = wb.active
             
-            # On récupère le nombre de lignes et de colonnes du fichier
+            # Get the number of rows and columns
             nb_columns = sheet.max_column
             nb_rows = sheet.max_row
             
             data = {}
             name_column = []
-            # Lit la 1ère ligne pour déterminer le nom des colonnes
-            # et des clés ainsi que les valeurs pour data
+            # Read the 1st line to get the name of columns
             for col in range(1, nb_columns+1):
-                # On récupère la valeur dans la cellule de la ligne 1 et de colonne col
+                # Get the value in the cell of row 1 and column col
                 cell = sheet.cell(row=1, column=col)
                 data[str(cell.value)] = {}
                 n, u = self.__parser_name_unit(str(cell.value))
@@ -321,9 +320,9 @@ class ReaderData:
                 data[str(cell.value)]["data"] = []
                 name_column.append(str(cell.value))
                 
-            # Lecture des données
+            # Read data
             for row in range(2, nb_rows+1):
-                # On récupère la valeur dans la cellule de la ligne row et de colonne col
+                # Get the value in the cell of row row and column col
                 for col in range(1, nb_columns+1):
                     cell = sheet.cell(row=row, column=col)
                     data[name_column[col-1]]["data"].append(cell.value)
@@ -335,19 +334,19 @@ class ReaderData:
         
         
     def __transform_data_pandas(self, data):
-        """ Transforme un dataframe vers notre format de dictionnaire
-        Dictionnaire pandas :
+        """ Transorm a dictionary from pandas to our corresponding dictionary
+        Pandas dictionary:
         {
-            'index': [noms des lignes],
-            'columns: [noms des colonnes],
-            'data': [liste de données pour chaque ligne]
+            'index': [rows name],
+            'columns: [columns name],
+            'data': [list of elements for each row]
         }
 
         Args:
-            data (dict): Dictionnaire du dataframe
+            data (dict): Pandas dictionary
 
         Returns:
-            dict: dictionnaire du bon format (celui dans read_file)
+            dict: Dictionary with the corresponding format
         """
         columns = data['columns']
         values_columns = data['data']
@@ -364,9 +363,9 @@ class ReaderData:
 
     
     def get_error(self):
-        """ Retourne le message d'erreur
+        """ Returns the last error message
 
         Returns:
-            str: le message d'erreur
+            str: Error message
         """
         return self.__error_msg
