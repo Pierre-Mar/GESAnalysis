@@ -33,10 +33,10 @@ Une fois que vous avez les prérequis, vous allez devoir installer les paquets n
 
 4. Setup python path
     * Sous Unix/MacOS : `export PYTHONPATH=$(pwd)`
-    * Sous Windows : `set PYTHON=%cd%`
+    * Sous Windows : `set PYTHONPATH=%cd%`
 
 
-NB : Lorsque vous ouvrez un nouveau terminal, si vous vous voulez lancer le programme, vous devez setup python path
+NB : Lorsque vous ouvrez un nouveau terminal, si vous voulez lancer le programme, vous devez setup python path
 
 ## Fonctionnalités
 
