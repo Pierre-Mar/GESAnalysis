@@ -1,18 +1,23 @@
 import operator
+from typing import Optional, Union, Dict, List
 
 
 class SortedData:
     """ Class to sort data
     """
     
-    def __init__(self):
+    def __init__(self) -> None:
         """ Initialisation of class
         """
-        self.__error_msg = None
         pass
     
     
-    def sorted_by_column(self, data_dict, column, reversed=False):
+    def sorted_by_column(
+        self,
+        data_dict: Optional[Dict[str, Dict[str, Union[bool, str, int, float]]]],
+        column: str,
+        reversed: bool = False
+    ) -> List[int]:
         """ Sort data according to the column 'column'
 
         Args:
@@ -21,13 +26,16 @@ class SortedData:
             reverse (bool, optional): Sort by descending order if reverse is True. Else by acsending order. Defaults to False
 
         Returns:
-            list | None: List of index indicating the position of the data. None if there are no column 'column' in data
+            list: List of index indicating the position of the data
         """
+        if data_dict is None:
+            raise TypeError("cannot access to values because the dictionary is null")
+        
+        # Check the column name
         check_column = self.__check_column(data_dict, column)
         if check_column is None:
-            self.__error_msg = "Erreur : il n'y a pas de colonne '{0}'".format(column)
-            return None
-        
+            raise KeyError(f"there is no column '{column}' in data")
+                
         list_data = data_dict[check_column]["data"]
 
         sorted_list_data = [i for i in sorted(enumerate(list_data), key=operator.itemgetter(1), reverse=reversed)]
@@ -39,7 +47,11 @@ class SortedData:
         return sorted_index_list_data
     
     
-    def __check_column(self, data_dict, column):
+    def __check_column(
+        self,
+        data_dict: Dict[str, Dict[str, Union[bool, str, int, float]]],
+        column: str
+    ) -> Optional[str]:
         """ Check if 'column' is a column of the dictionary 'data'
 
         Args:
@@ -54,12 +66,3 @@ class SortedData:
             if column == " ".join(data_dict[c]["name"]):
                 return c
         return None
-    
-    
-    def get_error(self):
-        """ Returns the last error message
-
-        Returns:
-            str: Error message
-        """
-        return self.__error_msg

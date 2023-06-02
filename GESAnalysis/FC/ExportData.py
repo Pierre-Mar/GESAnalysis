@@ -1,38 +1,42 @@
 import os
 import platform
+from typing import Optional, Union, Dict, List
 
 
 class ExportData:
     """ Class to export data into a CSV, TSV and TXT file
     """
-    
     __accepted_extension = [".csv", ".tsv", ".txt"]
     
-    def __init__(self):
+    def __init__(self) -> None:
         """ Initialisation of the class
         """
-        self.__error_msg = None
         pass
     
 
-    def export_data(self, data_dict, fileout):
+    def export_data(
+        self,
+        data_dict: Optional[Dict[str, Dict[str, Union[bool, str, int, float]]]],
+        fileout: str
+    ) -> bool:
         """ Export the dictionary of data into the file 'fileout'
 
         Args:
-            data_dict (dict): Dictionary of data
+            data_dict (dict | None): Dictionary of data
             fileout (str): Path to the file to write the data
 
+        Raises:
+            TypeError: Dictionary of data is None
+
         Returns:
-            bool: True if all the data has been written in the file, else False
+            bool: True if all the data has been written in the file
         """
         if data_dict is None:
-            self.__error_msg = "Erreur : les données ne peuvent pas être lues"
-            return False
+            raise TypeError("cannot access to values because the dictionary is null")
         
         
         # Check the name of file
-        if not self.__verif_fileout(fileout):
-            return False
+        self.__verif_fileout(fileout)
         
         match self.__file_ext:
             case ".csv":
@@ -43,14 +47,14 @@ class ExportData:
                 return self.__write_in_file(data_dict, fileout, ',')
     
     
-    def __verif_fileout(self, fileout):
+    def __verif_fileout(self, fileout: str) -> None:
         """ Check 'fileout' if it's a CSV, TSV or TXT file
 
         Args:
             fileout (str): Path to the file to write the data
 
-        Returns:
-            bool: True if the file is a CSV, TSV or TXT file, else False
+        Raises:
+            TypeError: 'fileout' is not a CSV, TSV or TXT file
         """
         # Get the extension of the file
         root_filename, self.__file_ext = os.path.splitext(fileout)
@@ -65,14 +69,15 @@ class ExportData:
         file = path_to_file[len(path_to_file) - 1]
         
         if not self.__file_ext in self.__accepted_extension:
-            self.__error_msg = "Erreur : le fichier '{0}' doit être un fichier CSV, TSV ou TXT pour l'exportation".format(
-                file + self.__file_ext)
-            return False
-        
-        return True
+            raise TypeError(f"cannot export data to '{file+self.__file_ext}'. Should be a CSV, TSV or TXT file")
     
     
-    def __write_in_file(self, data, fileout, sep):
+    def __write_in_file(
+        self,
+        data: Dict[str, Dict[str, Union[bool, str, int, float]]],
+        fileout: str,
+        sep: str
+    ) -> bool:
         """ Write the dictionary of data into the file 'fileout' where separator between values is 'sep'
 
         Args:
@@ -80,8 +85,12 @@ class ExportData:
             fileout (str): Path to the file to write the data
             sep (str): Separator between values
 
+        Raises:
+            IOError: A problem occur when trying to open the file or writing into it
+            ValueError: Number of elements between rows is different
+
         Returns:
-            bool: True if the data is write into the file, else False
+            bool: True if all the data was written into the file
         """
         try:
             with open(fileout, "w") as file_out:
@@ -94,11 +103,9 @@ class ExportData:
                 
                 # Write row
                 elems_columns = self.__get_data(data)
-                print(elems_columns)
-                if not self.__verif_number_lines(elems_columns):
-                    file_out.close()
-                    os.remove(fileout)
-                    return False
+                
+                # Check number of elements in the line
+                self.__verif_number_lines(elems_columns)
                 
                 nb_lines = len(elems_columns[0])
                 for l in range(nb_lines):
@@ -110,33 +117,37 @@ class ExportData:
                             ph += str(elems_columns[c][l]) + sep
                     
                     file_out.write(ph)
-        except:
-            self.__error_msg = "Erreur : problème rencontré pendant l'exportation"
+        # if we catch an error, we remove the file
+        except IOError:
             os.remove(fileout)
-            return False
-            
+            raise IOError(f"cannot open and write into the file '{fileout}'")
+        except ValueError as v:
+            os.remove(fileout)
+            raise ValueError(str(v))
         return True
     
     
-    def __verif_number_lines(self, elems_col):
+    def __verif_number_lines(self, elems_col: List[List[Union[bool, str, float, int]]]) -> None:
         """ Check that the number of elements of each row is the same
 
         Args:
             elems_col (list): List where the values of each columns is in a list
 
-        Returns:
-            bool: True if this number is equal, else False
+        Raises:
+            ValueError: This number is not equal for each row
         """
+        print(elems_col)
         nb_elements = len(elems_col[0])
         for i in range(1, len(elems_col)):
-            if len(elems_col[i]) != nb_elements:
-                self.__error_msg = "Erreur : Le nombre d'éléments de la ligne {0} est différent".format(i+1)
-                return False
-            
-        return True
+            nb_elements_line = len(elems_col[i])
+            if nb_elements_line != nb_elements:
+                raise ValueError(f"{nb_elements_line} elements in line {i+1} instead of {nb_elements} elements")
 
 
-    def __get_data(self, data_dict):
+    def __get_data(
+        self,
+        data_dict: Dict[str, Dict[str, Union[bool, str, int, float]]]
+    ) -> List[List[Union[bool, str, float, int]]]:
         """ Get the data of each column and put it in a list
 
         Args:
@@ -150,12 +161,3 @@ class ExportData:
         for l in val:
             list_data.append(l["data"])
         return list_data
-    
-    
-    def get_error(self):
-        """ Return the last error message
-
-        Returns:
-            str: Error message
-        """
-        return self.__error_msg

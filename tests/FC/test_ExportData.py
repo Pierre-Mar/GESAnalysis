@@ -99,16 +99,15 @@ def test_invalid_file_export():
         "Langage": ["Français", "Anglais"],
         "Mot": ["Bonjour", "Hello"]
     }
-    assert False == export.export_data(data, export_invalid)
-    assert "Erreur : le fichier 'export_invalid.py' doit être un fichier CSV, TSV ou TXT pour l'exportation" == export.get_error()
+    with pytest.raises(TypeError, match="cannot export data to 'export_invalid.py'. Should be a CSV, TSV or TXT file"):
+        export.export_data(data, export_invalid)
 
 
 def test_invalid_data():
     """ Check if a dictionary of data is None, then we catch the error
     """
-    data = None
-    assert False == export.export_data(data, tmp_file+".txt")
-    assert "Erreur : les données ne peuvent pas être lues" == export.get_error()
+    with pytest.raises(TypeError, match="cannot access to values because the dictionary is null"):
+        export.export_data(None, tmp_file+".txt")
 
 
 def test_nb_elem_col_diff_data():
@@ -126,7 +125,7 @@ def test_nb_elem_col_diff_data():
             "data": ["Bonjour"]
         }
     }
-    assert False == export.export_data(data, tmp_file+".txt")
-    assert "Erreur : Le nombre d'éléments de la ligne 2 est différent" == export.get_error()
+    with pytest.raises(ValueError, match="1 elements in line 2 instead of 2 elements"):
+        export.export_data(data, tmp_file+".txt")
 # ------------------------------------------------------------------------------------------------------------------------
 # ------------------------------------------------------------------------------------------------------------------------

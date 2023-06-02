@@ -18,7 +18,7 @@ if platform.system() == "Windows":
 
 # ------------------------------------------------------------------------------------------------------------------------
 # Tests to check if the sort is correct
-# # ------------------------------------------------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------------------------------------------------
 def test_correct_column():
     """ Test the sort with an ascending order
     """
@@ -33,15 +33,24 @@ def test_incorrect_column():
     d = reader.read_file(hw_5)
     correct_sort = [4, 3, 0, 2, 1]
     assert correct_sort == sort.sorted_by_column(d, "weight", reversed=True)
-    
+# ------------------------------------------------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------------------------------------------------
+
+
     
 # ------------------------------------------------------------------------------------------------------------------------
-# Tests pour vérifier que le tri est incorrecte avec un nom de colonne inexistant
+# Tests to check the errors when we give invalid values
 # ------------------------------------------------------------------------------------------------------------------------
 def test_correct_column_reverse():
     """ Test the sort when a column not exists
     """
     d = reader.read_file(hw_5)
-    assert None == sort.sorted_by_column(d, "not a column")
-    assert "Erreur : il n'y a pas de colonne 'not a column'" == sort.get_error()
-  
+    with pytest.raises(KeyError, match="there is no column 'not a column' in data"):
+        sort.sorted_by_column(d, "not a column")
+
+
+def test_null_data():
+    with pytest.raises(TypeError, match="cannot access to values because the dictionary is null"):
+        sort.sorted_by_column(None, "weight")
+# ------------------------------------------------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------------------------------------------------

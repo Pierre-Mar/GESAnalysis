@@ -61,7 +61,9 @@ def test_initialisation_incorrect():
     assert export_invalid == m.get_filename()
     assert None == m.get_data()
     assert "Erreur : Le fichier 'export_invalid.py' n'est pas pris en charge par l'application" == m.get_error()
-    
+# ------------------------------------------------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------------------------------------------------
+
 
 
 # ------------------------------------------------------------------------------------------------------------------------
@@ -110,7 +112,10 @@ def test_read_file_incorrect():
     m = ManipData()
     m.read_file(export_invalid)
     assert "Erreur : Le fichier 'export_invalid.py' n'est pas pris en charge par l'application" == m.get_error()
-    
+# ------------------------------------------------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------------------------------------------------
+
+
 
 # ------------------------------------------------------------------------------------------------------------------------
 # Tests : export(fileout)
@@ -128,5 +133,7 @@ def test_export_incorrect():
     """ Test the exportation of a file when there is an error
     """
     m = ManipData()
-    m.export("tmp.txt")
-    assert "Erreur : les données ne peuvent pas être lues" == m.get_error()
+    with pytest.raises(TypeError, match="cannot access to values because the dictionary is null"):
+        m.export("tmp.txt")
+# ------------------------------------------------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------------------------------------------------
