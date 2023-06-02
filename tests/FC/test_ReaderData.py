@@ -6,7 +6,7 @@ from GESAnalysis.FC.ReaderData import ReaderData
 reader = ReaderData()
 
 
-# Définition des chemins de fichiers selon l'OS
+# Définition of paths of files depending on the OS
 os_name = platform.system()
 people = "tests/resources/people.csv"
 hw_5 = "tests/resources/hw_5.tsv"
@@ -34,10 +34,10 @@ if os_name == 'Windows':
 # ------------------------------------------------------------------------------------------------------------------------
 
 # ------------------------------------------------------------------------------------------------------------------------
-# Tests pour vérifier que la lecture est correcte
+# Tests to check when the reading is correct
 # ------------------------------------------------------------------------------------------------------------------------
 def test_valid_csv_file():
-    """ Vérifie que la lecture d'un fichier csv se fasse correctement
+    """ Check the reading of a CSV file
     """
     correct_data = {
         'SR': {
@@ -70,7 +70,7 @@ def test_valid_csv_file():
 
 
 def test_valid_tsv_file():
-    """ Pareil mais avec un fichier tsv
+    """ Same with a TSV file
     """
     correct_data = {
         "Index": {
@@ -93,7 +93,7 @@ def test_valid_tsv_file():
 
 
 def test_valid_txt_file():
-    """ Pareil mais avec un fichier txt
+    """ Same with a TXT file
     """
     correct_data = {
         "Username": {
@@ -121,7 +121,7 @@ def test_valid_txt_file():
 
 
 def test_valid_xlsx_file_pandas():
-    """ Pareil mais avec un fichier excel et avec pandas
+    """ Same with a XLSX file and pandas, the reading engine
     """
     correct_data = {
         "0": {
@@ -169,7 +169,7 @@ def test_valid_xlsx_file_pandas():
 
 
 def test_valid_xlsx_file_openpyxl():
-    """ Pareil mais avec un fichier excel et avec openpyxl
+    """ Same with a XLSX file and openpyxl, the reading engine
     """
     correct_data = {
         "0": {
@@ -220,31 +220,31 @@ def test_valid_xlsx_file_openpyxl():
 
 
 # ------------------------------------------------------------------------------------------------------------------------
-# Tests pour vérifier que les bonnes erreurs sont renvoyées quand un fichier n'existe pas
+# Tests to check if the errors are catched when a file don't exist
 # ------------------------------------------------------------------------------------------------------------------------
 def test_csv_file_not_exist():
-    """ Vérifie qu'un fichier csv qui n'existe pas donne None et le bon message d'erreur
+    """ Check a CSV file, who don't exist, gives an error
     """
     assert None == reader.read_file(not_exist + ".csv")
     assert "Erreur : Le fichier 'not_exist.csv' n'existe pas" == reader.get_error()
    
     
 def test_tsv_file_not_exist():
-    """ Pareil mais avec un fichier tsv
+    """ Same with a TSV file
     """
     assert None == reader.read_file(not_exist + ".tsv")
     assert "Erreur : Le fichier 'not_exist.tsv' n'existe pas" == reader.get_error()
    
     
 def test_txt_file_not_exist():
-    """ Pareil mais avec un fichier txt
+    """ Same with a TXT file
     """
     assert None == reader.read_file(not_exist + ".txt")
     assert "Erreur : Le fichier 'not_exist.txt' n'existe pas" == reader.get_error()
 
 
 def test_xlsx_file_not_exist():
-    """ Pareil mais avec un fichier excel
+    """ Same with a XLSX file
     """
     assert None == reader.read_file(not_exist + ".xlsx")
     assert "Erreur : Le fichier 'not_exist.xlsx' n'existe pas" == reader.get_error()
@@ -254,11 +254,10 @@ def test_xlsx_file_not_exist():
 
 
 # ------------------------------------------------------------------------------------------------------------------------
-# Test pour vérifier la bonne erreur quand le fichier n'est pas pris en charge par l'outil
+# Test to check if the error is catched when the file are not supported by the application
 # ------------------------------------------------------------------------------------------------------------------------
 def test_unsupported_file():
-    """ Vérifie qu'un fichier qui existe mais qui n'est pas pris en charge par l'outil retourne None
-        et vérifie le message d'erreur
+    """ Check if we catch the corresponding error when a file are not supported by the application
     """
     assert None == reader.read_file(cant_read)
     assert "Erreur : Le fichier 'cant_read.py' n'est pas pris en charge par l'application" == reader.get_error()
@@ -268,17 +267,17 @@ def test_unsupported_file():
 
 
 # ------------------------------------------------------------------------------------------------------------------------
-# Tests pour vérifier que les données sont correctes pendant la lecture
+# Tests to check the data during the reading
 # ------------------------------------------------------------------------------------------------------------------------
 def test_nb_column_diff():
-    """ Vérifie qu'un fichier où il manque des données dans une colonne donne une erreur
+    """ Check a file where some data missing and give an error
     """
     assert None == reader.read_file(nb_col_diff)
     assert "Erreur : le nombre d'éléments à la ligne 3 est différent du nombre de colonnes 2"
 
 
 def test_type_diff():
-    """ Vérifie que les différents types de données d'une colonne donne une erreur
+    """ Check when there are different types in a column give an error
     """
     assert None == reader.read_file(type_diff)
     assert "Erreur : L'élément de la colonne Word et de la ligne 2 est différent des éléments de cette colonne" == reader.get_error()
@@ -288,11 +287,10 @@ def test_type_diff():
 
 
 # ------------------------------------------------------------------------------------------------------------------------
-# Tests pour vérifier que les bonnes erreurs lorsque'on sélectionne un mauvais moteur
+# Test to check if we get an error when we give the wrong engine
 # ------------------------------------------------------------------------------------------------------------------------
 def test_probleme_read_pandas():
-    """ Vérifie que lorsqu'on donne n'importe quel moteur pour la lecture des fichiers excel.
-        On obtient une erreur si ce n'est pas les bons moteurs.
+    """ Check when we give a wrong reading engine give an error
     """
     assert None == reader.read_file(excel, engine='no_engine')
     assert "Erreur : La lecture des fichiers excel se fait soit avec 'pandas', soit 'openpyxl'" == reader.get_error()

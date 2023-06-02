@@ -4,7 +4,7 @@ from GESAnalysis.FC.ManipData import ManipData
 import os
 
 
-# Définition des chemins de fichiers selon l'OS
+# Définition of paths of files depending on the OS
 os_name = platform.system()
 people = "tests/resources/people.csv"
 export_invalid = "tests/resources/export_invalid.py"
@@ -19,7 +19,7 @@ if os_name == 'Windows':
 # Tests : ManipData(filename)
 # ------------------------------------------------------------------------------------------------------------------------
 def test_initialisation():
-    """ Test l'initialisation de la classe et la lecture du fichier
+    """ Test the initialisation of the class and the reading when we give the file to the contructor
     """
     m = ManipData(people)
     correct_data = {
@@ -55,7 +55,7 @@ def test_initialisation():
     
     
 def test_initialisation_incorrect():
-    """ Test quand l'initialisation est incorrect
+    """ Test when the initialisation is incorrect
     """
     m = ManipData(export_invalid)
     assert export_invalid == m.get_filename()
@@ -67,9 +67,8 @@ def test_initialisation_incorrect():
 # ------------------------------------------------------------------------------------------------------------------------
 # Tests : read_file(filename, sep, engine)
 # ------------------------------------------------------------------------------------------------------------------------
-
 def test_read_file():
-    """ Test la lecture du fichier 'filename'
+    """ Test the reading of the file 'filename'
     """
     m = ManipData()
     correct_data = {
@@ -106,7 +105,7 @@ def test_read_file():
     
 
 def test_read_file_incorrect():
-    """ Test la lecture du fichier quand il y a une erreur
+    """ Test the reading of the file when there is an error
     """
     m = ManipData()
     m.read_file(export_invalid)
@@ -117,7 +116,7 @@ def test_read_file_incorrect():
 # Tests : export(fileout)
 # ------------------------------------------------------------------------------------------------------------------------
 def test_export():
-    """ Test l'exportation des données vers un fichier
+    """ Test the exporation of data to a file
     """
     m = ManipData(people)
     m.export("tmp.csv")
@@ -126,7 +125,7 @@ def test_export():
     
 
 def test_export_incorrect():
-    """ Test l'exportation de fichiers quand il y a un problème
+    """ Test the exportation of a file when there is an error
     """
     m = ManipData()
     m.export("tmp.txt")
