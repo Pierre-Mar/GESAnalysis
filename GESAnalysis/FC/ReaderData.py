@@ -3,6 +3,7 @@ import platform
 import csv
 import pandas
 import openpyxl
+from typing import Union, Dict, List, Tuple, Optional
 
 
 class ReaderData:
@@ -19,13 +20,13 @@ class ReaderData:
             ]
     
     
-    def __init__(self):
+    def __init__(self) -> None:
         """ Initialisation of the class
         """
-        self.__error_msg = None
+        pass
 
 
-    def read_file(self, filename, sep=None, engine='pandas'):
+    def read_file(self, filename: str, sep: str = None, engine: str ='pandas') -> Dict[str, Dict[str, List[Union[str, int, float, bool]]]]:
         """ Read the file 'filename' with or without a separator, for CSV, TSV and TXT files, and
             a reading engine, for XLSX files
 
@@ -35,7 +36,8 @@ class ReaderData:
             engine (str, optional): Reading engine for XLSX file (pandas, openpyxl). Defaults to pandas
 
         Returns:
-            dict | None: Dictionary with the name, unit and data of each column in the file if the reading is correct. Else None
+            dict: Dictionary with the name, unit and data of each column in the file if the reading is correct
+            
             Exemple : File format :
                 nom_col1,nom_col2.unite,nom_col3.suite_nom.unite,nom_col4.suite_nom.unite.suite_unite
                 d11,d12,d13,d14,
@@ -50,8 +52,7 @@ class ReaderData:
             }
         """
         # Verification of the file
-        if not self.__verify_file(filename):
-            return None
+        self.__verify_file(filename)
         
         # Reading of the CSV, TSV or TXT file with a separator
         if self.__ext in [".csv", ".tsv", ".txt"]:
@@ -68,14 +69,15 @@ class ReaderData:
         return self.__read_xlsx(filename, engine)
         
     
-    def __verify_file(self, filename):
+    def __verify_file(self, filename: str) -> None:        
         """ Check if the file 'filename' exists and it can be read
 
         Args:
             filename (str): Path to file
 
-        Returns:
-            bool: Return True if the file exists and it can be read, else False
+        Raises:
+            FileNotFoundError: 'filename' was not found
+            TypeError: 'filename' is not a CSV, TSV, TXT or XLSX file
         """
         root_filename, self.__ext = os.path.splitext(filename)
         
@@ -90,18 +92,14 @@ class ReaderData:
         
         # Check if the file exists
         if not os.path.isfile(filename):
-            self.__error_msg = "Erreur : Le fichier '{0}' n'existe pas".format(file + self.__ext)
-            return False
+            raise FileNotFoundError(f"file '{file+self.__ext}' not exist")
         
         # Check if the file is supported by the application
-        root_filename, self.__ext = os.path.splitext(filename)
         if not self.__ext in self.__accepted_extension:
-            self.__error_msg = "Erreur : Le fichier '{0}' n'est pas pris en charge par l'application".format(file + self.__ext)
-            return False
-        return True
+            raise TypeError(f"cannot read data from '{file+self.__ext}'. Should be a CSV, TSV, TXT or XLSX file")
     
     
-    def __detect_delimiter(self, filename):
+    def __detect_delimiter(self, filename: str) -> str:
         """ Detects the separator inside the file 'filename'
 
         Args:
@@ -121,15 +119,19 @@ class ReaderData:
         return dialect.delimiter
     
 
-    def __read_csv_tsv_txt(self, filename, sep=','):
+    def __read_csv_tsv_txt(self, filename: str, sep:str = ',') -> Dict[str, Dict[str, List[Union[str, int, float, bool]]]]:
         """ Reading the data from a CSV, TSV or TXT file and the separator between values
 
         Args:
             filename (str): Path to file
             sep (str, optional): Separator between values in the file. Defaults to ','
 
+        Raises:
+            ValueError: Number of elements in a row is different from the number of columns
+            TypeError: the type of an element is different from the element of his column
+
         Returns:
-            dict | None: Dictionary with the data of file if the reading is correct, else None
+            dict: Dictionary with the data of file if the reading is correct
         """
         data = {}
         with open(filename, "r") as file:
@@ -159,12 +161,10 @@ class ReaderData:
             while lines != "":
                 list_lines = lines.split(sep)
                 
+                nb_elems_line = len(list_lines)
                 # Check that the number of elements of a row is equal to the number of columns
-                if len(list_lines) != nb_column:
-                    self.__error_msg = "Erreur : le nombre d'éléments à la ligne {0} est différent du nombre de colonnes {1}".format(
-                        lines_iter, nb_column
-                    )
-                    return None
+                if nb_elems_line != nb_column:
+                    raise ValueError(f"{nb_elems_line} elements in line {lines_iter+1} but there is {nb_column} columns")
                 
                 # Add the row elements into data
                 # The elements are in a list where the key is the name of the column
@@ -173,11 +173,13 @@ class ReaderData:
                     
                     # Check that the element is the same type
                     # If it's the 1st element, we skip it
-                    if lines_iter != 1 and type(new_elem) != type(data[name_column[elem_index]]["data"][0]):
-                        self.__error_msg = "Erreur : L'élément de la colonne {0} et de la ligne {1} est différent des éléments de cette colonne".format(
-                            name_column[elem_index], lines_iter
-                        )
-                        return None
+                    type_new_elem = type(new_elem)
+                    type_new_elem_str = str(type_new_elem).split("'")[1]
+                    if lines_iter != 1 and not isinstance(data[name_column[elem_index]]["data"][0], type_new_elem):
+                        type_elem_ref = type(data[name_column[elem_index]]["data"][0])
+                        type_elem_ref_str = str(type_elem_ref).split("'")[1]
+                        print(str(type_elem_ref))
+                        raise TypeError(f"Element at row {lines_iter+1} and column {'.'.join(data[name_column[elem_index]]['name'])} has type {type_new_elem_str} instead of type {type_elem_ref_str}")
                     
                     # Add into data
                     data[name_column[elem_index]]["data"].append(new_elem)
@@ -190,7 +192,7 @@ class ReaderData:
         return data
     
     
-    def __convert_element(self, elem):
+    def __convert_element(self, elem: str) -> Union[bool, str, int, float]:
         """ Convert the element 'elem' in his corresponding type
 
         Args:
@@ -214,7 +216,7 @@ class ReaderData:
                 pass
             
     
-    def __parser_name_unit(self, name_col):
+    def __parser_name_unit(self, name_col: str) -> Tuple[List[str], List[str]]:
         """ Parse the 'name' of a column to get the 'original' name and the unit
 
         Args:
@@ -229,7 +231,7 @@ class ReaderData:
         Returns:
             tuple: Returns a tuple with the name and the unit of 'name_col'.
             For example :
-                - 'distance'            -> (['distance'], None)
+                - 'distance'            -> (['distance'], [])
                 - 'distance.km'         -> (['distance'], ['km'])
                 - 'vitesse.km.h'        -> (['vitesse'], ['km', 'h'])
                 - 'temps.distance.km.h' -> (['temps', 'distance'], ['km', 'h'])
@@ -245,12 +247,12 @@ class ReaderData:
         
         # If there are no units, then there is only the name of the column
         if index_spe_name_unit == -1:
-            return (name_list, None)
+            return (name_list, [])
         
         return (name_list[0:index_spe_name_unit], name_list[index_spe_name_unit:len(name_list)])
 
 
-    def __read_xlsx(self, filename, engine='pandas'):
+    def __read_xlsx(self, filename: str, engine: str = 'pandas') -> Dict[str, Dict[str, List[Union[str, int, float, bool]]]]:
         """ Read a XLSX file with the engine 'pandas' or 'openpyxl'
         Lecture d'un fichier excel avec comme moteur pandas ou openpyxl
 
@@ -258,8 +260,11 @@ class ReaderData:
             filename (str): Path to file
             engine (str, optional): Reading engine ('pandas', 'openpyxl'). Defaults to 'pandas'.
 
+        Raises:
+            ValueError: A reading engine different from 'pandas' and 'openpyxl'
+
         Returns:
-            dict | None: Dictionary with the data of the file if the reading is correct, else None
+            dict: Dictionary with the data of the file if the reading is correct
         """
         match engine:
             case 'pandas':
@@ -267,36 +272,40 @@ class ReaderData:
             case 'openpyxl':
                 return self.__read_xlsx_openpyxl(filename)
             case _:
-                self.__error_msg = "Erreur : La lecture des fichiers excel se fait soit avec 'pandas', soit 'openpyxl'"
-                return None
+                raise ValueError(f"'{engine}' is not an engine to read a file. Use 'pandas' or 'openpyxl'")
             
        
-    def __read_xlsx_pandas(self, filename):
+    def __read_xlsx_pandas(self, filename: str) -> Dict[str, Dict[str, List[Union[str, int, float, bool]]]]:
         """ Read a XLSX file with pandas
 
         Args:
             filename (str): Path to file
 
+        Raises:
+            IOError: A problem occur with read_excel() of pandas
+
         Returns:
-            dict | None: Dictionary with the data of the file if the reading is correct, else None
+            dict: Dictionary with the data of the file if the reading is correct
         """
         try:
             # Read the file
             data = pandas.read_excel(filename)
             return self.__transform_data_pandas(data.to_dict('split'))       
         except:
-            self.__error_msg = "Erreur : Problème rencontré. Impossibilité de charger le fichier excel avec pandas.\n Essayez avec un autre moteur"
-            return None
+            raise IOError("unexcepted problem. Cannot read the excel file with 'pandas'. Try with 'openpyxl'")
     
     
-    def __read_xlsx_openpyxl(self, filename):
+    def __read_xlsx_openpyxl(self, filename: str) -> Dict[str, Dict[str, List[Union[str, int, float, bool]]]]:
         """ Read a XLSX file with openpyxl
 
         Args:
             filename (str): Path to file
 
+        Raises:
+            IOError: A problem occur with the functions used with openpyxl
+
         Returns:
-            dict | None: Dictionary with the data of the file if the reading is correct, else None
+            dict: Dictionary with the data of the file if the reading is correct
         """
         try:
             # Open the file and activate the sheet
@@ -329,11 +338,10 @@ class ReaderData:
 
             return data
         except:
-            self.__error_msg = "Erreur : Problème rencontré. Impossibilité de charger le fichier excel avec openpyxl.\n Essayez avec un autre moteur"
-            return None
+            raise IOError("unexcepted problem. Cannot read the excel file with 'openpyxl'. Try with 'pandas'")
         
         
-    def __transform_data_pandas(self, data):
+    def __transform_data_pandas(self, data: Dict[str, List[Union[str, bool, int, float]]]) -> Dict[str, Dict[str, List[Union[str, int, float, bool]]]]:
         """ Transorm a dictionary from pandas to our corresponding dictionary
         Pandas dictionary:
         {
@@ -360,12 +368,3 @@ class ReaderData:
             for l in range(len(values_columns)):
                 data_transform[str(columns[c])]["data"].append(values_columns[l][c])
         return data_transform
-
-    
-    def get_error(self):
-        """ Returns the last error message
-
-        Returns:
-            str: Error message
-        """
-        return self.__error_msg

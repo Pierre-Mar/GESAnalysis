@@ -14,7 +14,7 @@ class SortedData:
     
     def sorted_by_column(
         self,
-        data_dict: Optional[Dict[str, Dict[str, Union[bool, str, int, float]]]],
+        data_dict: Optional[Dict[str, Dict[str, List[Union[str, int, float, bool]]]]],
         column: str,
         reversed: bool = False
     ) -> List[int]:
@@ -49,7 +49,7 @@ class SortedData:
     
     def __check_column(
         self,
-        data_dict: Dict[str, Dict[str, Union[bool, str, int, float]]],
+        data_dict: Dict[str, Dict[str, List[Union[str, int, float, bool]]]],
         column: str
     ) -> Optional[str]:
         """ Check if 'column' is a column of the dictionary 'data'

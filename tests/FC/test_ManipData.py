@@ -25,42 +25,39 @@ def test_initialisation():
     correct_data = {
         'SR': {
             "name": ["SR"],
-            "unit": None,
+            "unit": [],
             "data": [1, 2, 3, 4, 5]
         },
         'NAME': {
             "name": ["NAME"],
-            "unit": None,
+            "unit": [],
             "data": ['Dett', 'Nern', 'Kallsie', 'Siuau', 'Shennice']
         },
         'GENDER': {
             "name": ["GENDER"],
-            "unit": None,
+            "unit": [],
             "data": ['Male', 'Female', 'Male', 'Female', 'Male']
         },
         'AGE': {
             "name": ["AGE"],
-            "unit": None,
+            "unit": [],
             "data": [18, 19, 20, 21, 22]
         },
         'DATE': {
             "name": ["DATE"],
-            "unit": None,
+            "unit": [],
             "data": ['21/05/2015', '15/10/2017', '16/08/2016', '21/05/2015', '21/05/2016']
         }
     }
     assert people == m.get_filename()
     assert correct_data == m.get_data()
-    assert None == m.get_error()
     
     
 def test_initialisation_incorrect():
     """ Test when the initialisation is incorrect
     """
-    m = ManipData(export_invalid)
-    assert export_invalid == m.get_filename()
-    assert None == m.get_data()
-    assert "Erreur : Le fichier 'export_invalid.py' n'est pas pris en charge par l'application" == m.get_error()
+    with pytest.raises(TypeError, match="cannot read data from 'export_invalid.py'. Should be a CSV, TSV, TXT or XLSX file"):
+        m = ManipData(export_invalid)
 # ------------------------------------------------------------------------------------------------------------------------
 # ------------------------------------------------------------------------------------------------------------------------
 
@@ -76,42 +73,41 @@ def test_read_file():
     correct_data = {
         'SR': {
             "name": ["SR"],
-            "unit": None,
+            "unit": [],
             "data": [1, 2, 3, 4, 5]
         },
         'NAME': {
             "name": ["NAME"],
-            "unit": None,
+            "unit": [],
             "data": ['Dett', 'Nern', 'Kallsie', 'Siuau', 'Shennice']
         },
         'GENDER': {
             "name": ["GENDER"],
-            "unit": None,
+            "unit": [],
             "data": ['Male', 'Female', 'Male', 'Female', 'Male']
         },
         'AGE': {
             "name": ["AGE"],
-            "unit": None,
+            "unit": [],
             "data": [18, 19, 20, 21, 22]
         },
         'DATE': {
             "name": ["DATE"],
-            "unit": None,
+            "unit": [],
             "data": ['21/05/2015', '15/10/2017', '16/08/2016', '21/05/2015', '21/05/2016']
         }
     }
     m.read_file(people)
     assert people == m.get_filename()
     assert correct_data == m.get_data()
-    assert None == m.get_error()
     
 
 def test_read_file_incorrect():
     """ Test the reading of the file when there is an error
     """
     m = ManipData()
-    m.read_file(export_invalid)
-    assert "Erreur : Le fichier 'export_invalid.py' n'est pas pris en charge par l'application" == m.get_error()
+    with pytest.raises(TypeError, match="cannot read data from 'export_invalid.py'. Should be a CSV, TSV, TXT or XLSX file"):
+        m.read_file(export_invalid)
 # ------------------------------------------------------------------------------------------------------------------------
 # ------------------------------------------------------------------------------------------------------------------------
 
@@ -125,7 +121,6 @@ def test_export():
     """
     m = ManipData(people)
     m.export("tmp.csv")
-    assert None == m.get_error()
     os.remove("tmp.csv")
     
 

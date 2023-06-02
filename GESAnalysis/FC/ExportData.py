@@ -16,7 +16,7 @@ class ExportData:
 
     def export_data(
         self,
-        data_dict: Optional[Dict[str, Dict[str, Union[bool, str, int, float]]]],
+        data_dict: Optional[Dict[str, Dict[str, List[Union[str, int, float, bool]]]]],
         fileout: str
     ) -> bool:
         """ Export the dictionary of data into the file 'fileout'
@@ -74,7 +74,7 @@ class ExportData:
     
     def __write_in_file(
         self,
-        data: Dict[str, Dict[str, Union[bool, str, int, float]]],
+        data: Dict[str, Dict[str, List[Union[str, int, float, bool]]]],
         fileout: str,
         sep: str
     ) -> bool:
@@ -146,7 +146,7 @@ class ExportData:
 
     def __get_data(
         self,
-        data_dict: Dict[str, Dict[str, Union[bool, str, int, float]]]
+        data_dict: Dict[str, Dict[str, List[Union[str, int, float, bool]]]]
     ) -> List[List[Union[bool, str, float, int]]]:
         """ Get the data of each column and put it in a list
 
