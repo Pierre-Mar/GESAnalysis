@@ -29,7 +29,6 @@ class DistanceMode(QtWidgets.QWidget):
         
         
         self.__mode_ind = {} # Dictionary where the key is the mode of transport and the value his index
-        self.__years_check = {} # Dictionary to display years in the canvas
         self.__years_dist = {} # Dictionary where the key is a year and the value a list with distance for all mode
         self.__check_unit(readerData_year_list)
         self.__configure_data(readerData_year_list)
@@ -42,6 +41,7 @@ class DistanceMode(QtWidgets.QWidget):
         # Initialisation UI
         self.__init_UI()
         
+        # Draw canvas
         self.__draw()
         
         
@@ -50,6 +50,8 @@ class DistanceMode(QtWidgets.QWidget):
         """
         # Widget for canvas
         widget_canvas = QtWidgets.QWidget(self)
+        
+        # Add toolbar to control the graph
         toolbar = NavigationToolbar2QT(self.__figCanvas, self)
         layout_canvas = QtWidgets.QVBoxLayout()
         layout_canvas.addWidget(toolbar)
@@ -59,17 +61,41 @@ class DistanceMode(QtWidgets.QWidget):
         # Widget for buttons for years
         widget_checkbutton_years = QtWidgets.QWidget(self)
         layout_checkbutton_years = QtWidgets.QHBoxLayout()
-        for year in self.__years_check.keys():
-            self.__years_check[year]["button"] = QtWidgets.QCheckBox(year)
-            self.__years_check[year]["button"].setChecked(self.__years_check[year]["checked"])
-            self.__years_check[year]["button"].toggled.connect(partial(self.__click_year, year))
-            layout_checkbutton_years.addWidget(self.__years_check[year]["button"])
+        
+        # Create a button for each year
+        for year in self.__years_dist.keys():
+            self.__years_dist[year]["button"] = QtWidgets.QCheckBox(year)
+            self.__years_dist[year]["button"].setChecked(self.__years_dist[year]["checked"])
+            self.__years_dist[year]["button"].toggled.connect(partial(self.__click_year, year))
+            layout_checkbutton_years.addWidget(self.__years_dist[year]["button"])
         widget_checkbutton_years.setLayout(layout_checkbutton_years)
         layout_checkbutton_years.setAlignment(QtCore.Qt.AlignCenter)
+        
+        # Widget for choose bars or curve
+        widget_bar_curve = QtWidgets.QWidget(self)
+        layout_bar_curve = QtWidgets.QHBoxLayout() # Horizontal layout
+        
+        # Create a radio button to choose "Bars"
+        self.__bar_button = QtWidgets.QRadioButton("Barre")
+        self.__bar_button.setChecked(True)
+        self.__bar_button.toggled.connect(self.__choose_bar_curve)
+        layout_bar_curve.addWidget(self.__bar_button)
+        
+        # Create a radio button to choose "Curve"
+        self.__curve_button = QtWidgets.QRadioButton("Courbe")
+        self.__curve_button.toggled.connect(self.__choose_bar_curve)
+        layout_bar_curve.addWidget(self.__curve_button)
+        layout_bar_curve.setAlignment(QtCore.Qt.AlignCenter)
+        
+        widget_bar_curve.setLayout(layout_bar_curve)
+        
+        self.__displayBar = True
+        
         # Principal widget
         layout = QtWidgets.QVBoxLayout()
         layout.addWidget(widget_canvas)
         layout.addWidget(widget_checkbutton_years)
+        layout.addWidget(widget_bar_curve)
         self.setLayout(layout)
         
 
@@ -94,7 +120,7 @@ class DistanceMode(QtWidgets.QWidget):
             if reader is None:
                 continue
             
-            # Récupères les données du reader pour le mode et la distance
+            # Get the values from the reader for the mode and the distance
             mode = self.__get_column(reader, "mode")
             if mode is None:
                 continue
@@ -103,23 +129,23 @@ class DistanceMode(QtWidgets.QWidget):
             if distance is None:
                 continue
             
-            if year not in self.__years_check:
-                self.__years_check[year] = {}
-                self.__years_check[year]["checked"] = True
-            
-            # On regarde le nombre de mode qu'il y a en associant un index
+            # Associate an index to a mode of transport
             for i in range(len(mode)):
                 if mode[i] not in self.__mode_ind.keys():
                     self.__mode_ind[mode[i]] = ind_mode
                     ind_mode += 1
-                    
-            # On construit une liste avec où la valeur est la distance
-            # du mode où l'index est associé dans le dictionnaire
-            self.__years_dist[year] = [0 for i in range(len(list(self.__mode_ind.keys())))]
             
-            # On calcule la distance pour chaque mode
+            # Construct a dictionary for the values and the button for a year    
+            if year in self.__years_dist.keys():
+                raise ValueError(f"already data for year '{year}'")
+            
+            self.__years_dist[year] = {}
+            self.__years_dist[year]["checked"] = True
+            self.__years_dist[year]["distance"] = [0 for i in range(len(list(self.__mode_ind.keys())))]
+            
+            # Calculate the distance for each mode
             for i in range(len(distance)):
-                   self.__years_dist[year][self.__mode_ind[mode[i]]] += distance[i]
+                   self.__years_dist[year]["distance"][self.__mode_ind[mode[i]]] += distance[i]
 
     
     def __draw(self):
@@ -128,32 +154,46 @@ class DistanceMode(QtWidgets.QWidget):
         self.__axes.cla() # clear the canvas
         
         # Values use to print the name of labels
-        width = 0.3
-        espacement = 0.8
+        width = 0.3                                # Width of bars
+        espacement = 0.8                           # Espacement between bars of each mode
+        number_mode = len(self.__mode_ind.keys())  # Number of mode of transport
+        active_year = 0
+        for year in self.__years_dist.keys():
+            if self.__years_dist[year]["checked"]:
+                active_year += 1
         
         # Calculate the necessary space between the bars
-        x = np.zeros(len(self.__mode_ind.keys()))
-        for i in range(1, len(self.__mode_ind.keys())):
-            x[i] = x[i-1] + len(self.__years_dist.keys())*width + espacement
+        x = np.zeros(number_mode)
+        for i in range(1, number_mode):
+            x[i] = x[i-1] + active_year*width + espacement
         multiplier = 0
         
+        # Display bars un canvas
         for year, dist_mode in self.__years_dist.items():
-            if not self.__years_check[year]["checked"]:
+            if not self.__years_dist[year]["checked"]:
                 continue
-            offset = width * multiplier
-            self.__axes.bar(x+offset, dist_mode, width=width, label=year)
-            multiplier += 1
+            
+            if self.__displayBar:
+                offset = width * multiplier
+                self.__axes.bar(x+offset, dist_mode["distance"], width=width, label=year)
+                multiplier += 1
+            else:
+                self.__axes.plot(x, dist_mode["distance"], "-o", label=year)
                 
         self.__axes.set_ylabel("Distance ({0})".format(self.__unit))
         # Calulate the space of label which he is in the middle of the bars
-        if len(self.__years_dist) % 2 == 0:
-            offset_xlabel = ((len(self.__years_dist)//2) - 1)*width
-            self.__axes.set_xticks(x+offset_xlabel + width/2, list(self.__mode_ind.keys()))
+        if self.__displayBar:
+            if active_year % 2 == 0:
+                offset_xlabel = ((active_year//2) - 1)*width
+                self.__axes.set_xticks(x+offset_xlabel + width/2, list(self.__mode_ind.keys()))
+            else:
+                offset_xlabel = active_year//2*width
+                self.__axes.set_xticks(x+offset_xlabel, list(self.__mode_ind.keys()))
         else:
-            offset_xlabel = len(self.__years_dist)//2*width
-            self.__axes.set_xticks(x+offset_xlabel, list(self.__mode_ind.keys()))
-        
-        self.__axes.legend()
+            self.__axes.set_xticks(x, list(self.__mode_ind.keys()))
+        # Display legend in case there are some year active
+        if active_year > 0:
+            self.__axes.legend()
         self.__figCanvas.draw()
 
 
@@ -184,10 +224,21 @@ class DistanceMode(QtWidgets.QWidget):
     
     
     # Mouse Event for checkbox for years
-    def __click_year(self, year, state):
-        self.__years_check[year]["checked"] = state
+    def __click_year(self, year: QtWidgets.QCheckBox, state: bool) -> None:
+        """ Change state of the button 'year' and the graph when an user clicked on it
+
+        Args:
+            year (QtWidgets.QCheckBox): A button
+            state (bool): The button is checked or not
+        """
+        self.__years_dist[year]["checked"] = state
         self.__draw()
     
+    def __choose_bar_curve(self) -> None:
+        """ Change the graph is the user want curve or bars
+        """
+        self.__displayBar = self.__bar_button.isChecked()
+        self.__draw()
     
             
     def __get_column(
