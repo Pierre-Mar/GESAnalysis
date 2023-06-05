@@ -1,5 +1,4 @@
 import matplotlib.pyplot as plt
-import matplotlib.animation as animation
 import numpy as np
 
 
@@ -17,12 +16,7 @@ class DistanceMode:
         self.__fig, self.__ax = plt.subplots()
         self.__check_unit(readerData_year_list)
         self.__configure_data(readerData_year_list)
-        
-        # Creer une animation pour mettre à jour le graphe
-        self.__ani = animation.FuncAnimation(
-            self.__fig, self.__draw, interval=1000,cache_frame_data=False
-        )
-        plt.show()
+        self.__draw()
     
     
     def add_data(self, readerData_year):
@@ -107,22 +101,35 @@ class DistanceMode:
                 break
               
  
-    def __draw(self, i):
+    def __draw(self):
         """ Permets de dessiner le graphe avec matplotlib
         """
-        self.__ax.clear()
-        x = np.arange(len(list(self.__mode_ind.keys())))
+        # Valeur pour l'affichage des noms des étiquettes
         width = 0.3
+        espacement = 0.8
+        
+        # Calcul de l'espacement nécessaires entre les barres
+        x = np.zeros(len(self.__mode_ind.keys()))
+        for i in range(1, len(self.__mode_ind.keys())):
+            x[i] = x[i-1] + len(self.__years_dist.keys())*width + espacement
         multiplier = 0
         
         for year, dist_mode in self.__years_dist.items():
             offset = width * multiplier
-            self.__ax.bar(x+offset, dist_mode, width, label=year)
+            self.__ax.bar(x+offset, dist_mode, width=width, label=year)
             multiplier += 1
                 
         self.__ax.set_ylabel("Distance ({0})".format(self.__unit))
-        self.__ax.set_xticks(x, list(self.__mode_ind.keys()))
+        # Calcul de l'emplacement de l'étiquette qui doit se trouver au milieu des barres
+        if len(self.__years_dist) % 2 == 0:
+            offset_xlabel = ((len(self.__years_dist)//2) - 1)*width
+            self.__ax.set_xticks(x+offset_xlabel + width/2, list(self.__mode_ind.keys()))
+        else:
+            offset_xlabel = len(self.__years_dist)//2*width
+            self.__ax.set_xticks(x+offset_xlabel, list(self.__mode_ind.keys()))
+        
         plt.legend()
+        plt.show()
 
         
     def __get_column(self, reader, column):
