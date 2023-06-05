@@ -45,7 +45,7 @@ class ReaderData:
                 
             The dictionary will be :
             {
-                "nom_col1": { "name": ["nom_col1"], "unit": None, "data": [d11, d21] },
+                "nom_col1": { "name": ["nom_col1"], "unit": [], "data": [d11, d21] },
                 "nom_col2.unite": { "name": ["nom_col2"], "unit": ["unite"], "data": [d12, d22] },
                 "nom_col3.suite_nom.unite": { "name": ["nom_col3", "suite_nom"], "unit": ["unite"], "data": [d13, d23] },
                 "nom_col4.suite_nom.unite.suite_unite": { "name": ["nom_col4", "suite_nom"], "unit": ["unite", "suite_unite"], "data": [d14, d24] },
