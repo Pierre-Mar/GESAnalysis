@@ -268,9 +268,15 @@ class ReaderData:
         """
         match engine:
             case 'pandas':
-                return self.__read_xlsx_pandas(filename)
+                try:
+                    return self.__read_xlsx_pandas(filename)
+                except:
+                    return self.__read_xlsx_openpyxl(filename)
             case 'openpyxl':
-                return self.__read_xlsx_openpyxl(filename)
+                try:
+                    return self.__read_xlsx_openpyxl(filename)
+                except:
+                    return self.__read_xlsx_pandas(filename)
             case _:
                 raise ValueError(f"'{engine}' is not an engine to read a file. Use 'pandas' or 'openpyxl'")
             
