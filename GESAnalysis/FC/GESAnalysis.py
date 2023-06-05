@@ -58,8 +58,24 @@ class GESAnalysis:
             raise Exception(str(e))
         
         
+    def close_file(self, filename: str) -> None:
+        """ Remove the data from the dictionary
+
+        Args:
+            filename (str): Path to file
+
+        Raises:
+            Exception: The data of the file is not in the dictionary
+        """
+        file = self.get_filename(filename)
+        try:
+            del self.__file_open[file]
+        except:
+            raise Exception(f"the file '{file}' is not open yet")
+        
+        
     
-    def get_data(self, filename:str) -> Dict[str, Dict[str, List[Union[str, int, float, bool]]]]:
+    def get_data_from_file(self, filename:str) -> Dict[str, Dict[str, List[Union[str, int, float, bool]]]]:
         """ Return the dictionary of data of the last file who was read
 
         Returns:
@@ -69,7 +85,7 @@ class GESAnalysis:
         try:
             return self.__file_open[file]
         except:
-            raise Exception(f"there is no file '{file} open")
+            raise Exception(f"there is no file '{file}' open")
     
 
     def get_filename(self, path_file: str) -> str:
@@ -81,9 +97,9 @@ class GESAnalysis:
         Returns:
             str: name of file
         """
-        root_filename = os.path.splitext(path_file)[0]
+        root_filename, file_ext = os.path.splitext(path_file)
         sep_path = '/'
         if platform.system() == "Windows":
             sep_path = '\\'
         split_path = root_filename.split(sep_path)
-        return split_path[len(split_path)-1]
+        return split_path[len(split_path)-1] + file_ext
