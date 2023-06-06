@@ -1,4 +1,6 @@
 import matplotlib
+
+
 matplotlib.use('Qt5Agg')
 import numpy as np
 
@@ -7,16 +9,18 @@ from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg, NavigationTool
 from matplotlib.figure import Figure
 from typing import Optional, List, Tuple, Dict, Union
 from functools import partial
+from GESAnalysis.FC.PATTERNS.Observer import Observer
 
 
-class DistanceMode(QtWidgets.QWidget):
+class DistanceMode(QtWidgets.QWidget, Observer):
     """ Class for graphically representing
         the distance for each year according to the mode of transport
     """
     
     def __init__(
-        self, 
-        readerData_year_list: Optional[List[Tuple[Optional[Dict[str, Dict[str, List[Union[str, bool, int, float]]]]], str]]],
+        self,
+        model,
+        controller,
         parent: Optional[QtWidgets.QWidget]
     ) -> None:
         """ Initialisation of class where we configure data to plot later
@@ -27,11 +31,18 @@ class DistanceMode(QtWidgets.QWidget):
         """
         super(DistanceMode, self).__init__(parent)
         
+        self.__gesanalysis = model
+        self.__controller = controller
+        
+        # Add this observer into the list for observable
+        self.__gesanalysis.add_observer(self)
+        
         
         self.__mode_ind = {} # Dictionary where the key is the mode of transport and the value his index
         self.__years_dist = {} # Dictionary where the key is a year and the value a list with distance for all mode
-        self.__check_unit(readerData_year_list)
-        self.__configure_data(readerData_year_list)
+        
+        self.__check_unit()
+        self.__configure_data()
 
         # Create figure
         self.__fig = Figure()
@@ -47,7 +58,7 @@ class DistanceMode(QtWidgets.QWidget):
         
     def __init_UI(self):
         """ Initialise the UI
-        """
+        """        
         # Widget for canvas
         widget_canvas = QtWidgets.QWidget(self)
         
@@ -60,6 +71,7 @@ class DistanceMode(QtWidgets.QWidget):
         
         # Widget for buttons for years
         widget_checkbutton_years = QtWidgets.QWidget(self)
+        widget_checkbutton_years.setFixedHeight(40)
         layout_checkbutton_years = QtWidgets.QHBoxLayout()
         
         # Create a button for each year
@@ -73,6 +85,7 @@ class DistanceMode(QtWidgets.QWidget):
         
         # Widget for choose bars or curve
         widget_bar_curve = QtWidgets.QWidget(self)
+        widget_bar_curve.setFixedHeight(40)
         layout_bar_curve = QtWidgets.QHBoxLayout() # Horizontal layout
         
         # Create a radio button to choose "Bars"
@@ -98,56 +111,7 @@ class DistanceMode(QtWidgets.QWidget):
         layout.addWidget(widget_bar_curve)
         self.setLayout(layout)
         
-
-    def __configure_data(
-        self,
-        readerdata_year: Optional[List[Tuple[Optional[Dict[str, Dict[str, List[Union[str, bool, int, float]]]]], str]]]
-    ) -> None:
-        """ Configure the data into the correct format for plot
-
-        Args:
-            readerData_year_list (Optional[List[Tuple[Optional[Dict[str, Dict[str, List[Union[str, bool, int, float]]]]], str]]]): 
-            List of dictionary associated to a year
         
-        Raises:
-            TypeError: List is null
-        """
-        if readerdata_year is None:
-            raise TypeError("cannot plot (distance depending mode) because the list is null")
-        
-        ind_mode = 0
-        for reader, year in readerdata_year:
-            if reader is None:
-                continue
-            
-            # Get the values from the reader for the mode and the distance
-            mode = self.__get_column(reader, "mode")
-            if mode is None:
-                continue
-            
-            distance = self.__get_column(reader, "distance")
-            if distance is None:
-                continue
-            
-            # Associate an index to a mode of transport
-            for i in range(len(mode)):
-                if mode[i] not in self.__mode_ind.keys():
-                    self.__mode_ind[mode[i]] = ind_mode
-                    ind_mode += 1
-            
-            # Construct a dictionary for the values and the button for a year    
-            if year in self.__years_dist.keys():
-                raise ValueError(f"already data for year '{year}'")
-            
-            self.__years_dist[year] = {}
-            self.__years_dist[year]["checked"] = True
-            self.__years_dist[year]["distance"] = [0 for i in range(len(list(self.__mode_ind.keys())))]
-            
-            # Calculate the distance for each mode
-            for i in range(len(distance)):
-                   self.__years_dist[year]["distance"][self.__mode_ind[mode[i]]] += distance[i]
-
-    
     def __draw(self):
         """ Draw the data in the canvas
         """
@@ -195,11 +159,55 @@ class DistanceMode(QtWidgets.QWidget):
         if active_year > 0:
             self.__axes.legend()
         self.__figCanvas.draw()
+        
+
+    def __configure_data(self) -> None:
+        """ Configure the data into the correct format for plot
+        
+        Raises:
+            TypeError: List is null
+        """
+        if self.__gesanalysis is None:
+            raise TypeError("cannot plot (distance depending mode) because the dictionary is null")
+        
+        ind_mode = 0
+        for val_ges in self.__gesanalysis.get_data().values():
+            reader = val_ges["data"]
+            year = val_ges["year"]
+            
+            if reader is None:
+                continue
+            
+            # Get the values from the reader for the mode and the distance
+            mode = self.__get_column(reader, "mode")
+            if mode is None:
+                continue
+            
+            distance = self.__get_column(reader, "distance")
+            if distance is None:
+                continue
+            
+            # Associate an index to a mode of transport
+            for i in range(len(mode)):
+                if mode[i] not in self.__mode_ind.keys():
+                    self.__mode_ind[mode[i]] = ind_mode
+                    ind_mode += 1
+            
+            # Construct a dictionary for the values and the button for a year    
+            if year in self.__years_dist.keys():
+                raise ValueError(f"already data for year '{year}'")
+            
+            self.__years_dist[year] = {}
+            self.__years_dist[year]["checked"] = True
+            self.__years_dist[year]["distance"] = [0 for i in range(len(list(self.__mode_ind.keys())))]
+            
+            # Calculate the distance for each mode
+            for i in range(len(distance)):
+                   self.__years_dist[year]["distance"][self.__mode_ind[mode[i]]] += distance[i]
 
 
     def __check_unit(
         self,
-        readerData_year: List[Tuple[Optional[Dict[str, Dict[str, List[Union[str, bool, int, float]]]]], str]]
     ) -> None:
         """ Check the unit of distance for each year is the same
         
@@ -211,7 +219,10 @@ class DistanceMode(QtWidgets.QWidget):
             ValueError: A year has a different unit of distance
         """
         self.__unit = ""
-        for reader, year in readerData_year:
+        for values_ges in self.__gesanalysis.get_data().values():
+            reader = values_ges["data"]
+            year = values_ges["year"]
+            
             unit_reader = self.__get_unit(reader, "distance")
             
             if self.__unit == "":
