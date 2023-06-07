@@ -1,6 +1,6 @@
-import typing
-from PyQt5 import QtCore, QtWidgets
+from PyQt5 import QtWidgets
 from GESAnalysis.UI.FileOpenUI import FileOpenUI
+from GESAnalysis.UI.OpenFileDialog import OpenFileDialog
 from GESAnalysis.UI.plot.DistanceMode import DistanceMode
 
 
@@ -47,6 +47,7 @@ class MainWindow(QtWidgets.QMainWindow):
         
         # Create action to open file
         open_file_action = QtWidgets.QAction("Ouvrir", self)
+        open_file_action.triggered.connect(self.open_file_dialog)
         file_menu.addAction(open_file_action)
         
         # Create action to close file
@@ -63,3 +64,8 @@ class MainWindow(QtWidgets.QMainWindow):
     
     def close_files(self):
         self.file_open_UI.close_files()
+        
+    
+    def open_file_dialog(self):
+        self.file_dialog = OpenFileDialog(self.__gesanalysis, self.__controller, self)
+        self.file_dialog.exec()
