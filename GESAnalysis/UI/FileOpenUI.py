@@ -31,5 +31,17 @@ class FileOpenUI(QtWidgets.QWidget, Observer):
             self.__list_widget.addItem(item)
             
             
-    def get_selected_files(self):
-        return [item.text() for item in self.__list_widget.selectedItems()]
+    def close_files(self):
+        remove_items = [item.text() for item in self.__list_widget.selectedItems()]
+        self.__controller.close_files(remove_items)
+    
+    
+    def update(self):
+        # Remove all the items
+        self.__list_widget.clear()
+        
+        # Add others items
+        for file in self.__gesanalysis.get_file_open():
+            item = QtWidgets.QListWidgetItem()
+            item.setText(file)
+            self.__list_widget.addItem(item)

@@ -21,7 +21,6 @@ class MainWindow(QtWidgets.QMainWindow):
     def __init_UI(self):
         self.setWindowTitle("GESAnalysis")
         self.resize(self.width, self.height)
-        self.setStyleSheet("background-color: white")
         
         # Create the menu
         self.__init_menu()
@@ -52,6 +51,7 @@ class MainWindow(QtWidgets.QMainWindow):
         
         # Create action to close file
         close_file_action = QtWidgets.QAction("Fermer", self)
+        close_file_action.triggered.connect(self.close_files)
         file_menu.addAction(close_file_action)
         
         file_menu.addSeparator()
@@ -59,4 +59,7 @@ class MainWindow(QtWidgets.QMainWindow):
         # Create action to export file
         export_action = QtWidgets.QAction("Exporter", self)
         file_menu.addAction(export_action)
-        
+    
+    
+    def close_files(self):
+        self.file_open_UI.close_files()

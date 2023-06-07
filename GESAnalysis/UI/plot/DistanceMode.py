@@ -70,18 +70,18 @@ class DistanceMode(QtWidgets.QWidget, Observer):
         widget_canvas.setLayout(layout_canvas)
         
         # Widget for buttons for years
-        widget_checkbutton_years = QtWidgets.QWidget(self)
-        widget_checkbutton_years.setFixedHeight(40)
-        layout_checkbutton_years = QtWidgets.QHBoxLayout()
+        self.__widget_checkbutton_years = QtWidgets.QWidget(self)
+        self.__widget_checkbutton_years.setFixedHeight(40)
+        self.__layout_checkbutton_years = QtWidgets.QHBoxLayout()
         
         # Create a button for each year
         for year in self.__years_dist.keys():
             self.__years_dist[year]["button"] = QtWidgets.QCheckBox(year)
             self.__years_dist[year]["button"].setChecked(self.__years_dist[year]["checked"])
             self.__years_dist[year]["button"].toggled.connect(partial(self.__click_year, year))
-            layout_checkbutton_years.addWidget(self.__years_dist[year]["button"])
-        widget_checkbutton_years.setLayout(layout_checkbutton_years)
-        layout_checkbutton_years.setAlignment(QtCore.Qt.AlignCenter)
+            self.__layout_checkbutton_years.addWidget(self.__years_dist[year]["button"])
+        self.__widget_checkbutton_years.setLayout(self.__layout_checkbutton_years)
+        self.__layout_checkbutton_years.setAlignment(QtCore.Qt.AlignCenter)
         
         # Widget for choose bars or curve
         widget_bar_curve = QtWidgets.QWidget(self)
@@ -107,7 +107,7 @@ class DistanceMode(QtWidgets.QWidget, Observer):
         # Principal widget
         layout = QtWidgets.QVBoxLayout()
         layout.addWidget(widget_canvas)
-        layout.addWidget(widget_checkbutton_years)
+        layout.addWidget(self.__widget_checkbutton_years)
         layout.addWidget(widget_bar_curve)
         self.setLayout(layout)
         
@@ -292,3 +292,27 @@ class DistanceMode(QtWidgets.QWidget, Observer):
             if column == " ".join(reader[c]["name"]):
                 return reader[c]["unit"]
         return None
+    
+    
+    def update(self):
+        # Remove the button years from the widget
+        for year in self.__years_dist.keys():
+            self.__layout_checkbutton_years.removeWidget(self.__years_dist[year]["button"])
+        
+        # Reset data
+        self.__mode_ind = {}
+        self.__years_dist = {}
+        
+        self.__check_unit()
+        self.__configure_data()
+        
+        # Repaint the UI
+        # Only need to change the button for years
+        for year in self.__years_dist.keys():
+            self.__years_dist[year]["button"] = QtWidgets.QCheckBox(year)
+            self.__years_dist[year]["button"].setChecked(self.__years_dist[year]["checked"])
+            self.__years_dist[year]["button"].toggled.connect(partial(self.__click_year, year))
+            self.__layout_checkbutton_years.addWidget(self.__years_dist[year]["button"])
+                
+        # Draw the graph
+        self.__draw()
