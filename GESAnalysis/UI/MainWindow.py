@@ -1,12 +1,28 @@
 from PyQt5 import QtWidgets
+from GESAnalysis.FC.Controleur import Controleur
+from GESAnalysis.FC.GESAnalysis import GESAnalysis
 from GESAnalysis.UI.FileOpenUI import FileOpenUI
 from GESAnalysis.UI.OpenFileDialog import OpenFileDialog
 from GESAnalysis.UI.plot.DistanceMode import DistanceMode
 
 
 class MainWindow(QtWidgets.QMainWindow):
+    """ Class representing the main window
+    """
     
-    def __init__(self, model, controller, *args, **kwargs) -> None:
+    def __init__(
+        self,
+        model: GESAnalysis,
+        controller: Controleur,
+        *args,
+        **kwargs
+    ) -> None:
+        """ Initialise the window
+
+        Args:
+            model (GESAnalysis): Model of the UI, contains the data
+            controller (Controleur): Controller
+        """
         super(MainWindow, self).__init__(*args, **kwargs)
         
         self.__gesanalysis = model
@@ -18,7 +34,9 @@ class MainWindow(QtWidgets.QMainWindow):
         self.__init_UI()
         
         
-    def __init_UI(self):
+    def __init_UI(self) -> None:
+        """ Initialise the UI of the window
+        """
         self.setWindowTitle("GESAnalysis")
         self.resize(self.width, self.height)
         
@@ -39,6 +57,8 @@ class MainWindow(QtWidgets.QMainWindow):
         
         
     def __init_menu(self):
+        """ Initialise the menu of the window
+        """
         menu = self.menuBar()
         
         # Create a sub menu for 'file'
@@ -63,9 +83,13 @@ class MainWindow(QtWidgets.QMainWindow):
     
     
     def close_files(self):
+        """ Action to close a file
+        """
         self.file_open_UI.close_files()
         
     
     def open_file_dialog(self):
-        self.file_dialog = OpenFileDialog(self.__gesanalysis, self.__controller, self)
+        """ Open a dialog to read a file
+        """
+        self.file_dialog = OpenFileDialog(self.__controller, self)
         self.file_dialog.exec()
