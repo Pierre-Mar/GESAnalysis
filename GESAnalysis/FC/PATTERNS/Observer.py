@@ -1,5 +1,4 @@
 class Observer:
-    
     """ Class/Interface to update UI when there are some change
         with the data
     """
