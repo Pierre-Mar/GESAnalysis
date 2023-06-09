@@ -7,26 +7,20 @@ reader = ReaderData()
 
 
 # Définition of paths of files depending on the OS
+# Configure path to file
 os_name = platform.system()
-people = "tests/resources/people.csv"
-hw_5 = "tests/resources/hw_5.tsv"
-username = "tests/resources/username.txt"
-excel = "tests/resources/file_example_XLSX_10.xlsx"
-export_invalid = "tests/resources/export_invalid.py"
-not_exist = "tests/resources/not_exist"
-cant_read = "tests/resources/cant_read.py"
-nb_col_diff = "tests/resources/nb_col_diff.txt"
-type_diff = "tests/resources/type_diff.txt"
-if os_name == 'Windows':
-    people = r"tests\resources\people.csv"
-    hw_5 = r"tests\resources\hw_5.tsv"
-    username = r"tests\resources\username.txt"
-    excel = r"tests\resources\file_example_XLSX_10.xlsx"
-    export_invalid = r"tests\resources\export_invalid.py"
-    not_exist = r"tests\resources\not_exist"
-    cant_read = r"tests\resources\cant_read.py"
-    nb_col_diff = r"tests\resources\nb_col_diff.txt"
-    type_diff = r"tests\resources\type_diff.txt"
+path = "tests/resources/"
+if os_name == "Windows":
+    path = "tests\\resources\\"
+people = path + "people.csv"
+hw_5 = path + "hw_5.tsv"
+username = path + "username.txt"
+excel = path + "file_example_XLSX_10.xlsx"
+export_invalid = path + "export_invalid.py"
+not_exist = path + "not_exist"
+cant_read = path + "cant_read.py"
+nb_col_diff = path + "nb_col_diff.txt"
+type_diff = path + "type_diff.txt"
 
 
 # ------------------------------------------------------------------------------------------------------------------------
@@ -41,31 +35,37 @@ def test_valid_csv_file():
     """
     correct_data = {
         'SR': {
-            "name": ["SR"],
-            "unit": [],
-            "data": [1, 2, 3, 4, 5]
+            'name': ['SR'],
+            'unit': [],
+            'data': [[1], [2], [3], [4], [5]],
+            'type': int
         },
         'NAME': {
-            "name": ["NAME"],
-            "unit": [],
-            "data": ['Dett', 'Nern', 'Kallsie', 'Siuau', 'Shennice']
+            'name': ['NAME'],
+            'unit': [],
+            'data': [['Dett'], ['Nern'], ['Kallsie'], ['Siuau'], ['Shennice']],
+            'type': str
         },
         'GENDER': {
-            "name": ["GENDER"],
-            "unit": [],
-            "data": ['Male', 'Female', 'Male', 'Female', 'Male']
+            'name': ['GENDER'],
+            'unit': [],
+            'data': [['Male'], ['Female'], ['Male'], ['Female'], ['Male']],
+            'type': str
         },
         'AGE': {
-            "name": ["AGE"],
-            "unit": [],
-            "data": [18, 19, 20, 21, 22]
+            'name': ['AGE'],
+            'unit': [],
+            'data': [[18], [19], [20], [21], [22]],
+            'type': int
         },
         'DATE': {
-            "name": ["DATE"],
-            "unit": [],
-            "data": ['21/05/2015', '15/10/2017', '16/08/2016', '21/05/2015', '21/05/2016']
+            'name': ['DATE'],
+            'unit': [],
+            'data': [['21/05/2015'], ['15/10/2017'], ['16/08/2016'], ['21/05/2015'], ['21/05/2016']],
+            'type': str
         }
     }
+
     assert correct_data == reader.read_file(people, sep=",")
 
 
@@ -73,20 +73,23 @@ def test_valid_tsv_file():
     """ Same with a TSV file
     """
     correct_data = {
-        "Index": {
-            "name": ["Index"],
-            "unit": [],
-            "data": [1, 2, 3, 4, 5]
+        'Index': {
+            'name': ['Index'],
+            'unit': [],
+            'data': [[1], [2], [3], [4], [5]],
+            'type': int
         },
-        "height.cm": {
-            "name": ["height"],
-            "unit": ["cm"],
-            "data": [165.1, 180.49, 175.26, 172.72, 170.18]
+        'height.cm': {
+            'name': ['height'],
+            'unit': ['cm'],
+            'data': [[165.1], [180.49], [175.26], [172.72], [170.18]],
+            'type': float
         },
-        "weight.kg": {
-            "name": ["weight"],
-            "unit": ["kg"],
-            "data": [50.80, 61.69, 69.4, 64.41, 65.32]
+        'weight.kg': {
+            'name': ['weight'],
+            'unit': ['kg'],
+            'data': [[50.8], [61.69], [69.4], [64.41], [65.32]],
+            'type': float
         }
     }
     assert correct_data == reader.read_file(hw_5)
@@ -96,26 +99,30 @@ def test_valid_txt_file():
     """ Same with a TXT file
     """
     correct_data = {
-        "Username": {
-            "name": ["Username"],
-            "unit": [],
-            "data": ['booker12', 'grey07', 'johnson81', 'jenkins46', 'smith79']
+        'Username': {
+            'name': ['Username'],
+            'unit': [],
+            'data': [['booker12'], ['grey07'], ['johnson81'], ['jenkins46'], ['smith79']],
+            'type': str
         },
-        "Registered": {
-            "name": ["Registered"],
-            "unit": [],
-            "data": [True, False, False, True, True]
+        'Registered': {
+            'name': ['Registered'],
+            'unit': [],
+            'data': [[True], [False], [False], [True], [True]],
+            'type': bool
         },
-        "First name": {
-            "name": ["First name"],
-            "unit": [],
-            "data": ['Rachel', 'Laura', 'Craig', 'Mary', 'Jamie']
+        'First name': {
+            'name': ['First name'],
+            'unit': [],
+            'data': [['Rachel'], ['Laura'], ['Craig'], ['Mary'], ['Jamie']],
+            'type': str
         },
-        "Last name": {
-            "name": ["Last name"],
-            "unit": [],
-            "data": ['Booker', 'Grey', 'Johnson', 'Jenkins', 'Smith']
-        } 
+        'Last name': {
+            'name': ['Last name'],
+            'unit': [],
+            'data': [['Booker'], ['Grey'], ['Johnson'], ['Jenkins'], ['Smith']],
+            'type': str
+        }
     }
     assert correct_data == reader.read_file(username)
 

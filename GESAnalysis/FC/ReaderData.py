@@ -1,8 +1,7 @@
 import os
 import platform
 import csv
-import pandas
-import openpyxl
+import ast
 from typing import Union, Dict, List, Tuple, Optional
 
 
@@ -169,20 +168,18 @@ class ReaderData:
                 # Add the row elements into data
                 # The elements are in a list where the key is the name of the column
                 for elem_index in range(len(list_lines)):
-                    new_elem = self.__convert_element(list_lines[elem_index])
-                    
-                    # Check that the element is the same type
-                    # If it's the 1st element, we skip it
-                    type_new_elem = type(new_elem)
-                    type_new_elem_str = str(type_new_elem).split("'")[1]
-                    if lines_iter != 1 and not isinstance(data[name_column[elem_index]]["data"][0], type_new_elem):
-                        type_elem_ref = type(data[name_column[elem_index]]["data"][0])
-                        type_elem_ref_str = str(type_elem_ref).split("'")[1]
-                        print(str(type_elem_ref))
-                        raise TypeError(f"Element at row {lines_iter+1} and column {'.'.join(data[name_column[elem_index]]['name'])} has type {type_new_elem_str} instead of type {type_elem_ref_str}")
+                    elem, type_elem = self.__convert_element(list_lines[elem_index])
+                    # If it's the first element, we add his type to the dictionary
+                    if lines_iter == 1:
+                        data[name_column[elem_index]]["type"] = type_elem
+                    # Else, we compare if it's the same type
+                    else:
+                        correct_type = data[name_column[elem_index]]["type"]
+                        if type_elem != correct_type:
+                            raise TypeError(f"Element at row {lines_iter+1} and column {'.'.join(data[name_column[elem_index]]['name'])} has type {self.__type_to_str(type_elem)} instead of type {self.__type_to_str(correct_type)}")
                     
                     # Add into data
-                    data[name_column[elem_index]]["data"].append(new_elem)
+                    data[name_column[elem_index]]["data"].append(elem)
                     
                 # Next line
                 lines = file.readline()
@@ -191,29 +188,38 @@ class ReaderData:
                 
         return data
     
-    
-    def __convert_element(self, elem: str) -> Union[bool, str, int, float]:
-        """ Convert the element 'elem' in his corresponding type
+
+    def __convert_element(self, val_str: str) -> Tuple[List[Union[bool, int, float, str]], type]:
+        """ Convert a value in a string to his corresponding type
 
         Args:
-            elem (str): Element to convert
+            val_str (str): The value in a string
 
         Returns:
-            bool | int | float | str : Element in the good type
+            type: The type of the value
         """
-        # Check if elem is a boolean
-        if elem.lower() == "true":
-            return True
-        elif elem.lower() == "false":
-            return False
-
-        # Check each type to get the good type
-        contructors = [int, float, str]
-        for c in contructors:
-            try:
-                return c(elem)
-            except ValueError:
-                pass
+        constructors = [int, float]
+        
+        # Change the value to their corresponding type
+        val_list = val_str.split(',')
+        for i in range(len(val_list)):
+            if val_list[i].lower() == "true":
+                val_list[i] = True
+            elif val_list[i].lower() == "false":
+                val_list[i] = False
+            else:
+                for c in constructors:
+                    try:
+                        val_list[i] = c(val_list[i])
+                        break
+                    except ValueError:
+                        pass   
+        # Check if their are all the same type
+        type_val_ref = type(val_list[0])
+        for i in range(1, len(val_list)):
+            if not isinstance(val_list[i], type_val_ref):
+                return [val_str], str
+        return val_list, type_val_ref
             
     
     def __parser_name_unit(self, name_col: str) -> Tuple[List[str], List[str]]:
@@ -294,6 +300,7 @@ class ReaderData:
             dict: Dictionary with the data of the file if the reading is correct
         """
         try:
+            import pandas
             # Read the file
             data = pandas.read_excel(filename)
             return self.__transform_data_pandas(data.to_dict('split'))       
@@ -314,6 +321,7 @@ class ReaderData:
             dict: Dictionary with the data of the file if the reading is correct
         """
         try:
+            import openpyxl
             # Open the file and activate the sheet
             wb = openpyxl.load_workbook(filename=filename)
             sheet = wb.active
@@ -374,3 +382,15 @@ class ReaderData:
             for l in range(len(values_columns)):
                 data_transform[str(columns[c])]["data"].append(values_columns[l][c])
         return data_transform
+
+
+    def __type_to_str(self, type: type) -> str:
+        """ Transform a type to a string
+
+        Args:
+            type (type): The type
+
+        Returns:
+            str: the type in a string
+        """
+        return str(type).split("'")[1]
