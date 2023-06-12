@@ -98,7 +98,7 @@ class GESAnalysis(Observable):
         return list(self.__file_open.keys())
     
     
-    def get_data_from_file(self, filename:str) -> Dict[str, Dict[str, List[Union[str, int, float, bool]]]]:
+    def get_data_from_file(self, filename:str) -> Dict[str, Dict[str, List[Union[List[Union[int, float, bool, str]], str]]]]:
         """ Return the dictionary of data of the last file who was read
 
         Returns:

@@ -27,29 +27,34 @@ def test_read_file():
     """
     correct_data = {
         'SR': {
-            "name": ["SR"],
-            "unit": [],
-            "data": [1, 2, 3, 4, 5]
+            'name': ['SR'],
+            'unit': [],
+            'data': [[1], [2], [3], [4], [5]],
+            'type': int
         },
         'NAME': {
-            "name": ["NAME"],
-            "unit": [],
-            "data": ['Dett', 'Nern', 'Kallsie', 'Siuau', 'Shennice']
+            'name': ['NAME'],
+            'unit': [],
+            'data': [['Dett'], ['Nern'], ['Kallsie'], ['Siuau'], ['Shennice']],
+            'type': str
         },
         'GENDER': {
-            "name": ["GENDER"],
-            "unit": [],
-            "data": ['Male', 'Female', 'Male', 'Female', 'Male']
+            'name': ['GENDER'],
+            'unit': [],
+            'data': [['Male'], ['Female'], ['Male'], ['Female'], ['Male']],
+            'type': str
         },
         'AGE': {
-            "name": ["AGE"],
-            "unit": [],
-            "data": [18, 19, 20, 21, 22]
+            'name': ['AGE'],
+            'unit': [],
+            'data': [[18], [19], [20], [21], [22]],
+            'type': int
         },
         'DATE': {
-            "name": ["DATE"],
-            "unit": [],
-            "data": ['21/05/2015', '15/10/2017', '16/08/2016', '21/05/2015', '21/05/2016']
+            'name': ['DATE'],
+            'unit': [],
+            'data': [['21/05/2015'], ['15/10/2017'], ['16/08/2016'], ['21/05/2015'], ['21/05/2016']],
+            'type': str
         }
     }
     m.read_file(people, '2019', 'hello')
@@ -86,6 +91,16 @@ def test_export_file():
     
     assert m.get_data_from_file(people) == d
     os.remove("tmp.txt")
+    
+    
+def test_export_close():
+    """ Test export a file who are not open
+    """
+    m.export(hw, "tmp.tsv")
+    r = ReaderData()
+    d = r.read_file(hw)
+    assert d == r.read_file("tmp.tsv")
+    os.remove("tmp.tsv")
     
     
 def test_export_invalid():
@@ -167,29 +182,34 @@ def test_get_data():
 def test_data_from_file_correct():
     correct_data = {
         'SR': {
-            "name": ["SR"],
-            "unit": [],
-            "data": [1, 2, 3, 4, 5]
+            'name': ['SR'],
+            'unit': [],
+            'data': [[1], [2], [3], [4], [5]],
+            'type': int
         },
         'NAME': {
-            "name": ["NAME"],
-            "unit": [],
-            "data": ['Dett', 'Nern', 'Kallsie', 'Siuau', 'Shennice']
+            'name': ['NAME'],
+            'unit': [],
+            'data': [['Dett'], ['Nern'], ['Kallsie'], ['Siuau'], ['Shennice']],
+            'type': str
         },
         'GENDER': {
-            "name": ["GENDER"],
-            "unit": [],
-            "data": ['Male', 'Female', 'Male', 'Female', 'Male']
+            'name': ['GENDER'],
+            'unit': [],
+            'data': [['Male'], ['Female'], ['Male'], ['Female'], ['Male']],
+            'type': str
         },
         'AGE': {
-            "name": ["AGE"],
-            "unit": [],
-            "data": [18, 19, 20, 21, 22]
+            'name': ['AGE'],
+            'unit': [],
+            'data': [[18], [19], [20], [21], [22]],
+            'type': int
         },
         'DATE': {
-            "name": ["DATE"],
-            "unit": [],
-            "data": ['21/05/2015', '15/10/2017', '16/08/2016', '21/05/2015', '21/05/2016']
+            'name': ['DATE'],
+            'unit': [],
+            'data': [['21/05/2015'], ['15/10/2017'], ['16/08/2016'], ['21/05/2015'], ['21/05/2016']],
+            'type': str
         }
     }
     assert correct_data == m.get_data_from_file(people)

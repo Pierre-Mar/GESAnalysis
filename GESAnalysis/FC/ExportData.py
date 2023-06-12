@@ -16,7 +16,7 @@ class ExportData:
 
     def export_data(
         self,
-        data_dict: Optional[Dict[str, Dict[str, List[Union[str, int, float, bool]]]]],
+        data_dict: Optional[Dict[str, Dict[str, List[Union[List[Union[int, float, bool, str]], str]]]]],
         fileout: str
     ) -> bool:
         """ Export the dictionary of data into the file 'fileout'
@@ -40,11 +40,11 @@ class ExportData:
         
         match self.__file_ext:
             case ".csv":
-                return self.__write_in_file(data_dict, fileout, ',')
+                return self.__write_in_file(data_dict, fileout, ';')
             case ".tsv":
                 return self.__write_in_file(data_dict, fileout, '\t')
             case _:
-                return self.__write_in_file(data_dict, fileout, ',')
+                return self.__write_in_file(data_dict, fileout, ';')
     
     
     def __verif_fileout(self, fileout: str) -> None:
@@ -74,7 +74,7 @@ class ExportData:
     
     def __write_in_file(
         self,
-        data: Dict[str, Dict[str, List[Union[str, int, float, bool]]]],
+        data: Dict[str, Dict[str, List[Union[List[Union[int, float, bool, str]], str]]]],
         fileout: str,
         sep: str
     ) -> bool:
@@ -111,10 +111,13 @@ class ExportData:
                 for l in range(nb_lines):
                     ph = ""
                     for c in range(nb_columns):
+                        # Transform all elements into string
+                        elem_col_str = [str(x) for x in elems_columns[c][l]]
+                        # Add separator depending on which column
                         if c == nb_columns-1:
-                            ph += str(elems_columns[c][l]) + '\n'
+                            ph += ','.join(elem_col_str) + '\n'
                         else:
-                            ph += str(elems_columns[c][l]) + sep
+                            ph += ','.join(elem_col_str) + sep
                     
                     file_out.write(ph)
         # if we catch an error, we remove the file
@@ -136,7 +139,6 @@ class ExportData:
         Raises:
             ValueError: This number is not equal for each row
         """
-        print(elems_col)
         nb_elements = len(elems_col[0])
         for i in range(1, len(elems_col)):
             nb_elements_line = len(elems_col[i])
@@ -146,7 +148,7 @@ class ExportData:
 
     def __get_data(
         self,
-        data_dict: Dict[str, Dict[str, List[Union[str, int, float, bool]]]]
+        data_dict: Dict[str, Dict[str, List[Union[List[Union[int, float, bool, str]], str]]]]
     ) -> List[List[Union[bool, str, float, int]]]:
         """ Get the data of each column and put it in a list
 
