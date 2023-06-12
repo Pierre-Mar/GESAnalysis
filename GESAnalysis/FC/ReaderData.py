@@ -201,6 +201,7 @@ class ReaderData:
         
         # Change the value to their corresponding type
         val_list = val_str.split(',')
+        val_list_save = val_list.copy()
         for i in range(len(val_list)):
             if val_list[i].lower() == "true":
                 val_list[i] = True
@@ -217,7 +218,7 @@ class ReaderData:
         type_val_ref = type(val_list[0])
         for i in range(1, len(val_list)):
             if not isinstance(val_list[i], type_val_ref):
-                return [val_str], str
+                return val_list_save, str
         return val_list, type_val_ref
             
     

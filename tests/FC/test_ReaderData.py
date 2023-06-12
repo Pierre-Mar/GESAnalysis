@@ -102,7 +102,7 @@ def test_valid_txt_file():
         'Username': {
             'name': ['Username'],
             'unit': [],
-            'data': [['booker12'], ['grey07'], ['johnson81'], ['jenkins46'], ['smith79']],
+            'data': [['booker12', 'mandatory45'], ['grey07', '0503'], ['johnson81', 'oklmPerson'], ['jenkins46', '35.2'], ['smith79', 'hihi']],
             'type': str
         },
         'Registered': {

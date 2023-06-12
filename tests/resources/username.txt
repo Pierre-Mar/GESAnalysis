@@ -1,6 +1,6 @@
 Username;Registered;First name;Last name
-booker12;true;Rachel;Booker
-grey07;false;Laura;Grey
-johnson81;false;Craig;Johnson
-jenkins46;true;Mary;Jenkins
-smith79;true;Jamie;Smith
+booker12,mandatory45;true;Rachel;Booker
+grey07,0503;false;Laura;Grey
+johnson81,oklmPerson;false;Craig;Johnson
+jenkins46,35.2;true;Mary;Jenkins
+smith79,hihi;true;Jamie;Smith
