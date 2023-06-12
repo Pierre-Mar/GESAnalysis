@@ -1,275 +1,321 @@
 import pytest
+import platform
 from GESAnalysis.FC.ReaderData import ReaderData
 
 
 reader = ReaderData()
+
+
+# Définition of paths of files depending on the OS
+# Configure path to file
+os_name = platform.system()
+path = "tests/resources/"
+if os_name == "Windows":
+    path = "tests\\resources\\"
+people = path + "people.csv"
+hw_5 = path + "hw_5.tsv"
+username = path + "username.txt"
+excel = path + "file_example_XLSX_10.xlsx"
+export_invalid = path + "export_invalid.py"
+not_exist = path + "not_exist"
+cant_read = path + "cant_read.py"
+nb_col_diff = path + "nb_col_diff.txt"
+type_diff = path + "type_diff.txt"
+
 
 # ------------------------------------------------------------------------------------------------------------------------
 # Tests : read_file(filename, sep)
 # ------------------------------------------------------------------------------------------------------------------------
 
 # ------------------------------------------------------------------------------------------------------------------------
-# Tests pour vérifier que la lecture est correcte
+# Tests to check when the reading is correct
 # ------------------------------------------------------------------------------------------------------------------------
 def test_valid_csv_file():
-    """ Vérifie que la lecture d'un fichier csv se fasse correctement
+    """ Check the reading of a CSV file
     """
     correct_data = {
         'SR': {
-            "name": ["SR"],
-            "unit": None,
-            "data": [1, 2, 3, 4, 5]
+            'name': ['SR'],
+            'unit': [],
+            'data': [[1], [2], [3], [4], [5]],
+            'type': int
         },
         'NAME': {
-            "name": ["NAME"],
-            "unit": None,
-            "data": ['Dett', 'Nern', 'Kallsie', 'Siuau', 'Shennice']
+            'name': ['NAME'],
+            'unit': [],
+            'data': [['Dett'], ['Nern'], ['Kallsie'], ['Siuau'], ['Shennice']],
+            'type': str
         },
         'GENDER': {
-            "name": ["GENDER"],
-            "unit": None,
-            "data": ['Male', 'Female', 'Male', 'Female', 'Male']
+            'name': ['GENDER'],
+            'unit': [],
+            'data': [['Male'], ['Female'], ['Male'], ['Female'], ['Male']],
+            'type': str
         },
         'AGE': {
-            "name": ["AGE"],
-            "unit": None,
-            "data": [18, 19, 20, 21, 22]
+            'name': ['AGE'],
+            'unit': [],
+            'data': [[18], [19], [20], [21], [22]],
+            'type': int
         },
         'DATE': {
-            "name": ["DATE"],
-            "unit": None,
-            "data": ['21/05/2015', '15/10/2017', '16/08/2016', '21/05/2015', '21/05/2016']
+            'name': ['DATE'],
+            'unit': [],
+            'data': [['21/05/2015'], ['15/10/2017'], ['16/08/2016'], ['21/05/2015'], ['21/05/2016']],
+            'type': str
         }
     }
-    assert correct_data == reader.read_file("tests/resources/people.csv", sep=",")
+
+    assert correct_data == reader.read_file(people, sep=",")
 
 
 def test_valid_tsv_file():
-    """ Pareil mais avec un fichier tsv
+    """ Same with a TSV file
     """
     correct_data = {
-        "Index": {
-            "name": ["Index"],
-            "unit": None,
-            "data": [1, 2, 3, 4, 5]
+        'Index': {
+            'name': ['Index'],
+            'unit': [],
+            'data': [[1], [2], [3], [4], [5]],
+            'type': int
         },
-        "height.cm": {
-            "name": ["height"],
-            "unit": ["cm"],
-            "data": [165.1, 180.49, 175.26, 172.72, 170.18]
+        'height.cm': {
+            'name': ['height'],
+            'unit': ['cm'],
+            'data': [[165.1], [180.49], [175.26], [172.72], [170.18]],
+            'type': float
         },
-        "weight.kg": {
-            "name": ["weight"],
-            "unit": ["kg"],
-            "data": [50.80, 61.69, 69.4, 64.41, 65.32]
+        'weight.kg': {
+            'name': ['weight'],
+            'unit': ['kg'],
+            'data': [[50.8], [61.69], [69.4], [64.41], [65.32]],
+            'type': float
         }
     }
-    assert correct_data == reader.read_file("tests/resources/hw_5.tsv")
+    assert correct_data == reader.read_file(hw_5)
 
 
 def test_valid_txt_file():
-    """ Pareil mais avec un fichier txt
+    """ Same with a TXT file
     """
     correct_data = {
-        "Username": {
-            "name": ["Username"],
-            "unit": None,
-            "data": ['booker12', 'grey07', 'johnson81', 'jenkins46', 'smith79']
+        'Username': {
+            'name': ['Username'],
+            'unit': [],
+            'data': [['booker12', 'mandatory45'], ['grey07', '0503'], ['johnson81', 'oklmPerson'], ['jenkins46', '35.2'], ['smith79', 'hihi']],
+            'type': str
         },
-        "Registered": {
-            "name": ["Registered"],
-            "unit": None,
-            "data": [True, False, False, True, True]
+        'Registered': {
+            'name': ['Registered'],
+            'unit': [],
+            'data': [[True], [False], [False], [True], [True]],
+            'type': bool
         },
-        "First name": {
-            "name": ["First name"],
-            "unit": None,
-            "data": ['Rachel', 'Laura', 'Craig', 'Mary', 'Jamie']
+        'First name': {
+            'name': ['First name'],
+            'unit': [],
+            'data': [['Rachel'], ['Laura'], ['Craig'], ['Mary'], ['Jamie']],
+            'type': str
         },
-        "Last name": {
-            "name": ["Last name"],
-            "unit": None,
-            "data": ['Booker', 'Grey', 'Johnson', 'Jenkins', 'Smith']
-        } 
+        'Last name': {
+            'name': ['Last name'],
+            'unit': [],
+            'data': [['Booker'], ['Grey'], ['Johnson'], ['Jenkins'], ['Smith']],
+            'type': str
+        }
     }
-    assert correct_data == reader.read_file("tests/resources/username.txt")
+    assert correct_data == reader.read_file(username)
 
 
 def test_valid_xlsx_file_pandas():
-    """ Pareil mais avec un fichier excel et avec pandas
+    """ Same with a XLSX file and pandas, the reading engine
     """
     correct_data = {
-        "0": {
-            "name": ["0"],
-            "unit": None,
-            "data": [1, 2, 3, 4, 5, 6, 7, 8, 9]
+        '0': {
+            'name': ['0'],
+            'unit': [],
+            'data': [[1], [2], [3], [4], [5], [6], [7], [8], [9]],
+            'type': int
+        }, 
+        'First Name': {
+            'name': ['First Name'],
+            'unit': [],
+            'data': [['Dulce'], ['Mara'], ['Philip'], ['Kathleen'], ['Nereida'], ['Gaston'], ['Etta'], ['Earlean'], ['Vincenza']],
+            'type': str
         },
-        "First Name": {
-            "name": ["First Name"],
-            "unit": None,
-            "data": ['Dulce', 'Mara', 'Philip', 'Kathleen', 'Nereida', 'Gaston', 'Etta', 'Earlean', 'Vincenza']
+        'Last Name': {
+            'name': ['Last Name'],
+            'unit': [],
+            'data': [['Abril'], ['Hashimoto'], ['Gent'], ['Hanner'], ['Magwood'], ['Brumm'], ['Hurn'], ['Melgar'], ['Weiland']], 
+            'type': str
         },
-        "Last Name": {
-            "name": ["Last Name"],
-            "unit": None,
-            "data": ['Abril', 'Hashimoto', 'Gent', 'Hanner', 'Magwood', 'Brumm', 'Hurn', 'Melgar', 'Weiland']
+        'Gender': {
+            'name': ['Gender'],
+            'unit': [],
+            'data': [['Female'], ['Female'], ['Male'], ['Female'], ['Female'], ['Male'], ['Female'], ['Female'], ['Female']],
+            'type': str
         },
-        "Gender": {
-            "name": ["Gender"],
-            "unit": None,
-            "data": ['Female', 'Female', 'Male', 'Female', 'Female', 'Male', 'Female', 'Female', 'Female']
+        'Country': {
+            'name': ['Country'],
+            'unit': [],
+            'data': [['United States'], ['Great Britain'], ['France'], ['United States'], ['United States'], ['United States'], ['Great Britain'], ['United States'], ['United States']],
+            'type': str
         },
-        "Country": {
-            "name": ["Country"],
-            "unit": None,
-            "data": ['United States', 'Great Britain', 'France', 'United States', 'United States', 'United States', 'Great Britain', 'United States', 'United States']
+        'Age': {
+            'name': ['Age'],
+            'unit': [],
+            'data': [[32], [25], [36], [25], [58], [24], [56], [27], [40]],
+            'type': int
         },
-        "Age": {
-            "name": ["Age"],
-            "unit": None,
-            "data": [32, 25, 36, 25, 58, 24, 56, 27, 40]
+        'Date': {
+            'name': ['Date'],
+            'unit': [],
+            'data': [['15/10/2017'], ['16/08/2016'], ['21/05/2015'], ['15/10/2017'], ['16/08/2016'], ['21/05/2015'], ['15/10/2017'], ['16/08/2016'], ['21/05/2015']],
+            'type': str
         },
-        "Date": {
-            "name": ["Date"],
-            "unit": None,
-            "data": ['15/10/2017', '16/08/2016', '21/05/2015', '15/10/2017', '16/08/2016', '21/05/2015', '15/10/2017', '16/08/2016', '21/05/2015']
-        },
-        "Height.cm": {
-            "name": ["Height"],
-            "unit": ["cm"],
-            "data": [156.2, 158.25, 158.74, 154.92, 146.89, 155.46, 159.87, 145.61, 154.8]
+        'Height.cm': {
+            'name': ['Height'],
+            'unit': ['cm'],
+            'data': [[156.2], [158.25], [158.74], [154.92], [146.89], [155.46], [159.87], [145.61], [154.8]],
+            'type': float
         }
     }
-    assert correct_data == reader.read_file("tests/resources/file_example_XLSX_10.xlsx")
+    assert correct_data == reader.read_file(excel)
 
 
 def test_valid_xlsx_file_openpyxl():
-    """ Pareil mais avec un fichier excel et avec openpyxl
+    """ Same with a XLSX file and openpyxl, the reading engine
     """
     correct_data = {
-        "0": {
-            "name": ["0"],
-            "unit": None,
-            "data": [1, 2, 3, 4, 5, 6, 7, 8, 9]
+        '0': {
+            'name': ['0'],
+            'unit': [],
+            'data': [[1], [2], [3], [4], [5], [6], [7], [8], [9]],
+            'type': int
+        }, 
+        'First Name': {
+            'name': ['First Name'],
+            'unit': [],
+            'data': [['Dulce'], ['Mara'], ['Philip'], ['Kathleen'], ['Nereida'], ['Gaston'], ['Etta'], ['Earlean'], ['Vincenza']],
+            'type': str
         },
-        "First Name": {
-            "name": ["First Name"],
-            "unit": None,
-            "data": ['Dulce', 'Mara', 'Philip', 'Kathleen', 'Nereida', 'Gaston', 'Etta', 'Earlean', 'Vincenza']
+        'Last Name': {
+            'name': ['Last Name'],
+            'unit': [],
+            'data': [['Abril'], ['Hashimoto'], ['Gent'], ['Hanner'], ['Magwood'], ['Brumm'], ['Hurn'], ['Melgar'], ['Weiland']], 
+            'type': str
         },
-        "Last Name": {
-            "name": ["Last Name"],
-            "unit": None,
-            "data": ['Abril', 'Hashimoto', 'Gent', 'Hanner', 'Magwood', 'Brumm', 'Hurn', 'Melgar', 'Weiland']
+        'Gender': {
+            'name': ['Gender'],
+            'unit': [],
+            'data': [['Female'], ['Female'], ['Male'], ['Female'], ['Female'], ['Male'], ['Female'], ['Female'], ['Female']],
+            'type': str
         },
-        "Gender": {
-            "name": ["Gender"],
-            "unit": None,
-            "data": ['Female', 'Female', 'Male', 'Female', 'Female', 'Male', 'Female', 'Female', 'Female']
+        'Country': {
+            'name': ['Country'],
+            'unit': [],
+            'data': [['United States'], ['Great Britain'], ['France'], ['United States'], ['United States'], ['United States'], ['Great Britain'], ['United States'], ['United States']],
+            'type': str
         },
-        "Country": {
-            "name": ["Country"],
-            "unit": None,
-            "data": ['United States', 'Great Britain', 'France', 'United States', 'United States', 'United States', 'Great Britain', 'United States', 'United States']
+        'Age': {
+            'name': ['Age'],
+            'unit': [],
+            'data': [[32], [25], [36], [25], [58], [24], [56], [27], [40]],
+            'type': int
         },
-        "Age": {
-            "name": ["Age"],
-            "unit": None,
-            "data": [32, 25, 36, 25, 58, 24, 56, 27, 40]
+        'Date': {
+            'name': ['Date'],
+            'unit': [],
+            'data': [['15/10/2017'], ['16/08/2016'], ['21/05/2015'], ['15/10/2017'], ['16/08/2016'], ['21/05/2015'], ['15/10/2017'], ['16/08/2016'], ['21/05/2015']],
+            'type': str
         },
-        "Date": {
-            "name": ["Date"],
-            "unit": None,
-            "data": ['15/10/2017', '16/08/2016', '21/05/2015', '15/10/2017', '16/08/2016', '21/05/2015', '15/10/2017', '16/08/2016', '21/05/2015']
-        },
-        "Height.cm": {
-            "name": ["Height"],
-            "unit": ["cm"],
-            "data": [156.2, 158.25, 158.74, 154.92, 146.89, 155.46, 159.87, 145.61, 154.8]
+        'Height.cm': {
+            'name': ['Height'],
+            'unit': ['cm'],
+            'data': [[156.2], [158.25], [158.74], [154.92], [146.89], [155.46], [159.87], [145.61], [154.8]],
+            'type': float
         }
     }
-    assert correct_data == reader.read_file("tests/resources/file_example_XLSX_10.xlsx", engine='openpyxl')
+    assert correct_data == reader.read_file(excel, engine='openpyxl')
 # ------------------------------------------------------------------------------------------------------------------------
 # ------------------------------------------------------------------------------------------------------------------------
 
 
 
 # ------------------------------------------------------------------------------------------------------------------------
-# Tests pour vérifier que les bonnes erreurs sont renvoyées quand un fichier n'existe pas
+# Tests to check if the errors are catched when a file don't exist
 # ------------------------------------------------------------------------------------------------------------------------
 def test_csv_file_not_exist():
-    """ Vérifie qu'un fichier csv qui n'existe pas donne None et le bon message d'erreur
+    """ Check a CSV file, who don't exist, gives an error
     """
-    assert None == reader.read_file("tests/resources/not_exist.csv")
-    assert "Erreur : Le fichier 'not_exist.csv' n'existe pas" == reader.get_error()
+    with pytest.raises(FileNotFoundError, match="file 'not_exist.csv' not exist"):
+        reader.read_file(not_exist + ".csv")
    
     
 def test_tsv_file_not_exist():
-    """ Pareil mais avec un fichier tsv
+    """ Same with a TSV file
     """
-    assert None == reader.read_file("tests/resources/not_exist.tsv")
-    assert "Erreur : Le fichier 'not_exist.tsv' n'existe pas" == reader.get_error()
+    with pytest.raises(FileNotFoundError, match="file 'not_exist.tsv' not exist"):
+        reader.read_file(not_exist + ".tsv")
    
     
 def test_txt_file_not_exist():
-    """ Pareil mais avec un fichier txt
+    """ Same with a TXT file
     """
-    assert None == reader.read_file("tests/resources/not_exist.txt")
-    assert "Erreur : Le fichier 'not_exist.txt' n'existe pas" == reader.get_error()
+    with pytest.raises(FileNotFoundError, match="file 'not_exist.txt' not exist"):
+        reader.read_file(not_exist + ".txt")
 
 
 def test_xlsx_file_not_exist():
-    """ Pareil mais avec un fichier excel
+    """ Same with a XLSX file
     """
-    assert None == reader.read_file("tests/resources/not_exist.xlsx")
-    assert "Erreur : Le fichier 'not_exist.xlsx' n'existe pas" == reader.get_error()
+    with pytest.raises(FileNotFoundError, match="file 'not_exist.xlsx' not exist"):
+        reader.read_file(not_exist + ".xlsx")
 # ------------------------------------------------------------------------------------------------------------------------
 # ------------------------------------------------------------------------------------------------------------------------
 
 
 
 # ------------------------------------------------------------------------------------------------------------------------
-# Test pour vérifier la bonne erreur quand le fichier n'est pas pris en charge par l'outil
+# Test to check if the error is catched when the file are not supported by the application
 # ------------------------------------------------------------------------------------------------------------------------
 def test_unsupported_file():
-    """ Vérifie qu'un fichier qui existe mais qui n'est pas pris en charge par l'outil retourne None
-        et vérifie le message d'erreur
+    """ Check if we catch the corresponding error when a file are not supported by the application
     """
-    assert None == reader.read_file("tests/resources/cant_read.py")
-    assert "Erreur : Le fichier 'cant_read.py' n'est pas pris en charge par l'application" == reader.get_error()
+    with pytest.raises(TypeError, match="cannot read data from 'cant_read.py'. Should be a CSV, TSV, TXT or XLSX file"):
+        reader.read_file(cant_read)
 # ------------------------------------------------------------------------------------------------------------------------
 # ------------------------------------------------------------------------------------------------------------------------
 
 
 
 # ------------------------------------------------------------------------------------------------------------------------
-# Tests pour vérifier que les données sont correctes pendant la lecture
+# Tests to check the data during the reading
 # ------------------------------------------------------------------------------------------------------------------------
 def test_nb_column_diff():
-    """ Vérifie qu'un fichier où il manque des données dans une colonne donne une erreur
+    """ Check a file where some data missing and give an error
     """
-    assert None == reader.read_file("tests/resources/nb_col_diff.txt")
-    assert "Erreur : le nombre d'éléments à la ligne 3 est différent du nombre de colonnes 2"
+    with pytest.raises(ValueError, match="1 elements in line 4 but there is 2 columns"):
+        reader.read_file(nb_col_diff)
 
 
 def test_type_diff():
-    """ Vérifie que les différents types de données d'une colonne donne une erreur
+    """ Check when there are different types in a column give an error
     """
-    assert None == reader.read_file("tests/resources/type_diff.txt")
-    assert "Erreur : L'élément de la colonne Word et de la ligne 2 est différent des éléments de cette colonne" == reader.get_error()
+    with pytest.raises(TypeError, match="Element at row 3 and column Word has type int instead of type str"):
+        reader.read_file(type_diff)
 # ------------------------------------------------------------------------------------------------------------------------
 # ------------------------------------------------------------------------------------------------------------------------
 
 
 
 # ------------------------------------------------------------------------------------------------------------------------
-# Tests pour vérifier que les bonnes erreurs lorsque'on sélectionne un mauvais moteur
+# Test to check if we get an error when we give the wrong engine
 # ------------------------------------------------------------------------------------------------------------------------
 def test_probleme_read_pandas():
-    """ Vérifie que lorsqu'on donne n'importe quel moteur pour la lecture des fichiers excel.
-        On obtient une erreur si ce n'est pas les bons moteurs.
+    """ Check when we give a wrong reading engine give an error
     """
-    assert None == reader.read_file("tests/resources/file_example_XLSX_10.xlsx", engine='no_engine')
-    assert "Erreur : La lecture des fichiers excel se fait soit avec 'pandas', soit 'openpyxl'" == reader.get_error()
+    with pytest.raises(ValueError, match="'no_engine' is not an engine to read a file. Use 'pandas' or 'openpyxl'"):
+        reader.read_file(excel, engine='no_engine')
 # ------------------------------------------------------------------------------------------------------------------------
 # ------------------------------------------------------------------------------------------------------------------------
