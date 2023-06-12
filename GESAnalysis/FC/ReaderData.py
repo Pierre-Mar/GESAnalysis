@@ -1,11 +1,24 @@
 import os
 import platform
 import csv
-from typing import Union, Dict, List, Tuple, Optional
+from typing import Union, Dict, List, Tuple
 
 
 class ReaderData:
     """ Class to read data from a CSV, TSV, TXT or XLSX file
+    
+        Exemple : File format :
+            nom_col1,nom_col2.unite,nom_col3.suite_nom.unite,nom_col4.suite_nom.unite.suite_unite
+            d11,d12,d13,d14,
+            d21,d22,d23,d24
+                
+            The dictionary will be :
+            {
+                "nom_col1": { "name": ["nom_col1"], "unit": None, "data": [[d11], [d21]], "type": type(data)},
+                "nom_col2.unite": { "name": ["nom_col2"], "unit": ["unite"], "data": [[d12], [d22]] },
+                "nom_col3.suite_nom.unite": { "name": ["nom_col3", "suite_nom"], "unit": ["unite"], "data": [[d13], [d23]] },
+                "nom_col4.suite_nom.unite.suite_unite": { "name": ["nom_col4", "suite_nom"], "unit": ["unite", "suite_unite"], "data": [[d14], [d24]] },
+            }
     """
     
     __accepted_extension = [".csv", ".txt", ".tsv", ".xlsx"]
@@ -24,7 +37,7 @@ class ReaderData:
         pass
 
 
-    def read_file(self, filename: str, sep: str = None, engine: str ='pandas') -> Dict[str, Dict[str, List[Union[str, int, float, bool]]]]:
+    def read_file(self, filename: str, sep: str = None, engine: str ='pandas') -> Dict[str, Dict[str, List[Union[List[Union[int, float, bool, str]], str]]]]:
         """ Read the file 'filename' with or without a separator, for CSV, TSV and TXT files, and
             a reading engine, for XLSX files
 
@@ -34,20 +47,7 @@ class ReaderData:
             engine (str, optional): Reading engine for XLSX file (pandas, openpyxl). Defaults to pandas
 
         Returns:
-            dict: Dictionary with the name, unit and data of each column in the file if the reading is correct
-            
-            Exemple : File format :
-                nom_col1,nom_col2.unite,nom_col3.suite_nom.unite,nom_col4.suite_nom.unite.suite_unite
-                d11,d12,d13,d14,
-                d21,d22,d23,d24
-                
-            The dictionary will be :
-            {
-                "nom_col1": { "name": ["nom_col1"], "unit": None, "data": [d11, d21] },
-                "nom_col2.unite": { "name": ["nom_col2"], "unit": ["unite"], "data": [d12, d22] },
-                "nom_col3.suite_nom.unite": { "name": ["nom_col3", "suite_nom"], "unit": ["unite"], "data": [d13, d23] },
-                "nom_col4.suite_nom.unite.suite_unite": { "name": ["nom_col4", "suite_nom"], "unit": ["unite", "suite_unite"], "data": [d14, d24] },
-            }
+            dict: Dictionary with the name, unit, data and type of each column in the file if the reading is correct
         """
         # Verification of the file
         self.__verify_file(filename)
@@ -117,7 +117,7 @@ class ReaderData:
         return dialect.delimiter
     
 
-    def __read_csv_tsv_txt(self, filename: str, sep:str = ',') -> Dict[str, Dict[str, List[Union[str, int, float, bool]]]]:
+    def __read_csv_tsv_txt(self, filename: str, sep:str = ',') -> Dict[str, Dict[str, List[Union[List[Union[int, float, bool, str]], str]]]]:
         """ Reading the data from a CSV, TSV or TXT file and the separator between values
 
         Args:
@@ -217,6 +217,7 @@ class ReaderData:
         # Check if their are all the same type
         type_val_ref = type(val_list[0])
         for i in range(1, len(val_list)):
+            # If there is one who have not the same type, return list of string
             if not isinstance(val_list[i], type_val_ref):
                 return val_list_save, str
         return val_list, type_val_ref
@@ -258,7 +259,7 @@ class ReaderData:
         return (name_list[0:index_spe_name_unit], name_list[index_spe_name_unit:len(name_list)])
 
 
-    def __read_xlsx(self, filename: str, engine: str = 'pandas') -> Dict[str, Dict[str, List[Union[str, int, float, bool]]]]:
+    def __read_xlsx(self, filename: str, engine: str = 'pandas') -> Dict[str, Dict[str, List[Union[List[Union[int, float, bool, str]], str]]]]:
         """ Read a XLSX file with the engine 'pandas' or 'openpyxl'
         Lecture d'un fichier excel avec comme moteur pandas ou openpyxl
 
@@ -287,7 +288,7 @@ class ReaderData:
                 raise ValueError(f"'{engine}' is not an engine to read a file. Use 'pandas' or 'openpyxl'")
             
        
-    def __read_xlsx_pandas(self, filename: str) -> Dict[str, Dict[str, List[Union[str, int, float, bool]]]]:
+    def __read_xlsx_pandas(self, filename: str) -> Dict[str, Dict[str, List[Union[List[Union[int, float, bool, str]], str]]]]:
         """ Read a XLSX file with pandas
 
         Args:
@@ -308,7 +309,7 @@ class ReaderData:
             raise IOError("unexcepted problem. Cannot read the excel file with 'pandas'. Try with 'openpyxl'")
     
     
-    def __read_xlsx_openpyxl(self, filename: str) -> Dict[str, Dict[str, List[Union[str, int, float, bool]]]]:
+    def __read_xlsx_openpyxl(self, filename: str) -> Dict[str, Dict[str, List[Union[List[Union[int, float, bool, str]], str]]]]:
         """ Read a XLSX file with openpyxl
 
         Args:
@@ -356,7 +357,7 @@ class ReaderData:
             raise IOError("unexcepted problem. Cannot read the excel file with 'openpyxl'. Try with 'pandas'")
         
         
-    def __transform_data_pandas(self, data: Dict[str, List[Union[str, bool, int, float]]]) -> Dict[str, Dict[str, List[Union[str, int, float, bool]]]]:
+    def __transform_data_pandas(self, data: Dict[str, List[Union[str, bool, int, float]]]) -> Dict[str, Dict[str, List[Union[List[Union[int, float, bool, str]], str]]]]:
         """ Transorm a dictionary from pandas to our corresponding dictionary
         Pandas dictionary:
         {
