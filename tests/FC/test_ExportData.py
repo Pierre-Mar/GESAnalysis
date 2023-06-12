@@ -9,19 +9,16 @@ export = ExportData()
 reader = ReaderData()
 tmp_file = "tmp" # For each function, add the extension
 
-# Définition of paths of files depending on the OS
+# Definition of paths of files depending on the OS
 os_name = platform.system()
-people = "tests/resources/people.csv"
-hw_5 = "tests/resources/hw_5.tsv"
-username = "tests/resources/username.txt"
-excel = "tests/resources/file_example_XLSX_10.xlsx"
-export_invalid = "tests/resources/export_invalid.py"
-if os_name == 'Windows':
-    people = r"tests\resources\people.csv"
-    hw_5 = r"tests\resources\hw_5.tsv"
-    username = r"tests\resources\username.txt"
-    excel = r"tests\resources\file_example_XLSX_10.xlsx"
-    export_invalid = r"tests\resources\export_invalid.py"
+path = "tests/resources/"
+if os_name == "Windows":
+    path = "tests\\resources\\"
+people = path + "people.csv"
+hw_5 = path + "hw_5.tsv"
+username = path + "username.txt"
+excel = path + "file_example_XLSX_10.xlsx"
+export_invalid = path + "export_invalid.py"
 
 
 # ------------------------------------------------------------------------------------------------------------------------
@@ -96,8 +93,18 @@ def test_invalid_file_export():
     """ Check the exportation to an invalid file gives an error
     """
     data = {
-        "Langage": ["Français", "Anglais"],
-        "Mot": ["Bonjour", "Hello"]
+        "Langage": {
+            "name": ["Langage"],
+            "unit": [],
+            "data": [["Français"], ["Anglais"]],
+            "type": str
+        },
+        "Mot": {
+            "name": ["Mot"],
+            "unit": [],
+            "data": [["Bonjour"], ["Hello"]],
+            "type": str
+        }
     }
     with pytest.raises(TypeError, match="cannot export data to 'export_invalid.py'. Should be a CSV, TSV or TXT file"):
         export.export_data(data, export_invalid)
@@ -116,13 +123,15 @@ def test_nb_elem_col_diff_data():
     data = {
         "Langage": {
             "name": ["Langage"],
-            "unit": None,
-            "data": ["Français", "Anglais"]   
+            "unit": [],
+            "data": [["Français"], ["Anglais"]],
+            "type": str
         },
         "Mot": {
             "name": ["Mot"],
-            "unit": None,
-            "data": ["Bonjour"]
+            "unit": [],
+            "data": [["Bonjour"]],
+            "type": str
         }
     }
     with pytest.raises(ValueError, match="1 elements in line 2 instead of 2 elements"):
