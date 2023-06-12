@@ -131,45 +131,53 @@ def test_valid_xlsx_file_pandas():
     """ Same with a XLSX file and pandas, the reading engine
     """
     correct_data = {
-        "0": {
-            "name": ["0"],
-            "unit": [],
-            "data": [1, 2, 3, 4, 5, 6, 7, 8, 9]
+        '0': {
+            'name': ['0'],
+            'unit': [],
+            'data': [[1], [2], [3], [4], [5], [6], [7], [8], [9]],
+            'type': int
+        }, 
+        'First Name': {
+            'name': ['First Name'],
+            'unit': [],
+            'data': [['Dulce'], ['Mara'], ['Philip'], ['Kathleen'], ['Nereida'], ['Gaston'], ['Etta'], ['Earlean'], ['Vincenza']],
+            'type': str
         },
-        "First Name": {
-            "name": ["First Name"],
-            "unit": [],
-            "data": ['Dulce', 'Mara', 'Philip', 'Kathleen', 'Nereida', 'Gaston', 'Etta', 'Earlean', 'Vincenza']
+        'Last Name': {
+            'name': ['Last Name'],
+            'unit': [],
+            'data': [['Abril'], ['Hashimoto'], ['Gent'], ['Hanner'], ['Magwood'], ['Brumm'], ['Hurn'], ['Melgar'], ['Weiland']], 
+            'type': str
         },
-        "Last Name": {
-            "name": ["Last Name"],
-            "unit": [],
-            "data": ['Abril', 'Hashimoto', 'Gent', 'Hanner', 'Magwood', 'Brumm', 'Hurn', 'Melgar', 'Weiland']
+        'Gender': {
+            'name': ['Gender'],
+            'unit': [],
+            'data': [['Female'], ['Female'], ['Male'], ['Female'], ['Female'], ['Male'], ['Female'], ['Female'], ['Female']],
+            'type': str
         },
-        "Gender": {
-            "name": ["Gender"],
-            "unit": [],
-            "data": ['Female', 'Female', 'Male', 'Female', 'Female', 'Male', 'Female', 'Female', 'Female']
+        'Country': {
+            'name': ['Country'],
+            'unit': [],
+            'data': [['United States'], ['Great Britain'], ['France'], ['United States'], ['United States'], ['United States'], ['Great Britain'], ['United States'], ['United States']],
+            'type': str
         },
-        "Country": {
-            "name": ["Country"],
-            "unit": [],
-            "data": ['United States', 'Great Britain', 'France', 'United States', 'United States', 'United States', 'Great Britain', 'United States', 'United States']
+        'Age': {
+            'name': ['Age'],
+            'unit': [],
+            'data': [[32], [25], [36], [25], [58], [24], [56], [27], [40]],
+            'type': int
         },
-        "Age": {
-            "name": ["Age"],
-            "unit": [],
-            "data": [32, 25, 36, 25, 58, 24, 56, 27, 40]
+        'Date': {
+            'name': ['Date'],
+            'unit': [],
+            'data': [['15/10/2017'], ['16/08/2016'], ['21/05/2015'], ['15/10/2017'], ['16/08/2016'], ['21/05/2015'], ['15/10/2017'], ['16/08/2016'], ['21/05/2015']],
+            'type': str
         },
-        "Date": {
-            "name": ["Date"],
-            "unit": [],
-            "data": ['15/10/2017', '16/08/2016', '21/05/2015', '15/10/2017', '16/08/2016', '21/05/2015', '15/10/2017', '16/08/2016', '21/05/2015']
-        },
-        "Height.cm": {
-            "name": ["Height"],
-            "unit": ["cm"],
-            "data": [156.2, 158.25, 158.74, 154.92, 146.89, 155.46, 159.87, 145.61, 154.8]
+        'Height.cm': {
+            'name': ['Height'],
+            'unit': ['cm'],
+            'data': [[156.2], [158.25], [158.74], [154.92], [146.89], [155.46], [159.87], [145.61], [154.8]],
+            'type': float
         }
     }
     assert correct_data == reader.read_file(excel)
@@ -179,45 +187,53 @@ def test_valid_xlsx_file_openpyxl():
     """ Same with a XLSX file and openpyxl, the reading engine
     """
     correct_data = {
-        "0": {
-            "name": ["0"],
-            "unit": [],
-            "data": [1, 2, 3, 4, 5, 6, 7, 8, 9]
+        '0': {
+            'name': ['0'],
+            'unit': [],
+            'data': [[1], [2], [3], [4], [5], [6], [7], [8], [9]],
+            'type': int
+        }, 
+        'First Name': {
+            'name': ['First Name'],
+            'unit': [],
+            'data': [['Dulce'], ['Mara'], ['Philip'], ['Kathleen'], ['Nereida'], ['Gaston'], ['Etta'], ['Earlean'], ['Vincenza']],
+            'type': str
         },
-        "First Name": {
-            "name": ["First Name"],
-            "unit": [],
-            "data": ['Dulce', 'Mara', 'Philip', 'Kathleen', 'Nereida', 'Gaston', 'Etta', 'Earlean', 'Vincenza']
+        'Last Name': {
+            'name': ['Last Name'],
+            'unit': [],
+            'data': [['Abril'], ['Hashimoto'], ['Gent'], ['Hanner'], ['Magwood'], ['Brumm'], ['Hurn'], ['Melgar'], ['Weiland']], 
+            'type': str
         },
-        "Last Name": {
-            "name": ["Last Name"],
-            "unit": [],
-            "data": ['Abril', 'Hashimoto', 'Gent', 'Hanner', 'Magwood', 'Brumm', 'Hurn', 'Melgar', 'Weiland']
+        'Gender': {
+            'name': ['Gender'],
+            'unit': [],
+            'data': [['Female'], ['Female'], ['Male'], ['Female'], ['Female'], ['Male'], ['Female'], ['Female'], ['Female']],
+            'type': str
         },
-        "Gender": {
-            "name": ["Gender"],
-            "unit": [],
-            "data": ['Female', 'Female', 'Male', 'Female', 'Female', 'Male', 'Female', 'Female', 'Female']
+        'Country': {
+            'name': ['Country'],
+            'unit': [],
+            'data': [['United States'], ['Great Britain'], ['France'], ['United States'], ['United States'], ['United States'], ['Great Britain'], ['United States'], ['United States']],
+            'type': str
         },
-        "Country": {
-            "name": ["Country"],
-            "unit": [],
-            "data": ['United States', 'Great Britain', 'France', 'United States', 'United States', 'United States', 'Great Britain', 'United States', 'United States']
+        'Age': {
+            'name': ['Age'],
+            'unit': [],
+            'data': [[32], [25], [36], [25], [58], [24], [56], [27], [40]],
+            'type': int
         },
-        "Age": {
-            "name": ["Age"],
-            "unit": [],
-            "data": [32, 25, 36, 25, 58, 24, 56, 27, 40]
+        'Date': {
+            'name': ['Date'],
+            'unit': [],
+            'data': [['15/10/2017'], ['16/08/2016'], ['21/05/2015'], ['15/10/2017'], ['16/08/2016'], ['21/05/2015'], ['15/10/2017'], ['16/08/2016'], ['21/05/2015']],
+            'type': str
         },
-        "Date": {
-            "name": ["Date"],
-            "unit": [],
-            "data": ['15/10/2017', '16/08/2016', '21/05/2015', '15/10/2017', '16/08/2016', '21/05/2015', '15/10/2017', '16/08/2016', '21/05/2015']
-        },
-        "Height.cm": {
-            "name": ["Height"],
-            "unit": ["cm"],
-            "data": [156.2, 158.25, 158.74, 154.92, 146.89, 155.46, 159.87, 145.61, 154.8]
+        'Height.cm': {
+            'name': ['Height'],
+            'unit': ['cm'],
+            'data': [[156.2], [158.25], [158.74], [154.92], [146.89], [155.46], [159.87], [145.61], [154.8]],
+            'type': float
         }
     }
     assert correct_data == reader.read_file(excel, engine='openpyxl')

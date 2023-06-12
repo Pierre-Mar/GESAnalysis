@@ -1,7 +1,6 @@
 import os
 import platform
 import csv
-import ast
 from typing import Union, Dict, List, Tuple, Optional
 
 
@@ -348,8 +347,9 @@ class ReaderData:
                 # Get the value in the cell of row row and column col
                 for col in range(1, nb_columns+1):
                     cell = sheet.cell(row=row, column=col)
-                    data[name_column[col-1]]["data"].append(cell.value)
-
+                    if row == 2:
+                        data[name_column[col-1]]["type"] = type(cell.value)
+                    data[name_column[col-1]]["data"].append([cell.value])
             return data
         except:
             raise IOError("unexcepted problem. Cannot read the excel file with 'openpyxl'. Try with 'pandas'")
@@ -380,7 +380,12 @@ class ReaderData:
             data_transform[str(columns[c])]["unit"] = u
             data_transform[str(columns[c])]["data"] = []
             for l in range(len(values_columns)):
-                data_transform[str(columns[c])]["data"].append(values_columns[l][c])
+                val = values_columns[l][c]
+                # Add type if it's the first value
+                if l == 0:
+                    data_transform[str(columns[c])]['type'] = type(val)
+                data_transform[str(columns[c])]["data"].append([val])
+                
         return data_transform
 
 
