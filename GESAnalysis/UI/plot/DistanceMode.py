@@ -17,6 +17,11 @@ class DistanceMode(QtWidgets.QWidget, Observer):
         the distance for each year according to the mode of transport
     """
     
+    # Values use to print the name of labels
+    __width = 0.3                                # Width of bars
+    __espacement = 0.8                           # Espacement between bars of each mode
+    __default_size_text = 10                     # Size of text above bars
+    
     def __init__(
         self,
         model,
@@ -122,10 +127,6 @@ class DistanceMode(QtWidgets.QWidget, Observer):
         """
         self.__axes.cla() # clear the canvas
 
-        # Values use to print the name of labels
-        self.__width = 0.3                                # Width of bars
-        self.__espacement = 0.8                           # Espacement between bars of each mode
-
         # Construct list for labels
         label_bars = [0 for i in self.__position_ind.keys()]
         for position, ind_position in self.__position_ind.items():
@@ -147,8 +148,9 @@ class DistanceMode(QtWidgets.QWidget, Observer):
             sum_y = [(lambda x,y: x+y)(sum_y[i], y_values[i]) for i in range(len(sum_y))]
 
         # Add text to precise which year corresponding to the bar
+        size_text = self.__default_size_text -  1.15*len(self.__years_ind.keys())
         for i, label in enumerate(y_labels):
-            self.__axes.text(x_values[i], sum_y[i] + 1000, label, ha = 'center', color = 'black')
+            self.__axes.text(x_values[i], sum_y[i] + 1000, label, ha = 'center', color = 'black', fontsize=size_text)
             
         # Add correct labels on x-axis
         self.__axes.set_xticks(x_labels, labels)        
@@ -172,28 +174,30 @@ class DistanceMode(QtWidgets.QWidget, Observer):
         label = []
         current_ind = 0
         for mode in self.__mode_ind.keys():
+            active_year_mode = 0
             for i in range(len(self.__data_dist[mode]["year"])):
                 # In case, the user don't want to display bars for year
                 year_mode = self.__data_dist[mode]["year"][i]
                 if not self.__years_ind[year_mode]["checked"]:
-                    print(year_mode)
                     continue
                 
-                
+                # Need to display a bar for mode and year
                 x.append(current_space)
                 current_ind += 1
                 current_space += self.__width
-                
-                # Calculate the position of the label in x-axis
-                if i == len(self.__data_dist[mode]["year"])-1:
-                    nb_year = len(self.__data_dist[mode]["year"])
-                    offset = nb_year // 2 + (nb_year % 2)
-                    imp = x[current_ind-offset]-self.__width/2 
-                    pai = x[current_ind-offset]
-                    x_label.append(pai if nb_year % 2 else imp)
-                    label.append(mode)
-            current_space += self.__espacement
-        print(x_label, label)
+                active_year_mode += 1
+
+            # Calculate the position of the label in x-axis
+            if active_year_mode > 0:
+                offset = active_year_mode//2 + (active_year_mode % 2)
+                imp = x[current_ind-offset] - self.__width/2
+                pai = x[current_ind-offset]
+                x_label.append(pai if active_year_mode % 2 else imp)
+                label.append(mode)
+
+                # Next mode : add the space between the last bar of this mode et the first bar of the next mode
+                current_space += self.__espacement
+        
         return x, x_label, label
 
 
