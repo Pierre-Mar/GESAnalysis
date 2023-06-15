@@ -118,7 +118,16 @@ class DistanceMode(QtWidgets.QWidget, Observer):
         self.setLayout(layout)
         
         
-    def __create_list_buttons(self, data_dict, fct):
+    def __create_list_buttons(self, data_dict, fct) -> Tuple[QtWidgets.QWidget, QtWidgets.QHBoxLayout]:
+        """ Create a list of buttons (used for modes, years and positions)
+
+        Args:
+            data_dict (dict): dictionary with data (mode, year, position)
+            fct : fun,ction associated when the user click on the button
+
+        Returns:
+            QWidget, QHBoxLayout: Widget and layout associated to the list of buttons
+        """
         widget = QtWidgets.QWidget(self)
         widget.setFixedHeight(40)
         layout = QtWidgets.QHBoxLayout(widget)
@@ -131,14 +140,27 @@ class DistanceMode(QtWidgets.QWidget, Observer):
         return widget, layout
     
     
-    def __remove_list_buttons(self, data_dict, layout):
+    def __remove_list_buttons(self, data_dict, layout: QtWidgets.QHBoxLayout) -> None:
+        """ Remove the buttons from the layout
+
+        Args:
+            data_dict (dict): dictionary with data (mode, year, position)
+            layout (QHBoxLayout): layout of button
+        """
         for d in data_dict.keys():
             layout.removeWidget(data_dict[d]["button"])
             del data_dict[d]["checked"]
             del data_dict[d]["button"]
     
     
-    def __update_list_buttons(self, data_dict, layout, fct):
+    def __update_list_buttons(self, data_dict, layout: QtWidgets.QHBoxLayout, fct) -> None:
+        """ Update a layout of a list of buttons (used for modes, years and positions)
+
+        Args:
+            data_dict (dict): dictionary with data (mode, year, position)
+            layout (QHBoxLayout) : Layout to put the buttons
+            fct : fun,ction associated when the user click on the button
+        """
         for d in data_dict.keys():
             data_dict[d]["button"] = QtWidgets.QCheckBox(d)
             data_dict[d]["checked"] = True
@@ -168,10 +190,10 @@ class DistanceMode(QtWidgets.QWidget, Observer):
 
         Raises:
             ValueError: When the number of values for y-axis is different from
-            the number of values for x-axis
+            the number of values for x-axis. Same with labels
         """     
         # Get all the data to draw the bars for each mode
-        x_bars, x_labels, labels = self.get_x_val_label()
+        x_bars, x_labels, labels = self.__get_x_val_label()
         y_labels = []
         last_position = ""
         sum_y = [0 for i in x_bars]                               # Useful for stacked bars
@@ -180,7 +202,8 @@ class DistanceMode(QtWidgets.QWidget, Observer):
             if not self.__position_ind[position]["checked"]:
                 continue
             
-            y_values, y_labels_pos = self.get_y_val_label_position(position, labels)
+            # Get a list with the values of each bar for the position 'position'
+            y_values, y_labels_pos = self.__get_y_val_label_position(position, labels)
             
             # Check the differents values
             # Compare if there are the same number of values between y-axis and x-axis
@@ -202,18 +225,6 @@ class DistanceMode(QtWidgets.QWidget, Observer):
             y_labels = y_labels_pos
             last_position = position
             position_draw.append(position)
-        # sum_y = [0 for i in x_values]                               # Useful for stacked bars
-        # y_labels = []
-        # for position in label_bars:
-        #     # Get y values for a position and plot the bar
-        #     y_values, y_labels = self.get_y_val_label_position(position)
-        #     if len(x_values) != len(y_values):
-        #         raise ValueError(f"has {len(y_values)} for y instead of {len(x_values)} for position '{position}'")
-        #     # Plot the bar
-        #     self.__axes.bar(x_values, y_values, width=self.__width, bottom=sum_y, linewidth=0.5, edgecolor='black')
-            
-        #     # Update sum_y for next position (and bar)
-        #     sum_y = [(lambda x,y: x+y)(sum_y[i], y_values[i]) for i in range(len(sum_y))]
 
         # # Add text to precise which year corresponding to the bar
         size_text = self.__default_size_text -  1.15*len(self.__years_ind.keys())
@@ -228,7 +239,7 @@ class DistanceMode(QtWidgets.QWidget, Observer):
             self.__axes.legend(position_draw)
         
     
-    def get_x_val_label(self) -> Tuple[List[Union[int, float]], List[Union[int, float]], List[str]]:
+    def __get_x_val_label(self) -> Tuple[List[Union[int, float]], List[Union[int, float]], List[str]]:
         """ Create a tuple of 3 lists where
              - 1st : values where the first bar of a mode is on x-axis.
              - 2nd : values where the label is on x-axis
@@ -273,7 +284,7 @@ class DistanceMode(QtWidgets.QWidget, Observer):
         return x_bars, x_label, label
 
 
-    def get_y_val_label_position(self, position: str, mode_accepted: List[str]) -> Tuple[List[Union[int, float]], List[str]]:
+    def __get_y_val_label_position(self, position: str, mode_accepted: List[str]) -> Tuple[List[Union[int, float]], List[str]]:
         """ Construct a list to plot a bar for the position 'position' and a list of mode accepted (from buttons).
             The value is the distance of the position when using a mode in different year
 
@@ -551,12 +562,22 @@ class DistanceMode(QtWidgets.QWidget, Observer):
     
     
     def __select_bar_graph(self, selected):
+        """ Check if the radio button to draw bars is selected or not
+
+        Args:
+            selected (bool): the button is selected or not
+        """
         if selected:
             self.__is_bars_selected = True
             self.__draw()
     
     
     def __select_curve_graph(self, selected):
+        """ Check if the radio button to draw curves is selected or not
+
+        Args:
+            selected (bool): the button is selected or not
+        """
         if selected:
             self.__is_bars_selected = False
             self.__draw()
