@@ -169,38 +169,63 @@ class DistanceMode(QtWidgets.QWidget, Observer):
         Raises:
             ValueError: When the number of values for y-axis is different from
             the number of values for x-axis
-        """
-        # Construct list for labels
-        label_bars = [0 for i in self.__position_ind.keys()]
-        for position, ind_position in self.__position_ind.items():
-            label_bars[ind_position["index"]] = position
-                
+        """     
         # Get all the data to draw the bars for each mode
-        x_values, x_labels, labels = self.get_x_val_label()
-        sum_y = [0 for i in x_values]                               # Useful for stacked bars
+        x_bars, x_labels, labels = self.get_x_val_label()
         y_labels = []
-        for position in label_bars:
-            # Get y values for a position and plot the bar
-            y_values, y_labels = self.get_y_val_label_position(position)
-            if len(x_values) != len(y_values):
-                raise ValueError(f"has {len(y_values)} for y instead of {len(x_values)} for position '{position}'")
-            # Plot the bar
-            self.__axes.bar(x_values, y_values, width=self.__width, bottom=sum_y, linewidth=0.5, edgecolor='black')
+        last_position = ""
+        sum_y = [0 for i in x_bars]                               # Useful for stacked bars
+        position_draw = []
+        for position in self.__position_ind.keys():
+            if not self.__position_ind[position]["checked"]:
+                continue
             
-            # Update sum_y for next position (and bar)
+            y_values, y_labels_pos = self.get_y_val_label_position(position, labels)
+            
+            # Check the differents values
+            # Compare if there are the same number of values between y-axis and x-axis
+            if len(x_bars) != len(y_values):
+                raise ValueError(f"has {len(y_values)} for y instead of {len(x_bars)} for position '{position}'")
+            if position_draw != []:
+                # Compare labels
+                if len(y_labels) != len(y_labels_pos):
+                    raise ValueError(f"has {len(y_labels)} labels instead of {len(y_labels_pos)} for position '{position}'")
+                for label_ind in range(len(y_labels_pos)):
+                    if y_labels[label_ind] != y_labels_pos[label_ind]:
+                        raise ValueError(f"has different labels for bars between position '{position}' and '{last_position}'")
+            
+            # Draw bar
+            self.__axes.bar(x_bars, y_values, width=self.__width, bottom=sum_y, linewidth=0.5, edgecolor='black')
+            
+            # Update values for next bars
             sum_y = [(lambda x,y: x+y)(sum_y[i], y_values[i]) for i in range(len(sum_y))]
+            y_labels = y_labels_pos
+            last_position = position
+            position_draw.append(position)
+        # sum_y = [0 for i in x_values]                               # Useful for stacked bars
+        # y_labels = []
+        # for position in label_bars:
+        #     # Get y values for a position and plot the bar
+        #     y_values, y_labels = self.get_y_val_label_position(position)
+        #     if len(x_values) != len(y_values):
+        #         raise ValueError(f"has {len(y_values)} for y instead of {len(x_values)} for position '{position}'")
+        #     # Plot the bar
+        #     self.__axes.bar(x_values, y_values, width=self.__width, bottom=sum_y, linewidth=0.5, edgecolor='black')
+            
+        #     # Update sum_y for next position (and bar)
+        #     sum_y = [(lambda x,y: x+y)(sum_y[i], y_values[i]) for i in range(len(sum_y))]
 
-        # Add text to precise which year corresponding to the bar
+        # # Add text to precise which year corresponding to the bar
         size_text = self.__default_size_text -  1.15*len(self.__years_ind.keys())
         for i, label in enumerate(y_labels):
-            self.__axes.text(x_values[i], sum_y[i] + 1000, label, ha = 'center', color = 'black', fontsize=size_text)
+            self.__axes.text(x_bars[i], sum_y[i] + 1000, label, ha = 'center', color = 'black', fontsize=size_text)
             
         # Add correct labels on x-axis
         self.__axes.set_xticks(x_labels, labels)        
 
-        # Display legend and draw canvas
-        if len(label_bars):
-            self.__axes.legend(label_bars)
+        # # Display legend and draw canvas
+        if len(position_draw):
+            self.__axes.legend(position_draw)
         
     
     def get_x_val_label(self) -> Tuple[List[Union[int, float]], List[Union[int, float]], List[str]]:
@@ -214,11 +239,13 @@ class DistanceMode(QtWidgets.QWidget, Observer):
             Tuple[List[Union[int, float]], List[Union[int, float]], List[str]]: The 3 lists
         """
         current_space = 0
-        x = []
+        x_bars = []
         x_label = []
         label = []
         current_ind = 0
         for mode in self.__mode_ind.keys():
+            if not self.__mode_ind[mode]["checked"]:
+                continue
             active_year_mode = 0
             for i in range(len(self.__data_dist[mode]["year"])):
                 # In case, the user don't want to display bars for year
@@ -227,7 +254,7 @@ class DistanceMode(QtWidgets.QWidget, Observer):
                     continue
                 
                 # Need to display a bar for mode and year
-                x.append(current_space)
+                x_bars.append(current_space)
                 current_ind += 1
                 current_space += self.__width
                 active_year_mode += 1
@@ -235,30 +262,31 @@ class DistanceMode(QtWidgets.QWidget, Observer):
             # Calculate the position of the label on x-axis
             if active_year_mode > 0:
                 offset = active_year_mode//2 + (active_year_mode % 2)
-                imp = x[current_ind-offset] - self.__width/2
-                pai = x[current_ind-offset]
+                imp = x_bars[current_ind-offset] - self.__width/2
+                pai = x_bars[current_ind-offset]
                 x_label.append(pai if active_year_mode % 2 else imp)
                 label.append(mode)
 
                 # Next mode : add the space between the last bar of this mode et the first bar of the next mode
                 current_space += self.__spacing
         
-        return x, x_label, label
+        return x_bars, x_label, label
 
 
-    def get_y_val_label_position(self, position: str) -> Tuple[List[Union[int, float]], List[str]]:
-        """ Construct a list to plot a bar for the position 'position'.
+    def get_y_val_label_position(self, position: str, mode_accepted: List[str]) -> Tuple[List[Union[int, float]], List[str]]:
+        """ Construct a list to plot a bar for the position 'position' and a list of mode accepted (from buttons).
             The value is the distance of the position when using a mode in different year
 
         Args:
             position (str): Position
+            mode_accepted (List[str]): List of mode accepted
 
         Returns:
             Tuple[List[Union[int, float]], List[str]]: Values of distance for each bar of position 'position'
         """
         y = []
         labels = []
-        for mode in self.__mode_ind.keys():
+        for mode in mode_accepted:
             for year in self.__data_dist[mode]["year"]:
                 if not self.__years_ind[year]["checked"]:
                     continue
