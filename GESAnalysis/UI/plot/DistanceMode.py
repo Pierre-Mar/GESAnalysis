@@ -14,33 +14,32 @@ from random import choice
 
 
 class DistanceMode(QtWidgets.QWidget, Observer):
-    """ Class for graphically representing
+    """ Class to represent graphically
         the distance for each year according to the mode of transport
+        and the position of people
     """
     
-    # Values use to print the name of labels
-    __width = 0.3                                # Width of bars
-    __espacement = 0.8                           # Espacement between bars of each mode
-    __default_size_text = 10                     # Size of text above bars
-    __markers = ['.', ',', 'o', 'v', '^', '<', '>']
+    # Values use to draw the graph
+    __width = 0.3                                   # Width of bars
+    __spacing = 0.8                                 # Spacing between bars of each mode
+    __default_size_text = 10                        # Size of text above bars
+    __markers = ['.', ',', 'o', 'v', '^', '<', '>'] # Markers use to plot the curves
 
     
     def __init__(
         self,
         model,
-        controller,
         parent: Optional[QtWidgets.QWidget]
     ) -> None:
-        """ Initialisation of class where we configure data to plot later
+        """ Initialisation of class where we configure data to plot it
 
         Args:
-            readerData_year_list (Optional[List[Tuple[Optional[Dict[str, Dict[str, List[Union[str, bool, int, float]]]]], str]]]): 
-            List of dictionary associated to a year
+            model (GESAnalysis): model
+            parent (Optional[QtWidgets.QWidget]): Parent of this widget (normally, it's MainWindow)
         """
         super(DistanceMode, self).__init__(parent)
 
         self.__gesanalysis = model
-        self.__controller = controller
         
         # Add this observer into the list for observable
         self.__gesanalysis.add_observer(self)
@@ -49,6 +48,10 @@ class DistanceMode(QtWidgets.QWidget, Observer):
         self.__position_ind = {} # Same with position
         self.__years_ind = {}    # Same with year
         self.__data_dist = {}    # Dictionary where the key is a year and the value a list with distance for all mode
+        
+        # Add values from the model to the structures define above
+        self.__check_value()
+        self.__configure_data()
         
         # Create figure
         self.__fig = Figure()
@@ -66,7 +69,7 @@ class DistanceMode(QtWidgets.QWidget, Observer):
 #  Initialisation of the interface                                                                    #
 #######################################################################################################
     def __init_UI(self):
-        """ Initialise the UI
+        """ Initialize the UI
         """        
         # Widget for canvas
         widget_canvas = QtWidgets.QWidget(self)
@@ -152,7 +155,7 @@ class DistanceMode(QtWidgets.QWidget, Observer):
                 
         # Get all the data to draw the bars for each mode
         x_values, x_labels, labels = self.get_x_val_label()
-        sum_y = [0 for i in x_values]                     # Useful for stacked bars
+        sum_y = [0 for i in x_values]                               # Useful for stacked bars
         y_labels = []
         for position in label_bars:
             # Get y values for a position and plot the bar
@@ -179,7 +182,10 @@ class DistanceMode(QtWidgets.QWidget, Observer):
         
     
     def get_x_val_label(self) -> Tuple[List[Union[int, float]], List[Union[int, float]], List[str]]:
-        """ Create a list where the values is where the bar is on x-axis.
+        """ Create a tuple of 3 lists where
+             - 1st : values where the first bar of a mode is on x-axis.
+             - 2nd : values where the label is on x-axis
+             - 3rd : labels
             Another list but for labels and a list with labels
 
         Returns:
@@ -204,7 +210,7 @@ class DistanceMode(QtWidgets.QWidget, Observer):
                 current_space += self.__width
                 active_year_mode += 1
 
-            # Calculate the position of the label in x-axis
+            # Calculate the position of the label on x-axis
             if active_year_mode > 0:
                 offset = active_year_mode//2 + (active_year_mode % 2)
                 imp = x[current_ind-offset] - self.__width/2
@@ -213,7 +219,7 @@ class DistanceMode(QtWidgets.QWidget, Observer):
                 label.append(mode)
 
                 # Next mode : add the space between the last bar of this mode et the first bar of the next mode
-                current_space += self.__espacement
+                current_space += self.__spacing
         
         return x, x_label, label
 
@@ -240,12 +246,14 @@ class DistanceMode(QtWidgets.QWidget, Observer):
     
     
     def __draw_curve(self):
+        """ Draw a graph with curves
+        """
         x_labels = {}
         x = 0
         # Dictionary where a mode is associated to a value (x-axis)
         for mode in self.__mode_ind.keys():
             x_labels[mode] = x
-            x += self.__espacement
+            x += self.__spacing
 
         # Calculate th y value for each year
         has_year = False

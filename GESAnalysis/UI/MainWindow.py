@@ -47,7 +47,7 @@ class MainWindow(QtWidgets.QMainWindow):
         
         # Create widgets        
         self.file_open_UI = FileOpenUI(self.__gesanalysis, self.__controller, splitter)
-        self.distance_canvas = DistanceMode(self.__gesanalysis, self.__controller, splitter)
+        self.distance_canvas = DistanceMode(self.__gesanalysis, splitter)
 
         # Set layout
         splitter.addWidget(self.file_open_UI)
