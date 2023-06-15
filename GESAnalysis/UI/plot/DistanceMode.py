@@ -81,20 +81,11 @@ class DistanceMode(QtWidgets.QWidget, Observer):
         layout_canvas.addWidget(self.__figCanvas)
         widget_canvas.setLayout(layout_canvas)
         
-        # Widget for buttons for years
-        self.__widget_checkbutton_years = QtWidgets.QWidget(self)
-        self.__widget_checkbutton_years.setFixedHeight(40)
-        self.__layout_checkbutton_years = QtWidgets.QHBoxLayout()
-        
-        # Create a button for each year
-        for year in self.__years_ind.keys():
-            self.__years_ind[year]["button"] = QtWidgets.QCheckBox(year)
-            self.__years_ind[year]["checked"] = True
-            self.__years_ind[year]["button"].setChecked(self.__years_ind[year]["checked"])
-            self.__years_ind[year]["button"].toggled.connect(partial(self.__click_year, year))
-            self.__layout_checkbutton_years.addWidget(self.__years_ind[year]["button"])
-        self.__widget_checkbutton_years.setLayout(self.__layout_checkbutton_years)
-        self.__layout_checkbutton_years.setAlignment(QtCore.Qt.AlignCenter)
+        # Widget for buttons for years, modes, positions
+        self.__widget_checkbuttons_years, self.__layout_checkbuttons_years = self.__create_list_buttons(self.__years_ind, self.__click_year)
+        self.__widget_checkbuttons_modes, self.__layout_checkbuttons_modes = self.__create_list_buttons(self.__mode_ind, self.__click_mode)
+        self.__widget_checkbuttons_positions, self.__layout_checkbuttons_positions = self.__create_list_buttons(self.__position_ind, self.__click_position)
+
         
         # Widget for choose bars or curve
         widget_bar_curve = QtWidgets.QWidget(self)
@@ -120,9 +111,40 @@ class DistanceMode(QtWidgets.QWidget, Observer):
         # Principal widget
         layout = QtWidgets.QVBoxLayout()
         layout.addWidget(widget_canvas)
-        layout.addWidget(self.__widget_checkbutton_years)
+        layout.addWidget(self.__widget_checkbuttons_years)
+        layout.addWidget(self.__widget_checkbuttons_modes)
+        layout.addWidget(self.__widget_checkbuttons_positions)
         layout.addWidget(widget_bar_curve)
         self.setLayout(layout)
+        
+        
+    def __create_list_buttons(self, data_dict, fct):
+        widget = QtWidgets.QWidget(self)
+        widget.setFixedHeight(40)
+        layout = QtWidgets.QHBoxLayout(widget)
+        for d in data_dict.keys():
+            data_dict[d]["button"] = QtWidgets.QCheckBox(d)
+            data_dict[d]["checked"] = True
+            data_dict[d]["button"].setChecked(data_dict[d]["checked"])
+            data_dict[d]["button"].toggled.connect(partial(fct, d))
+        layout.setAlignment(QtCore.Qt.AlignCenter)
+        return widget, layout
+    
+    
+    def __remove_list_buttons(self, data_dict, layout):
+        for d in data_dict.keys():
+            layout.removeWidget(data_dict[d]["button"])
+            del data_dict[d]["checked"]
+            del data_dict[d]["button"]
+    
+    
+    def __update_list_buttons(self, data_dict, layout, fct):
+        for d in data_dict.keys():
+            data_dict[d]["button"] = QtWidgets.QCheckBox(d)
+            data_dict[d]["checked"] = True
+            data_dict[d]["button"].setChecked(data_dict[d]["checked"])
+            data_dict[d]["button"].toggled.connect(partial(fct, d))
+            layout.addWidget(data_dict[d]["button"])
 
    
 #######################################################################################################
@@ -471,6 +493,28 @@ class DistanceMode(QtWidgets.QWidget, Observer):
         """
         self.__years_ind[year]["checked"] = state
         self.__draw()
+        
+    
+    def __click_mode(self, mode: QtWidgets.QCheckBox, state: bool) -> None:
+        """ Change state of the button 'mode' and the graph when an user clicked on it
+
+        Args:
+            mode (QtWidgets.QCheckBox): A button
+            state (bool): The button is checked or not
+        """
+        self.__mode_ind[mode]["checked"] = state
+        self.__draw()
+        
+    
+    def __click_position(self, position: QtWidgets.QCheckBox, state: bool) -> None:
+        """ Change state of the button 'position' and the graph when an user clicked on it
+
+        Args:
+            position (QtWidgets.QCheckBox): A button
+            state (bool): The button is checked or not
+        """
+        self.__position_ind[position]["checked"] = state
+        self.__draw()
     
     
     def __select_bar_graph(self, selected):
@@ -491,9 +535,11 @@ class DistanceMode(QtWidgets.QWidget, Observer):
     def update(self):
         """ Update the graph and the data when the FC has a modification
         """
-        # Remove the button years from the widget
-        for year in self.__years_ind.keys():
-            self.__layout_checkbutton_years.removeWidget(self.__years_ind[year]["button"])
+        # Remove the button years, modes, positions
+        self.__remove_list_buttons(self.__years_ind, self.__layout_checkbuttons_years)
+        self.__remove_list_buttons(self.__mode_ind, self.__layout_checkbuttons_modes)
+        self.__remove_list_buttons(self.__position_ind, self.__layout_checkbuttons_positions)
+
         
         # Reset data
         self.__mode_ind = {}
@@ -505,13 +551,10 @@ class DistanceMode(QtWidgets.QWidget, Observer):
         self.__configure_data()
         
         # Repaint the UI
-        # Only need to change the button for years
-        for year in self.__years_ind.keys():
-            self.__years_ind[year]["button"] = QtWidgets.QCheckBox(year)
-            self.__years_ind[year]["checked"] = True
-            self.__years_ind[year]["button"].setChecked(self.__years_ind[year]["checked"])
-            self.__years_ind[year]["button"].toggled.connect(partial(self.__click_year, year))
-            self.__layout_checkbutton_years.addWidget(self.__years_ind[year]["button"])
+        # Only need to change the button for years, modes and positions
+        self.__update_list_buttons(self.__years_ind, self.__layout_checkbuttons_years, self.__click_year)
+        self.__update_list_buttons(self.__mode_ind, self.__layout_checkbuttons_modes, self.__click_mode)
+        self.__update_list_buttons(self.__position_ind, self.__layout_checkbuttons_positions, self.__click_position)
         
         # Draw the graph
         self.__draw()
