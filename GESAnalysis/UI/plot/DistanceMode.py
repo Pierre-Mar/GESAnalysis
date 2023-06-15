@@ -274,6 +274,8 @@ class DistanceMode(QtWidgets.QWidget, Observer):
         x = 0
         # Dictionary where a mode is associated to a value (x-axis)
         for mode in self.__mode_ind.keys():
+            if not self.__mode_ind[mode]["checked"]:
+                continue
             x_labels[mode] = x
             x += self.__spacing
 
@@ -285,9 +287,12 @@ class DistanceMode(QtWidgets.QWidget, Observer):
             
             x_year = []
             y_year = []
-            for mode in self.__mode_ind.keys():
+            for mode in x_labels.keys():
                 s = 0
                 for position in self.__position_ind.keys():
+                    if not self.__position_ind[position]["checked"]:
+                        continue
+                    
                     s += self.__data_dist[mode]["data"][position][year]
                 
                 # If there are no value, we don't plot the year
@@ -296,7 +301,7 @@ class DistanceMode(QtWidgets.QWidget, Observer):
                 
                 x_year.append(x_labels[mode])
                 y_year.append(s)
-            has_year = True
+                has_year = True
             # Choose randomly a marker
             marker_random = choice(self.__markers)
             self.__axes.scatter(x_year, y_year, marker=marker_random, label=year)
