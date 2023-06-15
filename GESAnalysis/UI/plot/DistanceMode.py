@@ -1,8 +1,6 @@
 import matplotlib
-import matplotlib.pyplot as plt
 
 matplotlib.use('Qt5Agg')
-import numpy as np
 
 from PyQt5 import QtCore, QtWidgets
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg, NavigationToolbar2QT
@@ -10,6 +8,9 @@ from matplotlib.figure import Figure
 from typing import Optional, List, Tuple, Dict, Union
 from functools import partial
 from GESAnalysis.FC.PATTERNS.Observer import Observer
+from random import choice
+
+
 
 
 class DistanceMode(QtWidgets.QWidget, Observer):
@@ -21,6 +22,8 @@ class DistanceMode(QtWidgets.QWidget, Observer):
     __width = 0.3                                # Width of bars
     __espacement = 0.8                           # Espacement between bars of each mode
     __default_size_text = 10                     # Size of text above bars
+    __markers = ['.', ',', 'o', 'v', '^', '<', '>']
+
     
     def __init__(
         self,
@@ -35,7 +38,7 @@ class DistanceMode(QtWidgets.QWidget, Observer):
             List of dictionary associated to a year
         """
         super(DistanceMode, self).__init__(parent)
-        
+
         self.__gesanalysis = model
         self.__controller = controller
         
@@ -98,18 +101,18 @@ class DistanceMode(QtWidgets.QWidget, Observer):
         # Create a radio button to choose "Bars"
         self.__bar_button = QtWidgets.QRadioButton("Barre")
         self.__bar_button.setChecked(True)
-        self.__bar_button.toggled.connect(self.__choose_bar_curve)
+        self.__bar_button.toggled.connect(self.__select_bar_graph)
         layout_bar_curve.addWidget(self.__bar_button)
         
         # Create a radio button to choose "Curve"
         self.__curve_button = QtWidgets.QRadioButton("Courbe")
-        self.__curve_button.toggled.connect(self.__choose_bar_curve)
+        self.__curve_button.toggled.connect(self.__select_curve_graph)
         layout_bar_curve.addWidget(self.__curve_button)
         layout_bar_curve.setAlignment(QtCore.Qt.AlignCenter)
         
         widget_bar_curve.setLayout(layout_bar_curve)
         
-        self.__displayBar = True
+        self.__is_bars_selected = True
         
         # Principal widget
         layout = QtWidgets.QVBoxLayout()
@@ -126,7 +129,22 @@ class DistanceMode(QtWidgets.QWidget, Observer):
         """ Draw the data in the canvas
         """
         self.__axes.cla() # clear the canvas
+        
+        if self.__is_bars_selected:  
+            self.__draw_bars()
+        else:
+            self.__draw_curve()
+        
+        self.__figCanvas.draw()
+        
+    
+    def __draw_bars(self):
+        """ Draw a graph with bars
 
+        Raises:
+            ValueError: When the number of values for y-axis is different from
+            the number of values for x-axis
+        """
         # Construct list for labels
         label_bars = [0 for i in self.__position_ind.keys()]
         for position, ind_position in self.__position_ind.items():
@@ -158,7 +176,6 @@ class DistanceMode(QtWidgets.QWidget, Observer):
         # Display legend and draw canvas
         if len(label_bars):
             self.__axes.legend(label_bars)
-        self.__figCanvas.draw()
         
     
     def get_x_val_label(self) -> Tuple[List[Union[int, float]], List[Union[int, float]], List[str]]:
@@ -220,7 +237,44 @@ class DistanceMode(QtWidgets.QWidget, Observer):
                 y.append(self.__data_dist[mode]["data"][position][year])
                 labels.append(year)
         return y, labels
-        
+    
+    
+    def __draw_curve(self):
+        x_labels = {}
+        x = 0
+        # Dictionary where a mode is associated to a value (x-axis)
+        for mode in self.__mode_ind.keys():
+            x_labels[mode] = x
+            x += self.__espacement
+
+        # Calculate th y value for each year
+        has_year = False
+        for year in self.__years_ind.keys():
+            if not self.__years_ind[year]["checked"]:
+                continue
+            
+            x_year = []
+            y_year = []
+            for mode in self.__mode_ind.keys():
+                s = 0
+                for position in self.__position_ind.keys():
+                    s += self.__data_dist[mode]["data"][position][year]
+                
+                # If there are no value, we don't plot the year
+                if s == 0:
+                    continue
+                
+                x_year.append(x_labels[mode])
+                y_year.append(s)
+            has_year = True
+            # Choose randomly a marker
+            marker_random = choice(self.__markers)
+            self.__axes.scatter(x_year, y_year, marker=marker_random, label=year)
+            
+        self.__axes.set_xticks(list(x_labels.values()), list(x_labels.keys()))
+        if has_year:
+            self.__axes.legend()
+                
 
 #######################################################################################################
 #  Configure data to plot in the graph                                                                #
@@ -303,7 +357,8 @@ class DistanceMode(QtWidgets.QWidget, Observer):
                 self.__data_dist[mode]["sum"][year] = s
                 if s > 0 :
                     self.__data_dist[mode]["year"].append(year)
-                    
+
+    
     def __check_value(
         self,
     ) -> None:
@@ -409,11 +464,17 @@ class DistanceMode(QtWidgets.QWidget, Observer):
         self.__years_ind[year]["checked"] = state
         self.__draw()
     
-    def __choose_bar_curve(self) -> None:
-        """ Change the graph is the user want curve or bars
-        """
-        self.__displayBar = self.__bar_button.isChecked()
-        #self.__draw()
+    
+    def __select_bar_graph(self, selected):
+        if selected:
+            self.__is_bars_selected = True
+            self.__draw()
+    
+    
+    def __select_curve_graph(self, selected):
+        if selected:
+            self.__is_bars_selected = False
+            self.__draw()
     
 
 #######################################################################################################
