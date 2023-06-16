@@ -2,7 +2,7 @@ from PyQt5 import QtWidgets
 from GESAnalysis.FC.Controleur import Controleur
 from GESAnalysis.FC.GESAnalysis import GESAnalysis
 from GESAnalysis.FC.PATTERNS.Observer import Observer
-
+from typing import List
 
 
 class FileOpenUI(QtWidgets.QWidget, Observer):
@@ -65,3 +65,12 @@ class FileOpenUI(QtWidgets.QWidget, Observer):
             item = QtWidgets.QListWidgetItem()
             item.setText(file)
             self.__list_widget.addItem(item)
+
+
+    def get_selected_files(self) -> List[str]:
+        """ Returns a list of selected files
+
+        Returns:
+            List(str): selected files
+        """
+        return [item.text() for item in self.__list_widget.selectedItems()]

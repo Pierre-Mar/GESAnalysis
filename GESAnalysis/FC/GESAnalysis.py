@@ -36,6 +36,7 @@ class GESAnalysis(Observable):
             self.__file_open[name_file]["data"] = data_file
             self.__file_open[name_file]["year"] = year
             self.__file_open[name_file]["category"] = category
+            self.__file_open[name_file]["path"] = filename
         except Exception as e:
             raise Exception(str(e))
             
@@ -126,3 +127,11 @@ class GESAnalysis(Observable):
             sep_path = '\\'
         split_path = root_filename.split(sep_path)
         return split_path[len(split_path)-1] + file_ext
+    
+    
+    def get_path(self, filename):
+        filename = self.get_filename(filename)
+        try:
+            return self.__file_open[filename]["path"]
+        except:
+            raise Exception(f"there is no file '{filename}' open")

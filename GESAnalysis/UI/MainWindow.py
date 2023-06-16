@@ -3,6 +3,7 @@ from GESAnalysis.FC.Controleur import Controleur
 from GESAnalysis.FC.GESAnalysis import GESAnalysis
 from GESAnalysis.UI.FileOpenUI import FileOpenUI
 from GESAnalysis.UI.OpenFileDialog import OpenFileDialog
+from GESAnalysis.UI.ExportFileDialog import ExportFileDialog
 from GESAnalysis.UI.plot.DistanceMode import DistanceMode
 
 
@@ -79,6 +80,7 @@ class MainWindow(QtWidgets.QMainWindow):
         
         # Create action to export file
         export_action = QtWidgets.QAction("Exporter", self)
+        export_action.triggered.connect(self.export_file)
         file_menu.addAction(export_action)
     
     
@@ -93,3 +95,13 @@ class MainWindow(QtWidgets.QMainWindow):
         """
         self.file_dialog = OpenFileDialog(self.__controller, self)
         self.file_dialog.exec()
+    
+    
+    def export_file(self):
+        """ Open a dialog to export a file.
+            The user can select a file from FileOpenUI
+        """
+        selected_file = self.file_open_UI.get_selected_files()
+        self.dialog_export = ExportFileDialog(selected_file, self.__gesanalysis, self.__controller, self)
+        self.dialog_export.exec()
+        

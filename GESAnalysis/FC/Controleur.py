@@ -44,3 +44,10 @@ class Controleur:
             self.__gesanalysis.update()
         except Exception as e:
             raise Exception(str(e))
+        
+        
+    def export_file(self, filein, fileout):
+        try:
+            self.__gesanalysis.export(filein, fileout)
+        except Exception as e:
+            raise Exception(str(e))
