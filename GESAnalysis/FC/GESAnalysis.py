@@ -2,10 +2,11 @@ import os, platform
 
 from typing import Dict, List, Union
 from GESAnalysis.FC.ExportData import ExportData
+from GESAnalysis.FC.PATTERNS.Observable import Observable
 from GESAnalysis.FC.ReaderData import ReaderData
 
 
-class GESAnalysis:
+class GESAnalysis(Observable):
     """ Class to manipulate data (Read file, write data)
     """
     
@@ -14,10 +15,11 @@ class GESAnalysis:
     
     
     def __init__(self) -> None:
+        super().__init__()
         self.__file_open = {} # Dictionary to associate the name of file and his data
         
 
-    def read_file(self, filename: str, sep: str = None, engine: str = "pandas") -> None:
+    def read_file(self, filename: str, year:str, category:str, sep: str = None, engine: str = "pandas") -> None:
         """ Read the file 'filename'
 
         Args:
@@ -29,7 +31,12 @@ class GESAnalysis:
             raise Exception("cannot read file because the path is null")
         try:
             data_file = self.__reader.read_file(filename, sep, engine)
-            self.__file_open[self.get_filename(filename)] = data_file
+            name_file = self.get_filename(filename)
+            self.__file_open[name_file] = {}
+            self.__file_open[name_file]["data"] = data_file
+            self.__file_open[name_file]["year"] = year
+            self.__file_open[name_file]["category"] = category
+            self.__file_open[name_file]["path"] = filename
         except Exception as e:
             raise Exception(str(e))
             
@@ -45,7 +52,7 @@ class GESAnalysis:
         # If the file is already open, then we export the data
         if file in self.__file_open.keys():
             try:
-                self.__export.export_data(self.__file_open[file], fileout)
+                self.__export.export_data(self.__file_open[file]["data"], fileout)
                 return
             except Exception as e:
                 raise Exception(str(e))
@@ -74,8 +81,25 @@ class GESAnalysis:
             raise Exception(f"the file '{file}' is not open yet")
         
         
+    def get_data(self):
+        """ Get the dictionary of data
+
+        Returns:
+            Dict[str, Dict[str, List[Union[str, int, float, bool]]]]: dictionary of data
+        """
+        return self.__file_open
     
-    def get_data_from_file(self, filename:str) -> Dict[str, Dict[str, List[Union[str, int, float, bool]]]]:
+    
+    def get_file_open(self) -> List[str]:
+        """ Get all the name of file who are open
+
+        Returns:
+            List[str]: List of name of file_
+        """
+        return list(self.__file_open.keys())
+    
+    
+    def get_data_from_file(self, filename:str) -> Dict[str, Dict[str, List[Union[List[Union[int, float, bool, str]], str]]]]:
         """ Return the dictionary of data of the last file who was read
 
         Returns:
@@ -83,7 +107,7 @@ class GESAnalysis:
         """
         file = self.get_filename(filename)
         try:
-            return self.__file_open[file]
+            return self.__file_open[file]["data"]
         except:
             raise Exception(f"there is no file '{file}' open")
     
@@ -103,3 +127,11 @@ class GESAnalysis:
             sep_path = '\\'
         split_path = root_filename.split(sep_path)
         return split_path[len(split_path)-1] + file_ext
+    
+    
+    def get_path(self, filename):
+        filename = self.get_filename(filename)
+        try:
+            return self.__file_open[filename]["path"]
+        except:
+            raise Exception(f"there is no file '{filename}' open")
