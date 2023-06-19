@@ -7,7 +7,7 @@ class OpenFileDialog(QtWidgets.QDialog):
     """ Class to open a dialog to select a file from the user and read it
     """
     
-    categories = ["Missions"]
+    categories = ["Achats", "Déplacements domicile-travail", "Fluides", "Matériel Informatique", "Missions"]
     
     def __init__(self, controller: Controleur, parent: QtWidgets.QWidget | None = ...) -> None:
         """ Initialisation of the dialog

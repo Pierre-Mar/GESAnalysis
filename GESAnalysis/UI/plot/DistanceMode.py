@@ -367,6 +367,8 @@ class DistanceMode(QtWidgets.QWidget, Observer):
         ind_position = 0
         # Get the mode, the year and the position and associate an index
         for val_ges in self.__gesanalysis.get_data().values():
+            if val_ges["category"] != "Missions":
+                continue
             data = val_ges["data"]
             
             mode = self.__get_column(data, "mode")
@@ -403,6 +405,9 @@ class DistanceMode(QtWidgets.QWidget, Observer):
                     
         # Now calculate the distance
         for val_ges in self.__gesanalysis.get_data().values():
+            if val_ges["category"] != "Missions":
+                continue
+            
             data = val_ges["data"]
                  
             mode = self.__get_column(data, "mode")
@@ -443,6 +448,8 @@ class DistanceMode(QtWidgets.QWidget, Observer):
         """
         self.__unit = ""
         for values_ges in self.__gesanalysis.get_data().values():
+            if values_ges["category"] != "Missions":
+                continue
             reader = values_ges["data"]
             year = values_ges["year"]          
             unit_reader = self.__get_unit(reader, "distance")
