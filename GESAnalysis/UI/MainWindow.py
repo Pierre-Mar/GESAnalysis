@@ -4,7 +4,8 @@ from GESAnalysis.FC.GESAnalysis import GESAnalysis
 from GESAnalysis.UI.FileOpenUI import FileOpenUI
 from GESAnalysis.UI.OpenFileDialog import OpenFileDialog
 from GESAnalysis.UI.ExportFileDialog import ExportFileDialog
-from GESAnalysis.UI.plot.DistanceMode import DistanceMode
+from GESAnalysis.UI.plot.missions.DistanceMode import DistanceMode
+from GESAnalysis.UI.plot.missions.EmissionMode import EmissionMode
 
 
 class MainWindow(QtWidgets.QMainWindow):
@@ -48,11 +49,16 @@ class MainWindow(QtWidgets.QMainWindow):
         
         # Create widgets        
         self.file_open_UI = FileOpenUI(self.__gesanalysis, self.__controller, splitter)
-        self.distance_canvas = DistanceMode(self.__gesanalysis, splitter)
+        
+        self.tab_graphs_widget = QtWidgets.QTabWidget(splitter)
+        self.distance_canvas = DistanceMode(self.__gesanalysis, self.tab_graphs_widget)
+        self.emission_canvas = EmissionMode(self.__gesanalysis, self.tab_graphs_widget)
+        self.tab_graphs_widget.addTab(self.distance_canvas, "Distance")
+        self.tab_graphs_widget.addTab(self.emission_canvas, "Emissions")
 
         # Set layout
         splitter.addWidget(self.file_open_UI)
-        splitter.addWidget(self.distance_canvas)
+        splitter.addWidget(self.tab_graphs_widget)
         
         self.setCentralWidget(splitter)
         
