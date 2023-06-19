@@ -1,93 +1,452 @@
-import matplotlib.pyplot as plt
-import numpy as np
+import matplotlib
+
+matplotlib.use('Qt5Agg')
+
+from PyQt5 import QtCore, QtWidgets
+from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg, NavigationToolbar2QT
+from matplotlib.figure import Figure
+from typing import Optional, List, Tuple, Dict, Union
+from functools import partial
+from GESAnalysis.FC.PATTERNS.Observer import Observer
+from random import choice
 
 
-class DistanceMode:
-    """ Classe permettant de représenter graphiquement
-        la distance selon le mode de transport selon les années
+
+
+class DistanceMode(QtWidgets.QWidget, Observer):
+    """ Class to represent graphically
+        the distance for each year according to the mode of transport
+        and the position of people
     """
     
+    # Values use to draw the graph
+    __width = 0.3                                   # Width of bars
+    __spacing = 0.8                                 # Spacing between bars of each mode
+    __default_size_text = 10                        # Size of text above bars
+    __markers = ['.', ',', 'o', 'v', '^', '<', '>'] # Markers use to plot the curves
+
     
-    def __init__(self, readerData_year_list):
-        self.__mode_ind = {} # Dictionnaire contenant le mode et son index associé
-        self.__years_dist = {} # Dictionnaire contenant l'année et la distance
-        self.__error_msg = None
+    def __init__(
+        self,
+        model,
+        parent: Optional[QtWidgets.QWidget]
+    ) -> None:
+        """ Initialisation of class where we configure data to plot it
+
+        Args:
+            model (GESAnalysis): model
+            parent (Optional[QtWidgets.QWidget]): Parent of this widget (normally, it's MainWindow)
+        """
+        super(DistanceMode, self).__init__(parent)
+
+        self.__gesanalysis = model
         
-        self.__fig, self.__ax = plt.subplots()
-        self.__check_unit(readerData_year_list)
-        self.__configure_data(readerData_year_list)
+        # Add this observer into the list for observable
+        self.__gesanalysis.add_observer(self)
+        
+        self.__mode_ind = {}     # Dictionary where the key is the mode of transport and the value his index
+        self.__position_ind = {} # Same with position
+        self.__years_ind = {}    # Same with year
+        self.__data_dist = {}    # Dictionary where the key is a year and the value a list with distance for all mode
+        
+        # Add values from the model to the structures define above
+        self.__check_value()
+        self.__configure_data()
+        
+        # Create figure
+        self.__fig = Figure()
+        self.__axes = self.__fig.add_subplot(111)
+        self.__figCanvas = FigureCanvasQTAgg(self.__fig)
+        
+        # Initialisation UI
+        self.__init_UI()
+        
+        # Draw canvas
         self.__draw()
-    
-    
-    def add_data(self, readerData_year):
-        """ Permet de rajouter des données pour les afficher sur le graphe
 
-        Args:
-            readerData_year (list): Liste de tuple contenant le dictionnaire de données et l'année
-        """
-        self.__check_unit(readerData_year)
-        self.__configure_data(readerData_year)
+
+#######################################################################################################
+#  Initialisation of the interface                                                                    #
+#######################################################################################################
+    def __init_UI(self):
+        """ Initialize the UI
+        """        
+        # Widget for canvas
+        widget_canvas = QtWidgets.QWidget(self)
+        
+        # Add toolbar to control the graph
+        toolbar = NavigationToolbar2QT(self.__figCanvas, self)
+        layout_canvas = QtWidgets.QVBoxLayout()
+        layout_canvas.addWidget(toolbar)
+        layout_canvas.addWidget(self.__figCanvas)
+        widget_canvas.setLayout(layout_canvas)
+        
+        # Widget for buttons for years, modes, positions
+        self.__widget_checkbuttons_years, self.__layout_checkbuttons_years = self.__create_list_buttons(self.__years_ind, self.__click_year)
+        self.__widget_checkbuttons_modes, self.__layout_checkbuttons_modes = self.__create_list_buttons(self.__mode_ind, self.__click_mode)
+        self.__widget_checkbuttons_positions, self.__layout_checkbuttons_positions = self.__create_list_buttons(self.__position_ind, self.__click_position)
+
+        
+        # Widget for choose bars or curve
+        widget_bar_curve = QtWidgets.QWidget(self)
+        widget_bar_curve.setFixedHeight(40)
+        layout_bar_curve = QtWidgets.QHBoxLayout() # Horizontal layout
+        
+        # Create a radio button to choose "Bars"
+        self.__bar_button = QtWidgets.QRadioButton("Barre")
+        self.__bar_button.setChecked(True)
+        self.__bar_button.toggled.connect(self.__select_bar_graph)
+        layout_bar_curve.addWidget(self.__bar_button)
+        
+        # Create a radio button to choose "Curve"
+        self.__curve_button = QtWidgets.QRadioButton("Courbe")
+        self.__curve_button.toggled.connect(self.__select_curve_graph)
+        layout_bar_curve.addWidget(self.__curve_button)
+        layout_bar_curve.setAlignment(QtCore.Qt.AlignCenter)
+        
+        widget_bar_curve.setLayout(layout_bar_curve)
+        
+        self.__is_bars_selected = True
+        
+        # Principal widget
+        layout = QtWidgets.QVBoxLayout()
+        layout.addWidget(widget_canvas)
+        layout.addWidget(self.__widget_checkbuttons_years)
+        layout.addWidget(self.__widget_checkbuttons_modes)
+        layout.addWidget(self.__widget_checkbuttons_positions)
+        layout.addWidget(widget_bar_curve)
+        self.setLayout(layout)
         
         
-    def remove_data(self, year_list):
-        """ Supprimes les données des années
+    def __create_list_buttons(self, data_dict, fct) -> Tuple[QtWidgets.QWidget, QtWidgets.QHBoxLayout]:
+        """ Create a list of buttons (used for modes, years and positions)
 
         Args:
-            year_list (list): Liste de string contenant les années où nous voulons supprimer les données
+            data_dict (dict): dictionary with data (mode, year, position)
+            fct : fun,ction associated when the user click on the button
+
+        Returns:
+            QWidget, QHBoxLayout: Widget and layout associated to the list of buttons
         """
-        for year in year_list:
-            try:
-                del self.__years_dist[year]
-            except:
-                pass
+        widget = QtWidgets.QWidget(self)
+        widget.setFixedHeight(40)
+        layout = QtWidgets.QHBoxLayout(widget)
+        for d in data_dict.keys():
+            data_dict[d]["button"] = QtWidgets.QCheckBox(d)
+            data_dict[d]["checked"] = True
+            data_dict[d]["button"].setChecked(data_dict[d]["checked"])
+            data_dict[d]["button"].toggled.connect(partial(fct, d))
+        layout.setAlignment(QtCore.Qt.AlignCenter)
+        return widget, layout
+    
+    
+    def __remove_list_buttons(self, data_dict, layout: QtWidgets.QHBoxLayout) -> None:
+        """ Remove the buttons from the layout
+
+        Args:
+            data_dict (dict): dictionary with data (mode, year, position)
+            layout (QHBoxLayout): layout of button
+        """
+        for d in data_dict.keys():
+            layout.removeWidget(data_dict[d]["button"])
+            del data_dict[d]["checked"]
+            del data_dict[d]["button"]
+    
+    
+    def __update_list_buttons(self, data_dict, layout: QtWidgets.QHBoxLayout, fct) -> None:
+        """ Update a layout of a list of buttons (used for modes, years and positions)
+
+        Args:
+            data_dict (dict): dictionary with data (mode, year, position)
+            layout (QHBoxLayout) : Layout to put the buttons
+            fct : fun,ction associated when the user click on the button
+        """
+        for d in data_dict.keys():
+            data_dict[d]["button"] = QtWidgets.QCheckBox(d)
+            data_dict[d]["checked"] = True
+            data_dict[d]["button"].setChecked(data_dict[d]["checked"])
+            data_dict[d]["button"].toggled.connect(partial(fct, d))
+            layout.addWidget(data_dict[d]["button"])
+
+   
+#######################################################################################################
+#  Draw the graph in the canvas                                                                       #
+#######################################################################################################  
+    def __draw(self):
+        """ Draw the data in the canvas
+        """
+        self.__axes.cla() # clear the canvas
+        
+        if self.__is_bars_selected:  
+            self.__draw_bars()
+        else:
+            self.__draw_curve()
+        
+        self.__figCanvas.draw()
+        
+    
+    def __draw_bars(self):
+        """ Draw a graph with bars
+
+        Raises:
+            ValueError: When the number of values for y-axis is different from
+            the number of values for x-axis. Same with labels
+        """     
+        # Get all the data to draw the bars for each mode
+        x_bars, x_labels, labels = self.__get_x_val_label()
+        y_labels = []
+        last_position = ""
+        sum_y = [0 for i in x_bars]                               # Useful for stacked bars
+        position_draw = []
+        for position in self.__position_ind.keys():
+            if not self.__position_ind[position]["checked"]:
+                continue
             
+            # Get a list with the values of each bar for the position 'position'
+            y_values, y_labels_pos = self.__get_y_val_label_position(position, labels)
+            
+            # Check the differents values
+            # Compare if there are the same number of values between y-axis and x-axis
+            if len(x_bars) != len(y_values):
+                raise ValueError(f"has {len(y_values)} for y instead of {len(x_bars)} for position '{position}'")
+            if position_draw != []:
+                # Compare labels
+                if len(y_labels) != len(y_labels_pos):
+                    raise ValueError(f"has {len(y_labels)} labels instead of {len(y_labels_pos)} for position '{position}'")
+                for label_ind in range(len(y_labels_pos)):
+                    if y_labels[label_ind] != y_labels_pos[label_ind]:
+                        raise ValueError(f"has different labels for bars between position '{position}' and '{last_position}'")
+            
+            # Draw bar
+            self.__axes.bar(x_bars, y_values, width=self.__width, bottom=sum_y, linewidth=0.5, edgecolor='black')
+            
+            # Update values for next bars
+            sum_y = [(lambda x,y: x+y)(sum_y[i], y_values[i]) for i in range(len(sum_y))]
+            y_labels = y_labels_pos
+            last_position = position
+            position_draw.append(position)
+
+        # # Add text to precise which year corresponding to the bar
+        size_text = self.__default_size_text -  1.15*len(self.__years_ind.keys())
+        for i, label in enumerate(y_labels):
+            self.__axes.text(x_bars[i], sum_y[i] + 1000, label, ha = 'center', color = 'black', fontsize=size_text)
+            
+        # Add correct labels on x-axis
+        self.__axes.set_xticks(x_labels, labels)        
+
+        # # Display legend and draw canvas
+        if len(position_draw):
+            self.__axes.legend(position_draw)
         
-    def __configure_data(self, readerData_year):
-        """ Crée le format de données nécessaires pour dessiner le graphe
+    
+    def __get_x_val_label(self) -> Tuple[List[Union[int, float]], List[Union[int, float]], List[str]]:
+        """ Create a tuple of 3 lists where
+             - 1st : values where the first bar of a mode is on x-axis.
+             - 2nd : values where the label is on x-axis
+             - 3rd : labels
+            Another list but for labels and a list with labels
+
+        Returns:
+            Tuple[List[Union[int, float]], List[Union[int, float]], List[str]]: The 3 lists
+        """
+        current_space = 0
+        x_bars = []
+        x_label = []
+        label = []
+        current_ind = 0
+        for mode in self.__mode_ind.keys():
+            if not self.__mode_ind[mode]["checked"]:
+                continue
+            active_year_mode = 0
+            for i in range(len(self.__data_dist[mode]["year"])):
+                # In case, the user don't want to display bars for year
+                year_mode = self.__data_dist[mode]["year"][i]
+                if not self.__years_ind[year_mode]["checked"]:
+                    continue
+                
+                # Need to display a bar for mode and year
+                x_bars.append(current_space)
+                current_ind += 1
+                current_space += self.__width
+                active_year_mode += 1
+
+            # Calculate the position of the label on x-axis
+            if active_year_mode > 0:
+                offset = active_year_mode//2 + (active_year_mode % 2)
+                imp = x_bars[current_ind-offset] - self.__width/2
+                pai = x_bars[current_ind-offset]
+                x_label.append(pai if active_year_mode % 2 else imp)
+                label.append(mode)
+
+                # Next mode : add the space between the last bar of this mode et the first bar of the next mode
+                current_space += self.__spacing
+        
+        return x_bars, x_label, label
+
+
+    def __get_y_val_label_position(self, position: str, mode_accepted: List[str]) -> Tuple[List[Union[int, float]], List[str]]:
+        """ Construct a list to plot a bar for the position 'position' and a list of mode accepted (from buttons).
+            The value is the distance of the position when using a mode in different year
 
         Args:
-            readerData_year (list): Liste de tuple contenant un dictionnaire de données et l'année
+            position (str): Position
+            mode_accepted (List[str]): List of mode accepted
+
+        Returns:
+            Tuple[List[Union[int, float]], List[str]]: Values of distance for each bar of position 'position'
         """
-        # X-axis : clés (mode de transport)
-        # Y-axis : année + distance
+        y = []
+        labels = []
+        for mode in mode_accepted:
+            for year in self.__data_dist[mode]["year"]:
+                if not self.__years_ind[year]["checked"]:
+                    continue
+                y.append(self.__data_dist[mode]["data"][position][year])
+                labels.append(year)
+        return y, labels
+    
+    
+    def __draw_curve(self):
+        """ Draw a graph with curves
+        """
+        x_labels = {}
+        x = 0
+        # Dictionary where a mode is associated to a value (x-axis)
+        for mode in self.__mode_ind.keys():
+            if not self.__mode_ind[mode]["checked"]:
+                continue
+            x_labels[mode] = x
+            x += self.__spacing
+
+        # Calculate th y value for each year
+        has_year = False
+        for year in self.__years_ind.keys():
+            if not self.__years_ind[year]["checked"]:
+                continue
+            
+            x_year = []
+            y_year = []
+            for mode in x_labels.keys():
+                s = 0
+                for position in self.__position_ind.keys():
+                    if not self.__position_ind[position]["checked"]:
+                        continue
+                    
+                    s += self.__data_dist[mode]["data"][position][year]
+                
+                # If there are no value, we don't plot the year
+                if s == 0:
+                    continue
+                
+                x_year.append(x_labels[mode])
+                y_year.append(s)
+                has_year = True
+            # Choose randomly a marker
+            marker_random = choice(self.__markers)
+            self.__axes.scatter(x_year, y_year, marker=marker_random, label=year)
+            
+        self.__axes.set_xticks(list(x_labels.values()), list(x_labels.keys()))
+        if has_year:
+            self.__axes.legend()
+                
+
+#######################################################################################################
+#  Configure data to plot in the graph                                                                #
+#######################################################################################################  
+    def __configure_data(self) -> None:
+        """ Configure the data into the correct format for plot
+        
+        Raises:
+            TypeError: List is null
+        """
+        if self.__gesanalysis is None:
+            raise TypeError("cannot plot (distance depending mode) because the dictionary is null")
+        
         ind_mode = 0
-        for reader, year in readerData_year:
-            # Récupères les données du reader pour le mode et la distance
-            mode = self.__get_column(reader, "mode")
+        ind_year = 0
+        ind_position = 0
+        # Get the mode, the year and the position and associate an index
+        for val_ges in self.__gesanalysis.get_data().values():
+            data = val_ges["data"]
+            
+            mode = self.__get_column(data, "mode")
             if mode is None:
                 continue
             
-            distance = self.__get_column(reader, "distance")
-            if distance is None:
+            position = self.__get_column(data, "position")
+            if position is None:
                 continue
             
-            # On regarde le nombre de mode qu'il y a en associant un index
-            for i in range(len(mode)):
-                if mode[i] not in self.__mode_ind.keys():
-                    self.__mode_ind[mode[i]] = ind_mode
-                    ind_mode += 1
-                    
-            # On construit une liste avec où la valeur est la distance
-            # du mode où l'index est associé dans le dictionnaire
-            self.__years_dist[year] = [0 for i in range(len(list(self.__mode_ind.keys())))]
+            year = val_ges["year"]
+            if year not in self.__years_ind.keys():
+                self.__years_ind[year] = {"index": ind_year}
+                ind_year += 1
             
-            # On calcule la distance pour chaque mode
+            for i in range(len(mode)):
+                if mode[i][0] not in self.__mode_ind.keys():
+                    self.__mode_ind[mode[i][0]] = {"index": ind_mode}
+                    ind_mode += 1
+                if position[i][0] not in self.__position_ind.keys():
+                    self.__position_ind[position[i][0]] = {"index": ind_position}
+                    ind_position += 1
+        
+        # Create structure to calculate the distance
+        for mode in self.__mode_ind.keys():
+            self.__data_dist[mode] = {}
+            self.__data_dist[mode]["data"] = {}
+            self.__data_dist[mode]["year"] = []
+            self.__data_dist[mode]["sum"] = {}
+            for position in self.__position_ind.keys():
+                self.__data_dist[mode]["data"][position] = {}
+                for year in self.__years_ind.keys():
+                    self.__data_dist[mode]["data"][position][year] = 0
+                    
+        # Now calculate the distance
+        for val_ges in self.__gesanalysis.get_data().values():
+            data = val_ges["data"]
+                 
+            mode = self.__get_column(data, "mode")
+            position = self.__get_column(data, "position")
+            year = val_ges["year"]
+            distance = self.__get_column(data, "distance")
+            if distance is None:
+                continue
+
             for i in range(len(distance)):
-                   self.__years_dist[year][self.__mode_ind[mode[i]]] += distance[i]
+                # Get the index for postion and year
+                mode_val = mode[i][0]
+                pos_ind = position[i][0]
+                year_ind = year
+                
+                # Add the distance
+                self.__data_dist[mode_val]["data"][pos_ind][year_ind] += sum(distance[i])
+        
+        # Find the distance for years for each mode who are equal to 0
+        # If it's equal to 0, we don't add it => no bar
+        for mode in self.__mode_ind.keys():
+            for year in self.__years_ind.keys():
+                s = 0
+                for position in self.__position_ind.keys():
+                    s += self.__data_dist[mode]["data"][position][year]
+                self.__data_dist[mode]["sum"][year] = s
+                if s > 0 :
+                    self.__data_dist[mode]["year"].append(year)
 
+    
+    def __check_value(
+        self,
+    ) -> None:
+        """ Check the unit of distance for each year is the same
 
-    def __check_unit(self, readerData_year):
-        """ Vérifie que l'unité de chaque distance par année est la même
-
-        Args:
-            readerData_year (list): liste de tuple contenant les données et l'année
+        Raises:
+            ValueError: A year has a different unit of distance or the values are not integers or float
         """
         self.__unit = ""
-        for reader, year in readerData_year:
+        for values_ges in self.__gesanalysis.get_data().values():
+            reader = values_ges["data"]
+            year = values_ges["year"]          
             unit_reader = self.__get_unit(reader, "distance")
-            if unit_reader is None:
-                self.__error_msg = "Erreur : l'unité de la distance pour l'année {0} n'est pas définie".format(year)
-                break
+            type_reader = self.__get_type(reader, "distance")
             
             if self.__unit == "":
                 self.__unit = "/".join(unit_reader)
@@ -95,53 +454,27 @@ class DistanceMode:
             unit_reader = "/".join(unit_reader)
                 
             if unit_reader != self.__unit:
-                self.__error_msg = "Erreur : l'unité de la distance pour l'année {0} ({1}) est différent des autres unités ({2})".format(
-                    year, unit_reader, self.__unit
-                )
-                break
-              
- 
-    def __draw(self):
-        """ Permets de dessiner le graphe avec matplotlib
-        """
-        # Valeur pour l'affichage des noms des étiquettes
-        width = 0.3
-        espacement = 0.8
-        
-        # Calcul de l'espacement nécessaires entre les barres
-        x = np.zeros(len(self.__mode_ind.keys()))
-        for i in range(1, len(self.__mode_ind.keys())):
-            x[i] = x[i-1] + len(self.__years_dist.keys())*width + espacement
-        multiplier = 0
-        
-        for year, dist_mode in self.__years_dist.items():
-            offset = width * multiplier
-            self.__ax.bar(x+offset, dist_mode, width=width, label=year)
-            multiplier += 1
-                
-        self.__ax.set_ylabel("Distance ({0})".format(self.__unit))
-        # Calcul de l'emplacement de l'étiquette qui doit se trouver au milieu des barres
-        if len(self.__years_dist) % 2 == 0:
-            offset_xlabel = ((len(self.__years_dist)//2) - 1)*width
-            self.__ax.set_xticks(x+offset_xlabel + width/2, list(self.__mode_ind.keys()))
-        else:
-            offset_xlabel = len(self.__years_dist)//2*width
-            self.__ax.set_xticks(x+offset_xlabel, list(self.__mode_ind.keys()))
-        
-        plt.legend()
-        plt.show()
+                raise ValueError(f"unit of distance for year {year} is '{unit_reader} instead of '{self.__unit}'")
+            if type_reader not in [int, float]:
+                raise ValueError(f"type of distance for year {year} is '{type_reader} instead of int or float")
+    
 
+#######################################################################################################
+#  Getters                                                                                            #
+#######################################################################################################  
+    def __get_column(
+        self,
+        reader: Dict[str, Dict[str, List[Union[str, int, float, bool]]]],
+        column: str
+    ) -> Optional[List[Union[str, int, float, bool]]]:
+        """ Returns the data associated to the column 'column' in the dictionary 'reader'
         
-    def __get_column(self, reader, column):
-        """ Retourne la colonne 'column' se trouvant dans le dictionnaire
-        
-
         Args:
-            reader (dict): Dictionnaire de données
-            column (str): Nom de colonne
+            reader (Dict[str, Dict[str, List[Union[str, int, float, bool]]]]) : the dictionary
+            column (str): the column
 
         Returns:
-            list | None: Liste de données de la colonne 'column' s'il a trouvé. Sinon None
+            List[Union[str, int, float, bool]] | None: The data associated to the column if the column exist, else None
         """
         name_col = list(reader.keys())
         for c in name_col:
@@ -149,16 +482,41 @@ class DistanceMode:
                 return reader[c]["data"]
         return None
     
-    def __get_unit(self, reader, column):
-        """ Retourne l'unité de la colonne 'column' se trouvant dans le dictionnaire
+    
+    def __get_type(
+        self,
+        reader: Dict[str, Dict[str, List[Union[str, int, float, bool]]]],
+        column: str
+    ) -> Optional[Union[str, bool, int, float]]:
+        """ Returns the type associated to the column 'column' in the dictionary 'reader'
         
-
         Args:
-            reader (dict): Dictionnaire de données
-            column (str): Nom de colonne
+            reader (Dict[str, Dict[str, List[Union[str, int, float, bool]]]]) : the dictionary
+            column (str): the column
 
         Returns:
-            list | None: Liste contenant l'unité de la colonne 'column' s'il a trouvé. Sinon None
+            Union[str, int, float, bool] | None: The type associated to the column if the column exist, else None
+        """
+        name_col = list(reader.keys())
+        for c in name_col:
+            if column == " ".join(reader[c]["name"]):
+                return reader[c]["type"]
+        return None
+    
+    
+    def __get_unit(
+        self,
+        reader: Dict[str, Dict[str, List[Union[str, int, float, bool]]]],
+        column: str
+    ) -> Optional[List[str]]:
+        """ Return the unit associated to the column 'column' in the dictionary 'reader'
+
+        Args:
+            reader (Dict[str, Dict[str, List[Union[str, int, float, bool]]]]): Dictionnaire de données
+            column (str): Nom de colonne
+            
+        Returns:
+            List[str] | None: List of strings if the column was found, else None
         """
         name_col = list(reader.keys())
         for c in name_col:
@@ -166,9 +524,91 @@ class DistanceMode:
                 return reader[c]["unit"]
         return None
     
-    def get_data(self):
-        return self.__data
+    
+#######################################################################################################
+#  Mouse event to change the graph                                                                    #
+#######################################################################################################
+    def __click_year(self, year: QtWidgets.QCheckBox, state: bool) -> None:
+        """ Change state of the button 'year' and the graph when an user clicked on it
+
+        Args:
+            year (QtWidgets.QCheckBox): A button
+            state (bool): The button is checked or not
+        """
+        self.__years_ind[year]["checked"] = state
+        self.__draw()
+        
+    
+    def __click_mode(self, mode: QtWidgets.QCheckBox, state: bool) -> None:
+        """ Change state of the button 'mode' and the graph when an user clicked on it
+
+        Args:
+            mode (QtWidgets.QCheckBox): A button
+            state (bool): The button is checked or not
+        """
+        self.__mode_ind[mode]["checked"] = state
+        self.__draw()
+        
+    
+    def __click_position(self, position: QtWidgets.QCheckBox, state: bool) -> None:
+        """ Change state of the button 'position' and the graph when an user clicked on it
+
+        Args:
+            position (QtWidgets.QCheckBox): A button
+            state (bool): The button is checked or not
+        """
+        self.__position_ind[position]["checked"] = state
+        self.__draw()
     
     
-    def get_error(self):
-        return self.__error_msg
+    def __select_bar_graph(self, selected):
+        """ Check if the radio button to draw bars is selected or not
+
+        Args:
+            selected (bool): the button is selected or not
+        """
+        if selected:
+            self.__is_bars_selected = True
+            self.__draw()
+    
+    
+    def __select_curve_graph(self, selected):
+        """ Check if the radio button to draw curves is selected or not
+
+        Args:
+            selected (bool): the button is selected or not
+        """
+        if selected:
+            self.__is_bars_selected = False
+            self.__draw()
+    
+
+#######################################################################################################
+#  Update graph from Observer                                                                         #
+#######################################################################################################
+    def update(self):
+        """ Update the graph and the data when the FC has a modification
+        """
+        # Remove the button years, modes, positions
+        self.__remove_list_buttons(self.__years_ind, self.__layout_checkbuttons_years)
+        self.__remove_list_buttons(self.__mode_ind, self.__layout_checkbuttons_modes)
+        self.__remove_list_buttons(self.__position_ind, self.__layout_checkbuttons_positions)
+
+        
+        # Reset data
+        self.__mode_ind = {}
+        self.__years_ind = {}
+        self.__position_ind = {}
+        self.__data_dist = {}
+        
+        self.__check_value()
+        self.__configure_data()
+        
+        # Repaint the UI
+        # Only need to change the button for years, modes and positions
+        self.__update_list_buttons(self.__years_ind, self.__layout_checkbuttons_years, self.__click_year)
+        self.__update_list_buttons(self.__mode_ind, self.__layout_checkbuttons_modes, self.__click_mode)
+        self.__update_list_buttons(self.__position_ind, self.__layout_checkbuttons_positions, self.__click_position)
+        
+        # Draw the graph
+        self.__draw()
