@@ -174,6 +174,14 @@ class ReaderData:
                     # Else, we compare if it's the same type
                     else:
                         correct_type = data[name_column[elem_index]]["type"]
+                        # If it's an int or a float, we accept both of them
+                        if correct_type == int and type_elem == float:
+                            correct_type = float
+                            data[name_column[elem_index]]["type"] = correct_type
+                        elif correct_type == float and type_elem == int:
+                            for i in range(len(elem)):
+                                elem[i] = float(elem[i])
+                            type_elem = float
                         if type_elem != correct_type:
                             raise TypeError(f"Element at row {lines_iter+1} and column {'.'.join(data[name_column[elem_index]]['name'])} has type {self.__type_to_str(type_elem)} instead of type {self.__type_to_str(correct_type)}")
                     
