@@ -37,6 +37,7 @@ class EmissionMode(QtWidgets.QWidget, Observer):
         self.__data_emission = {}    # Dictionary where the key is a year and the value a list with distance for all mode
         self.__is_pourcentage = False
         self.__accumulate = False
+        self.__is_bars_selected = True
         
         self.__sort = SortedData()
         
@@ -72,7 +73,11 @@ class EmissionMode(QtWidgets.QWidget, Observer):
         layout_canvas.addWidget(self.__figCanvas)
         
         # Create a widget to display a list of buttons to choose the year
-        self.__widget_button_years, self.layout_button_years = self.__create_list_buttons(self.__years_ind, QtWidgets.QRadioButton, self.__click_year_radiobutton)
+        self.__widget_button_years, self.layout_button_years = self.__create_list_buttons(
+            self.__years_ind,
+            QtWidgets.QRadioButton if self.__is_bars_selected else QtWidgets.QCheckBox,
+            self.__click_year_radiobutton if self.__is_bars_selected else self.__click_year_checkbutton
+        )
         
         # Create a widget for a button for pourcentage and accumulate
         widget_pourcentage_accu = QtWidgets.QWidget(self)
@@ -93,11 +98,31 @@ class EmissionMode(QtWidgets.QWidget, Observer):
         layout_pourcentage_accu.addWidget(self.button_accumulate)
         layout_pourcentage_accu.setAlignment(QtCore.Qt.AlignCenter)
         
+        # Widget for choose bars or curve
+        widget_bar_curve = QtWidgets.QWidget(self)
+        widget_bar_curve.setFixedHeight(40)
+        layout_bar_curve = QtWidgets.QHBoxLayout() # Horizontal layout
+        
+        # Create a radio button to choose "Bars"
+        self.__bar_button = QtWidgets.QRadioButton("Barre")
+        self.__bar_button.setChecked(True)
+        self.__bar_button.toggled.connect(self.__select_bar_graph)
+        layout_bar_curve.addWidget(self.__bar_button)
+        
+        # Create a radio button to choose "Curve"
+        self.__curve_button = QtWidgets.QRadioButton("Courbe")
+        self.__curve_button.toggled.connect(self.__select_curve_graph)
+        layout_bar_curve.addWidget(self.__curve_button)
+        layout_bar_curve.setAlignment(QtCore.Qt.AlignCenter)
+        
+        widget_bar_curve.setLayout(layout_bar_curve)
+        
         # Add different widget create above
         layout_principal = QtWidgets.QVBoxLayout(self)
         layout_principal.addWidget(widget_canvas)
         layout_principal.addWidget(self.__widget_button_years)
         layout_principal.addWidget(widget_pourcentage_accu)
+        layout_principal.addWidget(widget_bar_curve)
         
         
     def __create_list_buttons(self, data_dict, type_button, fct):
@@ -140,27 +165,39 @@ class EmissionMode(QtWidgets.QWidget, Observer):
     def __draw(self):
         self.__axes.cla()
         
-        self.__draw_bars()
-        
+        if self.__is_bars_selected:
+            self.__draw_bars()
+        else:
+            self.__draw_curve()
+            
+        label_y = "Nombre d'émissions"
+        if self.__accumulate:
+            label_y += " en cumulées"
+
+        label_y +=  " (%)" if self.__is_pourcentage else f" ({self.__unit})"
+        self.__axes.set_ylabel(label_y)
         self.__figCanvas.draw()
         pass
     
     
     def __draw_bars(self):
+        has_bars = False
         for year in self.__years_ind.keys():
             if not self.__years_ind[year]["checked"]:
                 continue
-            emission_mode = self.__get_x(year)
+            emission_mode = self.__get_x_bars(year)
             
             for mode in emission_mode:
                 if len(emission_mode[mode]["mission"]) == 0:
                     continue
                 self.__axes.bar(emission_mode[mode]["mission"], emission_mode[mode]["value"], width=self.__width, label=mode)
+                has_bars = True        
         
-        self.__axes.legend()
+        if has_bars:
+            self.__axes.legend()
     
     
-    def __get_x(self, year):
+    def __get_x_bars(self, year):
         # Create structure
         x_label_value = {}
         for mode in self.__mode_ind.keys():
@@ -180,6 +217,37 @@ class EmissionMode(QtWidgets.QWidget, Observer):
 
         return x_label_value
         
+        
+    def __draw_curve(self):
+        has_curve = False
+        for year in self.__years_ind.keys():
+            if not self.__years_ind[year]["checked"]:
+                continue
+            
+            emission = self.__get_x_curve(year)
+            if len(emission["mission"]) == 0:
+                continue
+            self.__axes.plot(emission["mission"], emission["value"], label=year)
+            has_curve = True
+            
+        if has_curve:
+            self.__axes.legend()
+    
+    
+    def __get_x_curve(self, year):
+        x_label_value = {"mission": [], "value": []}
+        data_year = self.__data_emission[year]["data"]
+        data_year_sum = self.__data_emission[year]["sum"]
+        value_accumulate = 0
+        for val in data_year:
+            mission, value, mode, pos = val
+            x_label_value["mission"].append(mission + 1)
+            
+            value_modif = 100*value/data_year_sum if self.__is_pourcentage else value
+            value_accumulate += value_modif
+            x_label_value["value"].append(value_accumulate if self.__accumulate else value_modif)
+            
+        return x_label_value
 
 #######################################################################################################
 #  Configure data to plot in the graph                                                                #
@@ -248,9 +316,13 @@ class EmissionMode(QtWidgets.QWidget, Observer):
 #######################################################################################################
     def __click_year_radiobutton(self, year, state):
         self.__years_ind[year]["checked"] = state
-        print(year, state)
         if state or len(self.__years_ind.keys()) == 1:
             self.__draw()
+            
+            
+    def __click_year_checkbutton(self, year, state):
+        self.__years_ind[year]["checked"] = state
+        self.__draw()
 
 
     def __click_pourcentage(self, state: bool):
@@ -261,6 +333,42 @@ class EmissionMode(QtWidgets.QWidget, Observer):
     def __click_accumulate(self, state: bool):
         self.__accumulate = state
         self.__draw()
+        
+        
+    def __select_bar_graph(self, selected):
+        """ Check if the radio button to draw bars is selected or not
+
+        Args:
+            selected (bool): the button is selected or not
+        """
+        if selected:
+            self.__is_bars_selected = True
+            self.__remove_buttons_layout(self.__years_ind, self.layout_button_years)
+            self.__update_buttons_layout(
+                self.__years_ind,
+                self.layout_button_years,
+                QtWidgets.QRadioButton if self.__is_bars_selected else QtWidgets.QCheckBox,
+                self.__click_year_radiobutton if self.__is_bars_selected else self.__click_year_checkbutton
+            )
+            self.__draw()
+    
+    
+    def __select_curve_graph(self, selected):
+        """ Check if the radio button to draw curves is selected or not
+
+        Args:
+            selected (bool): the button is selected or not
+        """
+        if selected:
+            self.__is_bars_selected = False
+            self.__remove_buttons_layout(self.__years_ind, self.layout_button_years)
+            self.__update_buttons_layout(
+                self.__years_ind,
+                self.layout_button_years,
+                QtWidgets.QRadioButton if self.__is_bars_selected else QtWidgets.QCheckBox,
+                self.__click_year_radiobutton if self.__is_bars_selected else self.__click_year_checkbutton
+            )
+            self.__draw()
 
 #######################################################################################################
 #  Update graph from Observer                                                                         #
@@ -276,6 +384,11 @@ class EmissionMode(QtWidgets.QWidget, Observer):
         self.__unit = common.check_value(self.__gesanalysis, "emission")
         self.__configure_data()
         
-        self.__update_buttons_layout(self.__years_ind, self.layout_button_years, QtWidgets.QRadioButton, self.__click_year_radiobutton)
+        self.__update_buttons_layout(
+            self.__years_ind,
+            self.layout_button_years,
+            QtWidgets.QRadioButton if self.__is_bars_selected else QtWidgets.QCheckBox,
+            self.__click_year_radiobutton if self.__is_bars_selected else self.__click_year_checkbutton
+        )
         
         self.__draw()
