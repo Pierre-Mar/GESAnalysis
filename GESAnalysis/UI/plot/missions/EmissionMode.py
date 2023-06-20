@@ -9,6 +9,7 @@ from matplotlib.figure import Figure
 from GESAnalysis.FC.PATTERNS.Observer import Observer
 from GESAnalysis.FC.SortedData import SortedData
 from functools import partial
+from typing import Any, Callable, Dict, List, Tuple, Union
 
 
 class EmissionMode(QtWidgets.QWidget, Observer):
@@ -60,7 +61,7 @@ class EmissionMode(QtWidgets.QWidget, Observer):
 #######################################################################################################
 #  Initialisation of the interface                                                                    #
 #######################################################################################################
-    def __init_UI(self):
+    def __init_UI(self) -> None:
         """Initialize the UI
         """
         # Widgets for canvs
@@ -94,6 +95,7 @@ class EmissionMode(QtWidgets.QWidget, Observer):
         self.button_accumulate.setChecked(self.__accumulate)
         self.button_accumulate.toggled.connect(self.__click_accumulate)
         
+        # Add these buttons into the widget
         layout_pourcentage_accu.addWidget(self.button_pourcentage)
         layout_pourcentage_accu.addWidget(self.button_accumulate)
         layout_pourcentage_accu.setAlignment(QtCore.Qt.AlignCenter)
@@ -125,31 +127,83 @@ class EmissionMode(QtWidgets.QWidget, Observer):
         layout_principal.addWidget(widget_bar_curve)
         
         
-    def __create_list_buttons(self, data_dict, type_button, fct):
+    def __create_list_buttons(
+        self,
+        data_dict: Dict[str, Dict[str, Union[int, bool, QtWidgets.QRadioButton, QtWidgets.QCheckBox]]],
+        type_button: Union[QtWidgets.QRadioButton, QtWidgets.QCheckBox],
+        fct: Callable
+    ) -> Tuple[QtWidgets.QWidget, QtWidgets.QHBoxLayout]:
+        """ Create a widget where the layout is horizontal and it contains the button from a dictionary.
+            When you click on a button, it calls the function 'fct'. You can give the type of the button
+
+        Args:
+            data_dict (Dict[str, Dict[str, Union[int, bool, QtWidgets.QRadioButton, QtWidgets.QCheckBox]]]): Dictionary
+            type_button (Union[QtWidgets.QRadioButton, QtWidgets.QCheckBox]): Type of button
+            fct (Callable): function call when you click on a button
+
+        Returns:
+            Tuple[QtWidgets.QWidget, QtWidgets.QHBoxLayout]: The widget and the layout with all the buttons inside
+        """
+        # Create the widget and a horizontal layout
         widget = QtWidgets.QWidget(self)
         widget.setFixedHeight(40)
         layout = QtWidgets.QHBoxLayout(widget)
+        
+        # For each key of the dictionary, we create a button
         for data_ind, data in enumerate(data_dict.keys()):
             data_dict[data]["button"] = type_button(data)
+            # If the type of button is a radio button, we need to have oonly one activated
             if type_button == QtWidgets.QRadioButton:
                 data_dict[data]["checked"] = True if data_ind == 0 else False
             else:
                 data_dict[data]["checked"] = True
             data_dict[data]["button"].setChecked(data_dict[data]["checked"])
+            # Connect the button to the function
             data_dict[data]["button"].toggled.connect(partial(fct, data))
             layout.addWidget(data_dict[data]["button"])
         layout.setAlignment(QtCore.Qt.AlignCenter)
+        
         return widget, layout
     
-    def __remove_buttons_layout(self, data_dict, layout):
+    
+    def __remove_buttons_layout(
+        self,
+        data_dict: Dict[str, Dict[str, Union[int, bool, QtWidgets.QRadioButton, QtWidgets.QCheckBox]]],
+        layout: QtWidgets.QHBoxLayout
+    ) -> None:
+        """ Remove the buttons from the layout and the dictionary
+
+        Args:
+            data_dict (Dict[str, Dict[str, Union[int, bool, QtWidgets.QRadioButton, QtWidgets.QCheckBox]]]): Dictionary
+            layout (QtWidgets.QHBoxLayout): Layout
+        """
+        # Remove all buttons from the layout and the dictionary
         for d in data_dict:
             layout.removeWidget(data_dict[d]["button"])
             del data_dict[d]["checked"]
             del data_dict[d]["button"]
     
-    def __update_buttons_layout(self, data_dict, layout, type_button, fct):
+    
+    def __update_buttons_layout(
+        self,
+        data_dict: Dict[str, Dict[str, Union[int, bool, QtWidgets.QRadioButton, QtWidgets.QCheckBox]]],
+        layout: QtWidgets.QHBoxLayout,
+        type_button: Union[QtWidgets.QRadioButton, QtWidgets.QCheckBox],
+        fct: Callable
+    ) -> None:
+        """ Update the buttons from the layout and the dictionary with the new type of buttons.
+            When you click on the buttons, it calls the function 'fct'
+
+        Args:
+            data_dict (Dict[str, Dict[str, Union[int, bool, QtWidgets.QRadioButton, QtWidgets.QCheckBox]]]): Dictionary
+            layout (QtWidgets.QHBoxLayout): Layout
+            type_button (Union[QtWidgets.QRadioButton, QtWidgets.QCheckBox]): New type of buttons
+            fct (Callable): Function calls when the buttons is pressed
+        """
+        # Add a button for each key of the diictionary
         for data_ind, data in enumerate(data_dict.keys()):
             data_dict[data]["button"] = type_button(data)
+            # If the type of button is a radio button, we need to have oonly one activated
             if type_button == QtWidgets.QRadioButton:
                 data_dict[data]["checked"] = True if data_ind == 0 else False
             else:
@@ -162,43 +216,67 @@ class EmissionMode(QtWidgets.QWidget, Observer):
 #######################################################################################################
 #  Draw the graph in the canvas                                                                       #
 #######################################################################################################    
-    def __draw(self):
+    def __draw(self) -> None:
+        """ Draw the graph into the canvas
+        """
+        # Clear the graph
         self.__axes.cla()
         
+        # Draw the graph with bars or curves depending on the parameters
         if self.__is_bars_selected:
             self.__draw_bars()
         else:
             self.__draw_curve()
-            
+        
+        # Construct the label for y-axis depending on the parameters
         label_y = "Nombre d'émissions"
         if self.__accumulate:
             label_y += " en cumulées"
-
         label_y +=  " (%)" if self.__is_pourcentage else f" ({self.__unit})"
         self.__axes.set_ylabel(label_y)
+        
+        # Draw the graph
         self.__figCanvas.draw()
-        pass
+
     
-    
-    def __draw_bars(self):
+    def __draw_bars(self) -> None:
+        """ Draw a graph with bars into the canvas
+        """
         has_bars = False
         for year in self.__years_ind.keys():
+            # No need to draw a bar for a year who are not selected by the user
             if not self.__years_ind[year]["checked"]:
                 continue
+            
+            # Get the data to plot bars
             emission_mode = self.__get_x_bars(year)
             
+            # Plot bars for each mode
+            # The color of the bar represent a mode
             for mode in emission_mode:
                 if len(emission_mode[mode]["mission"]) == 0:
                     continue
                 self.__axes.bar(emission_mode[mode]["mission"], emission_mode[mode]["value"], width=self.__width, label=mode)
                 has_bars = True        
         
+        # Display legend if there are some bars plot
         if has_bars:
             self.__axes.legend()
     
     
-    def __get_x_bars(self, year):
+    def __get_x_bars(self, year: str) -> Dict[str, Dict[str, List[Union[int, float]]]]:
+        """ Create and fill a structure to plot the bar depending for a year
+
+        Args:
+            year (str): The year
+
+        Returns:
+            Dict[str, Dict[str, List[Union[int, float]]]]: Structure
+        """
         # Create structure
+        # The structure contains :
+        # - mission: a list with the number of the mission for a certain mode
+        # - value: a list with the emission due to the mission by the moe
         x_label_value = {}
         for mode in self.__mode_ind.keys():
             x_label_value[mode] = {"mission" : [], "value": []}
@@ -210,7 +288,8 @@ class EmissionMode(QtWidgets.QWidget, Observer):
             mission, value, mode, pos = val
             x_label_value[mode]["mission"].append(mission + 1)
             
-            # Value depending if it's a poucentage or the value of emission
+            # Depending on the parameters, we calculate the correct value
+            # Pourcentage or value, and if it's accumulate
             value_modif = 100*value/data_year_sum if self.__is_pourcentage else value
             value_accumulate += value_modif
             x_label_value[mode]["value"].append(value_accumulate if self.__accumulate else value_modif)
@@ -218,23 +297,37 @@ class EmissionMode(QtWidgets.QWidget, Observer):
         return x_label_value
         
         
-    def __draw_curve(self):
+    def __draw_curve(self) -> None:
+        """ Draw a graph with curves into the canvas
+        """
         has_curve = False
         for year in self.__years_ind.keys():
+            # If the year is not selected by the user, no need to plot it
             if not self.__years_ind[year]["checked"]:
                 continue
             
+            # Get data to plot curve for the year
             emission = self.__get_x_curve(year)
             if len(emission["mission"]) == 0:
                 continue
             self.__axes.plot(emission["mission"], emission["value"], label=year)
             has_curve = True
-            
+        
+        # If there are some curves, we display a legend
         if has_curve:
             self.__axes.legend()
     
     
-    def __get_x_curve(self, year):
+    def __get_x_curve(self, year: str) -> Dict[str, List[Union[int, float]]]:
+        """ Create and fill the structure used to plot curves for a year
+
+        Args:
+            year (str): A year
+
+        Returns:
+            Dict[str, List[Union[int, float]]]: Structure
+        """
+        # Structure is the same as bars
         x_label_value = {"mission": [], "value": []}
         data_year = self.__data_emission[year]["data"]
         data_year_sum = self.__data_emission[year]["sum"]
@@ -243,6 +336,8 @@ class EmissionMode(QtWidgets.QWidget, Observer):
             mission, value, mode, pos = val
             x_label_value["mission"].append(mission + 1)
             
+            # Depending on the parameters, we calculate the correct value
+            # Pourcentage or value, and if it's accumulate
             value_modif = 100*value/data_year_sum if self.__is_pourcentage else value
             value_accumulate += value_modif
             x_label_value["value"].append(value_accumulate if self.__accumulate else value_modif)
@@ -252,7 +347,9 @@ class EmissionMode(QtWidgets.QWidget, Observer):
 #######################################################################################################
 #  Configure data to plot in the graph                                                                #
 #######################################################################################################  
-    def __configure_data(self):
+    def __configure_data(self) -> None:
+        """ Create and fill the different structure defined in init()
+        """
         ind_mode = 0
         ind_year = 0
         ind_position = 0
