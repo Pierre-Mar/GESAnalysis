@@ -136,6 +136,7 @@ class DistanceMode(QtWidgets.QWidget, Observer):
             data_dict[d]["checked"] = True
             data_dict[d]["button"].setChecked(data_dict[d]["checked"])
             data_dict[d]["button"].toggled.connect(partial(fct, d))
+            layout.addWidget(data_dict[d]["button"])
         layout.setAlignment(QtCore.Qt.AlignCenter)
         return widget, layout
     

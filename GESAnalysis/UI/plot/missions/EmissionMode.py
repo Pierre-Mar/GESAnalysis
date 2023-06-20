@@ -3,11 +3,12 @@ import matplotlib
 
 matplotlib.use('Qt5Agg')
 
-from PyQt5 import QtWidgets
+from PyQt5 import QtWidgets, QtCore
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg, NavigationToolbar2QT
 from matplotlib.figure import Figure
 from GESAnalysis.FC.PATTERNS.Observer import Observer
 from GESAnalysis.FC.SortedData import SortedData
+from functools import partial
 
 
 class EmissionMode(QtWidgets.QWidget, Observer):
@@ -34,7 +35,8 @@ class EmissionMode(QtWidgets.QWidget, Observer):
         self.__position_ind = {} # Same with position
         self.__years_ind = {}    # Same with year
         self.__data_emission = {}    # Dictionary where the key is a year and the value a list with distance for all mode
-        self.__max_mission = 0
+        self.__is_pourcentage = False
+        self.__accumulate = False
         
         self.__sort = SortedData()
         
@@ -68,10 +70,68 @@ class EmissionMode(QtWidgets.QWidget, Observer):
         layout_canvas = QtWidgets.QVBoxLayout(widget_canvas)
         layout_canvas.addWidget(toolbar)
         layout_canvas.addWidget(self.__figCanvas)
-
-
+        
+        # Create a widget to display a list of buttons to choose the year
+        self.__widget_button_years, self.layout_button_years = self.__create_list_buttons(self.__years_ind, QtWidgets.QRadioButton, self.__click_year_radiobutton)
+        
+        # Create a widget for a button for pourcentage and accumulate
+        widget_pourcentage_accu = QtWidgets.QWidget(self)
+        widget_pourcentage_accu.setFixedHeight(40)
+        layout_pourcentage_accu = QtWidgets.QHBoxLayout(widget_pourcentage_accu)
+        
+        # Create a check button to display values as a pourcentage
+        self.button_pourcentage = QtWidgets.QCheckBox("Pourcentage")
+        self.button_pourcentage.setChecked(self.__is_pourcentage)
+        self.button_pourcentage.toggled.connect(self.__click_pourcentage)
+        
+        # Create a check button to display accumulate values
+        self.button_accumulate = QtWidgets.QCheckBox("Cumulées")
+        self.button_accumulate.setChecked(self.__accumulate)
+        self.button_accumulate.toggled.connect(self.__click_accumulate)
+        
+        layout_pourcentage_accu.addWidget(self.button_pourcentage)
+        layout_pourcentage_accu.addWidget(self.button_accumulate)
+        layout_pourcentage_accu.setAlignment(QtCore.Qt.AlignCenter)
+        
+        # Add different widget create above
         layout_principal = QtWidgets.QVBoxLayout(self)
         layout_principal.addWidget(widget_canvas)
+        layout_principal.addWidget(self.__widget_button_years)
+        layout_principal.addWidget(widget_pourcentage_accu)
+        
+        
+    def __create_list_buttons(self, data_dict, type_button, fct):
+        widget = QtWidgets.QWidget(self)
+        widget.setFixedHeight(40)
+        layout = QtWidgets.QHBoxLayout(widget)
+        for data_ind, data in enumerate(data_dict.keys()):
+            data_dict[data]["button"] = type_button(data)
+            if type_button == QtWidgets.QRadioButton:
+                data_dict[data]["checked"] = True if data_ind == 0 else False
+            else:
+                data_dict[data]["checked"] = True
+            data_dict[data]["button"].setChecked(data_dict[data]["checked"])
+            data_dict[data]["button"].toggled.connect(partial(fct, data))
+            layout.addWidget(data_dict[data]["button"])
+        layout.setAlignment(QtCore.Qt.AlignCenter)
+        return widget, layout
+    
+    def __remove_buttons_layout(self, data_dict, layout):
+        for d in data_dict:
+            layout.removeWidget(data_dict[d]["button"])
+            del data_dict[d]["checked"]
+            del data_dict[d]["button"]
+    
+    def __update_buttons_layout(self, data_dict, layout, type_button, fct):
+        for data_ind, data in enumerate(data_dict.keys()):
+            data_dict[data]["button"] = type_button(data)
+            if type_button == QtWidgets.QRadioButton:
+                data_dict[data]["checked"] = True if data_ind == 0 else False
+            else:
+                data_dict[data]["checked"] = True
+            data_dict[data]["button"].setChecked(data_dict[data]["checked"])
+            data_dict[data]["button"].toggled.connect(partial(fct, data))
+            layout.addWidget(data_dict[data]["button"])
 
 
 #######################################################################################################
@@ -79,8 +139,6 @@ class EmissionMode(QtWidgets.QWidget, Observer):
 #######################################################################################################    
     def __draw(self):
         self.__axes.cla()
-        
-        self.__axes.set_xlim(1, self.__max_mission)
         
         self.__draw_bars()
         
@@ -90,12 +148,17 @@ class EmissionMode(QtWidgets.QWidget, Observer):
     
     def __draw_bars(self):
         for year in self.__years_ind.keys():
+            if not self.__years_ind[year]["checked"]:
+                continue
             emission_mode = self.__get_x(year)
             
             for mode in emission_mode:
+                if len(emission_mode[mode]["mission"]) == 0:
+                    continue
                 self.__axes.bar(emission_mode[mode]["mission"], emission_mode[mode]["value"], width=self.__width, label=mode)
         
         self.__axes.legend()
+    
     
     def __get_x(self, year):
         # Create structure
@@ -103,11 +166,18 @@ class EmissionMode(QtWidgets.QWidget, Observer):
         for mode in self.__mode_ind.keys():
             x_label_value[mode] = {"mission" : [], "value": []}
         
-        data_year = self.__data_emission[year]
+        data_year = self.__data_emission[year]["data"]
+        data_year_sum = self.__data_emission[year]["sum"]
+        value_accumulate = 0
         for val in data_year:
             mission, value, mode, pos = val
             x_label_value[mode]["mission"].append(mission + 1)
-            x_label_value[mode]["value"].append(value)
+            
+            # Value depending if it's a poucentage or the value of emission
+            value_modif = 100*value/data_year_sum if self.__is_pourcentage else value
+            value_accumulate += value_modif
+            x_label_value[mode]["value"].append(value_accumulate if self.__accumulate else value_modif)
+
         return x_label_value
         
 
@@ -151,10 +221,12 @@ class EmissionMode(QtWidgets.QWidget, Observer):
         """ Sort the data and add into the structure
         """
         for val_ges in self.__gesanalysis.get_data().values():
+            if val_ges["category"] != "Missions":
+                continue
             year = val_ges["year"]
             data_val_ges = val_ges["data"]
             
-            self.__data_emission[year] = []
+            self.__data_emission[year] = {"data": [], "sum": 0}
             
             column_values = common.get_name_column(data_val_ges, "emission")
             column_mode = common.get_name_column(data_val_ges, "mode")
@@ -167,23 +239,43 @@ class EmissionMode(QtWidgets.QWidget, Observer):
                 value = sum(data_val_ges[column_values]["data"][ind])
                 mode = data_val_ges[column_mode]["data"][ind][0]
                 position = data_val_ges[column_position]["data"][ind][0]
-                self.__data_emission[year].append((i, value, mode, position))
-            
-            if len(self.__data_emission[year]) > self.__max_mission:
-                self.__max_mission = len(self.__data_emission[year])
-                
+                self.__data_emission[year]["data"].append((i, value, mode, position))
+                self.__data_emission[year]["sum"] += value
+
+
+#######################################################################################################
+#  Mouse event to change the graph                                                                    #
+#######################################################################################################
+    def __click_year_radiobutton(self, year, state):
+        self.__years_ind[year]["checked"] = state
+        print(year, state)
+        if state or len(self.__years_ind.keys()) == 1:
+            self.__draw()
+
+
+    def __click_pourcentage(self, state: bool):
+        self.__is_pourcentage = state
+        self.__draw()
+        
+    
+    def __click_accumulate(self, state: bool):
+        self.__accumulate = state
+        self.__draw()
 
 #######################################################################################################
 #  Update graph from Observer                                                                         #
 #######################################################################################################    
     def update(self):
+        self.__remove_buttons_layout(self.__years_ind, self.layout_button_years)
+        
         self.__mode_ind = {}     # Dictionary where the key is the mode of transport and the value his index
         self.__position_ind = {} # Same with position
         self.__years_ind = {}    # Same with year
         self.__data_emission = {}    # Dictionary where the key is a year and the value a list with distance for all mode
-        self.__max_mission = 0
         
         self.__unit = common.check_value(self.__gesanalysis, "emission")
         self.__configure_data()
+        
+        self.__update_buttons_layout(self.__years_ind, self.layout_button_years, QtWidgets.QRadioButton, self.__click_year_radiobutton)
         
         self.__draw()
