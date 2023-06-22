@@ -411,23 +411,45 @@ class EmissionMode(QtWidgets.QWidget, Observer):
 #######################################################################################################
 #  Mouse event to change the graph                                                                    #
 #######################################################################################################
-    def __click_year_radiobutton(self, year, state):
+    def __click_year_radiobutton(self, year: str, state: bool) -> None:
+        """ When a user click on the radio button of "year", update the graph
+
+        Args:
+            year (str): radio button associated to the year
+            state (bool): if it's checked or not
+        """
         self.__years_ind[year]["checked"] = state
         if state or len(self.__years_ind.keys()) == 1:
             self.__draw()
             
             
-    def __click_year_checkbutton(self, year, state):
+    def __click_year_checkbutton(self, year: str, state: bool) -> None:
+        """ Same as __click_year_radiobutton but with check buttons
+
+        Args:
+            year (str): check button associated to the year
+            state (bool): if it's checked or not
+        """
         self.__years_ind[year]["checked"] = state
         self.__draw()
 
 
-    def __click_pourcentage(self, state: bool):
+    def __click_pourcentage(self, state: bool) -> None:
+        """ When a user click on the button, the values of the graph are in pourcentage if state is true.
+            Else it remains the value.
+        Args:
+            state (bool): Button is checked or not
+        """
         self.__is_pourcentage = state
         self.__draw()
         
     
-    def __click_accumulate(self, state: bool):
+    def __click_accumulate(self, state: bool) -> None:
+        """ When an user click on the button, the graph display the value in a descending order.
+            If state is true, then the graph display accumulate values
+        Args:
+            state (bool): Button is checked or not
+        """
         self.__accumulate = state
         self.__draw()
         
@@ -471,6 +493,8 @@ class EmissionMode(QtWidgets.QWidget, Observer):
 #  Update graph from Observer                                                                         #
 #######################################################################################################    
     def update(self):
+        """ Update the structure and the UI of the graph when the controller is update.
+        """
         self.__remove_buttons_layout(self.__years_ind, self.layout_button_years)
         
         self.__mode_ind = {}     # Dictionary where the key is the mode of transport and the value his index
