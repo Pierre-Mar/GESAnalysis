@@ -4,6 +4,7 @@ from GESAnalysis.FC.GESAnalysis import GESAnalysis
 from GESAnalysis.UI.FileOpenUI import FileOpenUI
 from GESAnalysis.UI.OpenFileDialog import OpenFileDialog
 from GESAnalysis.UI.ExportFileDialog import ExportFileDialog
+from GESAnalysis.UI.ViewDataDialog import ViewDataDialog
 from GESAnalysis.UI.plot.missions.DistanceMode import DistanceMode
 from GESAnalysis.UI.plot.missions.EmissionMode import EmissionMode
 
@@ -63,7 +64,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.setCentralWidget(splitter)
         
         
-    def __init_menu(self):
+    def __init_menu(self) -> None:
         """ Initialise the menu of the window
         """
         menu = self.menuBar()
@@ -88,26 +89,43 @@ class MainWindow(QtWidgets.QMainWindow):
         export_action = QtWidgets.QAction("Exporter", self)
         export_action.triggered.connect(self.export_file)
         file_menu.addAction(export_action)
+        
+        # Create a sub menu for 'Affichage'
+        # to display the data (file open)
+        display_menu = menu.addMenu("Affichage")
+        
+        # Create action to display data
+        display_data_action = QtWidgets.QAction("Données", self)
+        display_data_action.triggered.connect(self.open_view_data)
+        display_menu.addAction(display_data_action)
+                                              
     
-    
-    def close_files(self):
+    def close_files(self) -> None:
         """ Action to close a file
         """
         self.file_open_UI.close_files()
         
     
-    def open_file_dialog(self):
+    def open_file_dialog(self) -> None:
         """ Open a dialog to read a file
         """
         self.file_dialog = OpenFileDialog(self.__controller, self)
         self.file_dialog.exec()
     
     
-    def export_file(self):
+    def export_file(self) -> None:
         """ Open a dialog to export a file.
             The user can select a file from FileOpenUI
         """
         selected_file = self.file_open_UI.get_selected_files()
         self.dialog_export = ExportFileDialog(selected_file, self.__gesanalysis, self.__controller, self)
         self.dialog_export.exec()
+        
+    
+    def open_view_data(self) -> None:
+        """ When the user click on "Affichage > Données"
+            Open a dialog to display the data of all the files open in the app
+        """
+        view_data_dialog = ViewDataDialog(self.__gesanalysis, self)
+        view_data_dialog.exec()
         
