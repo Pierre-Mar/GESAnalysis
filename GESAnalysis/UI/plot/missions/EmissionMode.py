@@ -243,6 +243,7 @@ class EmissionMode(QtWidgets.QWidget, Observer):
         """ Draw a graph with bars into the canvas
         """
         has_bars = False
+        nb_missions = 0
         for year in self.__years_ind.keys():
             # No need to draw a bar for a year who are not selected by the user
             if not self.__years_ind[year]["checked"]:
@@ -250,17 +251,23 @@ class EmissionMode(QtWidgets.QWidget, Observer):
             
             # Get the data to plot bars
             emission_mode = self.__get_x_bars(year)
-            
+
             # Plot bars for each mode
             # The color of the bar represent a mode
+            nb_missions_mode = 0
             for mode in emission_mode:
                 if len(emission_mode[mode]["mission"]) == 0:
                     continue
                 self.__axes.bar(emission_mode[mode]["mission"], emission_mode[mode]["value"], width=self.__width, label=mode)
-                has_bars = True        
+                has_bars = True
+                nb_missions_mode += len(emission_mode[mode]["mission"]) 
         
+            if nb_missions < nb_missions_mode:
+                nb_missions = nb_missions_mode
+    
         # Display legend if there are some bars plot
         if has_bars:
+            self.__axes.set_xlim(left=0, right=nb_missions)
             self.__axes.legend()
     
     
@@ -301,6 +308,7 @@ class EmissionMode(QtWidgets.QWidget, Observer):
         """ Draw a graph with curves into the canvas
         """
         has_curve = False
+        nb_mission_max = 0
         for year in self.__years_ind.keys():
             # If the year is not selected by the user, no need to plot it
             if not self.__years_ind[year]["checked"]:
@@ -312,9 +320,13 @@ class EmissionMode(QtWidgets.QWidget, Observer):
                 continue
             self.__axes.plot(emission["mission"], emission["value"], label=year)
             has_curve = True
+            
+            if len(emission["mission"]) > nb_mission_max:
+                nb_mission_max = len(emission["mission"])
         
         # If there are some curves, we display a legend
         if has_curve:
+            self.__axes.set_xlim(left=0, right=nb_mission_max)
             self.__axes.legend()
     
     
@@ -332,6 +344,9 @@ class EmissionMode(QtWidgets.QWidget, Observer):
         data_year = self.__data_emission[year]["data"]
         data_year_sum = self.__data_emission[year]["sum"]
         value_accumulate = 0
+        if self.__accumulate:
+            x_label_value["mission"].append(0)
+            x_label_value["value"].append(0)
         for val in data_year:
             mission, value, mode, pos = val
             x_label_value["mission"].append(mission + 1)

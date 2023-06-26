@@ -135,3 +135,11 @@ class GESAnalysis(Observable):
             return self.__file_open[filename]["path"]
         except:
             raise Exception(f"there is no file '{filename}' open")
+    
+    
+    def get_year(self, filename):
+        filename = self.get_filename(filename)
+        try:
+            return self.__file_open[filename]["year"]
+        except:
+            raise Exception(f"there is no file '{filename}' open")
