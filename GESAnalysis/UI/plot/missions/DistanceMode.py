@@ -2,6 +2,8 @@ import matplotlib
 
 matplotlib.use('Qt5Agg')
 
+import GESAnalysis.UI.plot.missions.common as common
+
 from PyQt5 import QtCore, QtWidgets
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg, NavigationToolbar2QT
 from matplotlib.figure import Figure
@@ -9,8 +11,6 @@ from typing import Optional, List, Tuple, Dict, Union
 from functools import partial
 from GESAnalysis.FC.PATTERNS.Observer import Observer
 from random import choice
-
-
 
 
 class DistanceMode(QtWidgets.QWidget, Observer):
@@ -35,7 +35,7 @@ class DistanceMode(QtWidgets.QWidget, Observer):
 
         Args:
             model (GESAnalysis): model
-            parent (Optional[QtWidgets.QWidget]): Parent of this widget (normally, it's MainWindow)
+            parent (Optional[QtWidgets.QWidget]): Parent of this widget
         """
         super(DistanceMode, self).__init__(parent)
 
@@ -50,7 +50,7 @@ class DistanceMode(QtWidgets.QWidget, Observer):
         self.__data_dist = {}    # Dictionary where the key is a year and the value a list with distance for all mode
         
         # Add values from the model to the structures define above
-        self.__check_value()
+        self.__unit = common.check_value(self.__gesanalysis, "distance")
         self.__configure_data()
         
         # Create figure
@@ -136,6 +136,7 @@ class DistanceMode(QtWidgets.QWidget, Observer):
             data_dict[d]["checked"] = True
             data_dict[d]["button"].setChecked(data_dict[d]["checked"])
             data_dict[d]["button"].toggled.connect(partial(fct, d))
+            layout.addWidget(data_dict[d]["button"])
         layout.setAlignment(QtCore.Qt.AlignCenter)
         return widget, layout
     
@@ -181,7 +182,7 @@ class DistanceMode(QtWidgets.QWidget, Observer):
             self.__draw_bars()
         else:
             self.__draw_curve()
-        
+        self.__axes.set_ylabel(f"Distance ({self.__unit})")
         self.__figCanvas.draw()
         
     
@@ -355,25 +356,21 @@ class DistanceMode(QtWidgets.QWidget, Observer):
 #######################################################################################################  
     def __configure_data(self) -> None:
         """ Configure the data into the correct format for plot
-        
-        Raises:
-            TypeError: List is null
         """
-        if self.__gesanalysis is None:
-            raise TypeError("cannot plot (distance depending mode) because the dictionary is null")
-        
         ind_mode = 0
         ind_year = 0
         ind_position = 0
         # Get the mode, the year and the position and associate an index
         for val_ges in self.__gesanalysis.get_data().values():
+            if val_ges["category"] != "Missions":
+                continue
             data = val_ges["data"]
             
-            mode = self.__get_column(data, "mode")
+            mode = common.get_column(data, "mode")
             if mode is None:
                 continue
             
-            position = self.__get_column(data, "position")
+            position = common.get_column(data, "position")
             if position is None:
                 continue
             
@@ -403,12 +400,15 @@ class DistanceMode(QtWidgets.QWidget, Observer):
                     
         # Now calculate the distance
         for val_ges in self.__gesanalysis.get_data().values():
+            if val_ges["category"] != "Missions":
+                continue
+            
             data = val_ges["data"]
                  
-            mode = self.__get_column(data, "mode")
-            position = self.__get_column(data, "position")
+            mode = common.get_column(data, "mode")
+            position = common.get_column(data, "position")
             year = val_ges["year"]
-            distance = self.__get_column(data, "distance")
+            distance = common.get_column(data, "distance")
             if distance is None:
                 continue
 
@@ -432,98 +432,6 @@ class DistanceMode(QtWidgets.QWidget, Observer):
                 if s > 0 :
                     self.__data_dist[mode]["year"].append(year)
 
-    
-    def __check_value(
-        self,
-    ) -> None:
-        """ Check the unit of distance for each year is the same
-
-        Raises:
-            ValueError: A year has a different unit of distance or the values are not integers or float
-        """
-        self.__unit = ""
-        for values_ges in self.__gesanalysis.get_data().values():
-            reader = values_ges["data"]
-            year = values_ges["year"]          
-            unit_reader = self.__get_unit(reader, "distance")
-            type_reader = self.__get_type(reader, "distance")
-            
-            if self.__unit == "":
-                self.__unit = "/".join(unit_reader)
-                
-            unit_reader = "/".join(unit_reader)
-                
-            if unit_reader != self.__unit:
-                raise ValueError(f"unit of distance for year {year} is '{unit_reader} instead of '{self.__unit}'")
-            if type_reader not in [int, float]:
-                raise ValueError(f"type of distance for year {year} is '{type_reader} instead of int or float")
-    
-
-#######################################################################################################
-#  Getters                                                                                            #
-#######################################################################################################  
-    def __get_column(
-        self,
-        reader: Dict[str, Dict[str, List[Union[str, int, float, bool]]]],
-        column: str
-    ) -> Optional[List[Union[str, int, float, bool]]]:
-        """ Returns the data associated to the column 'column' in the dictionary 'reader'
-        
-        Args:
-            reader (Dict[str, Dict[str, List[Union[str, int, float, bool]]]]) : the dictionary
-            column (str): the column
-
-        Returns:
-            List[Union[str, int, float, bool]] | None: The data associated to the column if the column exist, else None
-        """
-        name_col = list(reader.keys())
-        for c in name_col:
-            if column == " ".join(reader[c]["name"]):
-                return reader[c]["data"]
-        return None
-    
-    
-    def __get_type(
-        self,
-        reader: Dict[str, Dict[str, List[Union[str, int, float, bool]]]],
-        column: str
-    ) -> Optional[Union[str, bool, int, float]]:
-        """ Returns the type associated to the column 'column' in the dictionary 'reader'
-        
-        Args:
-            reader (Dict[str, Dict[str, List[Union[str, int, float, bool]]]]) : the dictionary
-            column (str): the column
-
-        Returns:
-            Union[str, int, float, bool] | None: The type associated to the column if the column exist, else None
-        """
-        name_col = list(reader.keys())
-        for c in name_col:
-            if column == " ".join(reader[c]["name"]):
-                return reader[c]["type"]
-        return None
-    
-    
-    def __get_unit(
-        self,
-        reader: Dict[str, Dict[str, List[Union[str, int, float, bool]]]],
-        column: str
-    ) -> Optional[List[str]]:
-        """ Return the unit associated to the column 'column' in the dictionary 'reader'
-
-        Args:
-            reader (Dict[str, Dict[str, List[Union[str, int, float, bool]]]]): Dictionnaire de données
-            column (str): Nom de colonne
-            
-        Returns:
-            List[str] | None: List of strings if the column was found, else None
-        """
-        name_col = list(reader.keys())
-        for c in name_col:
-            if column == " ".join(reader[c]["name"]):
-                return reader[c]["unit"]
-        return None
-    
     
 #######################################################################################################
 #  Mouse event to change the graph                                                                    #
@@ -601,7 +509,7 @@ class DistanceMode(QtWidgets.QWidget, Observer):
         self.__position_ind = {}
         self.__data_dist = {}
         
-        self.__check_value()
+        self.__unit = common.check_value(self.__gesanalysis, "distance")
         self.__configure_data()
         
         # Repaint the UI
