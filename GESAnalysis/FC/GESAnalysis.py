@@ -81,6 +81,21 @@ class GESAnalysis(Observable):
             raise Exception(f"the file '{file}' is not open yet")
         
         
+    def set_year(self, filename, year):
+        file = self.get_filename(filename)
+        try:
+            self.__file_open[file]["year"] = year
+        except:
+            raise Exception(f"the file '{file}' is not open yet")
+        
+        
+    def set_category(self, filename, category):
+        file = self.get_filename(filename)
+        try:
+            self.__file_open[file]["category"] = category
+        except:
+            raise Exception(f"the file '{file}' is not open yet")  
+        
     def get_data(self):
         """ Get the dictionary of data
 
@@ -141,5 +156,13 @@ class GESAnalysis(Observable):
         filename = self.get_filename(filename)
         try:
             return self.__file_open[filename]["year"]
+        except:
+            raise Exception(f"there is no file '{filename}' open")
+        
+    
+    def get_category(self, filename):
+        filename = self.get_filename(filename)
+        try:
+            return self.__file_open[filename]["category"]
         except:
             raise Exception(f"there is no file '{filename}' open")
