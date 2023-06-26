@@ -32,6 +32,7 @@ class GESAnalysis(Observable):
         try:
             data_file = self.__reader.read_file(filename, sep, engine)
             name_file = self.get_filename(filename)
+            self.__check_year(year)
             self.__file_open[name_file] = {}
             self.__file_open[name_file]["data"] = data_file
             self.__file_open[name_file]["year"] = year
@@ -81,8 +82,27 @@ class GESAnalysis(Observable):
             raise Exception(f"the file '{file}' is not open yet")
         
         
+    def __check_year(self, year: str) -> None:
+        """ Check if a year is correct
+
+        Args:
+            year (str): Year
+
+        Raises:
+            Exception: Year incorrect
+        """
+        try:
+            year_int = int(year)
+        except:
+            raise Exception(f"'{year}' is not a year")
+        
+        
     def set_year(self, filename, year):
         file = self.get_filename(filename)
+        try:
+            self.__check_year(year)
+        except Exception as e:
+            raise Exception(str(e))
         try:
             self.__file_open[file]["year"] = year
         except:
