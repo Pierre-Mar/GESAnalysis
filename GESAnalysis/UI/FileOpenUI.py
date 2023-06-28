@@ -52,9 +52,16 @@ class FileOpenUI(QtWidgets.QWidget, Observer):
     def eventFilter(self, source: QtCore.QObject, event: QtCore.QEvent) -> bool:
         if event.type() == QtCore.QEvent.ContextMenu and source is self.__list_widget:
             menu = QtWidgets.QMenu()
+            
+            # Action to change the year and the caegory of the file
             change_year_category_action = QtWidgets.QAction("Modifier")
             change_year_category_action.triggered.connect(partial(self.__change_year_category, source, event))
             menu.addAction(change_year_category_action)
+            
+            # Action to close files
+            close_file_action = QtWidgets.QAction("Fermer")
+            close_file_action.triggered.connect(self.close_files)
+            menu.addAction(close_file_action)
             
             menu.exec_(event.globalPos())
             return True
