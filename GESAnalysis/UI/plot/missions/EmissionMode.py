@@ -1,4 +1,4 @@
-import GESAnalysis.UI.plot.missions.common as common
+import GESAnalysis.UI.plot.common as common
 import matplotlib
 
 matplotlib.use('Qt5Agg')
