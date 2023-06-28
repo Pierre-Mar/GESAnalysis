@@ -1,13 +1,12 @@
 from PyQt5 import QtWidgets, QtGui
 
 from GESAnalysis.FC.Controleur import Controleur
+import GESAnalysis.UI.common as common
 
 
 class OpenFileDialog(QtWidgets.QDialog):
     """ Class to open a dialog to select a file from the user and read it
     """
-    
-    categories = ["Achats", "Déplacements domicile-travail", "Fluides", "Matériel Informatique", "Missions"]
     
     def __init__(self, controller: Controleur, parent: QtWidgets.QWidget | None = ...) -> None:
         """ Initialisation of the dialog
@@ -67,7 +66,7 @@ class OpenFileDialog(QtWidgets.QDialog):
         # List view for choose a category
         choose_category_label = QtWidgets.QLabel("Catégorie :", form_widget)
         self.choose_category = QtWidgets.QComboBox(form_widget)
-        self.choose_category.addItems(self.categories)
+        self.choose_category.addItems(common.categories)
         form_layout.addRow(choose_category_label, self.choose_category)
         
         layout = QtWidgets.QVBoxLayout(self)

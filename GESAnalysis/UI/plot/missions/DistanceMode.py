@@ -2,7 +2,7 @@ import matplotlib
 
 matplotlib.use('Qt5Agg')
 
-import GESAnalysis.UI.plot.missions.common as common
+import GESAnalysis.UI.plot.common as common
 
 from PyQt5 import QtCore, QtWidgets
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg, NavigationToolbar2QT
