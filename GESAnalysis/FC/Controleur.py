@@ -16,20 +16,25 @@ class Controleur:
         self.__gesanalysis = model
         
         
-    def close_files(self, list_file: List[str]) -> None:
-        """ Close a list of files
+    def close_files(self, list_file: List[str], category: str) -> None:
+        """ Close a list of files from a category
 
         Args:
             list_file (List[str]): a path to the file
+            category (str): Category
         """
+        # if the list is empty, no need to update the model
+        if not len(list_file):
+            return
+        
         for file in list_file:
             self.__gesanalysis.close_file(file)
         
-        self.__gesanalysis.update()
+        self.__gesanalysis.update(category)
 
 
-    def read_file(self, file: str, year: str, category: str) -> None:
-        """ Read a file and associated a year and a category
+    def open_file(self, file: str, year: str, category: str) -> None:
+        """ Open/read a file and associated a year and a category
 
         Args:
             file (str): Path to file
@@ -41,11 +46,11 @@ class Controleur:
         """
         try:
             self.__gesanalysis.read_file(file, year, category)
-            self.__gesanalysis.update()
+            self.__gesanalysis.update(category)
         except Exception as e:
             raise Exception(str(e))
-        
-        
+
+
     def export_file(self, filein, fileout):
         try:
             self.__gesanalysis.export(filein, fileout)

@@ -1,13 +1,12 @@
 from PyQt5 import QtWidgets
 from GESAnalysis.FC.Controleur import Controleur
 from GESAnalysis.FC.GESAnalysis import GESAnalysis
-from GESAnalysis.UI.FileOpenUI import FileOpenUI
 from GESAnalysis.UI.OpenFileDialog import OpenFileDialog
 from GESAnalysis.UI.ExportFileDialog import ExportFileDialog
 from GESAnalysis.UI.ViewDataDialog import ViewDataDialog
-from GESAnalysis.UI.plot.missions.DistanceMode import DistanceMode
-from GESAnalysis.UI.plot.missions.EmissionMode import EmissionMode
-from GESAnalysis.UI.plot.total.TotalEmission import TotalEmission
+from GESAnalysis.UI.categories.missions.MissionsWidget import MissionsWidget
+
+import GESAnalysis.UI.common as common
 
 
 class MainWindow(QtWidgets.QMainWindow):
@@ -31,6 +30,7 @@ class MainWindow(QtWidgets.QMainWindow):
         
         self.__gesanalysis = model
         self.__controller = controller
+        self.__dict_categories = {}
         
         self.width = 1280
         self.height = 720
@@ -47,24 +47,38 @@ class MainWindow(QtWidgets.QMainWindow):
         # Create the menu
         self.__init_menu()
         
-        splitter = QtWidgets.QSplitter(self)
+        # Create tab widget for differents categories
+        self.__tab_widget_categories = QtWidgets.QTabWidget(self)
+        self.__tab_widget_categories.setTabPosition(QtWidgets.QTabWidget.TabPosition.West)
         
-        # Create widgets        
-        self.file_open_UI = FileOpenUI(self.__gesanalysis, self.__controller, splitter)
+        # Create the class for each category
+        # TODO : variable with "todo" need to be define
+        todo_achats = QtWidgets.QWidget(self.__tab_widget_categories)
+        todo_deplacement = QtWidgets.QWidget(self.__tab_widget_categories)
+        todo_fluide = QtWidgets.QWidget(self.__tab_widget_categories)
+        todo_materiel = QtWidgets.QWidget(self.__tab_widget_categories)
+        self.__missions_widget = MissionsWidget(self.__gesanalysis, self.__controller, self.__tab_widget_categories)
+        todo_total = QtWidgets.QWidget(self.__tab_widget_categories)
         
-        self.tab_graphs_widget = QtWidgets.QTabWidget(splitter)
-        self.distance_canvas = DistanceMode(self.__gesanalysis, self.tab_graphs_widget)
-        self.emission_canvas = EmissionMode(self.__gesanalysis, self.tab_graphs_widget)
-        self.total_emission_canvas = TotalEmission(self.__gesanalysis, self.__controller, self.tab_graphs_widget)
-        self.tab_graphs_widget.addTab(self.distance_canvas, "Distance")
-        self.tab_graphs_widget.addTab(self.emission_canvas, "Emissions")
-        self.tab_graphs_widget.addTab(self.total_emission_canvas, "Total (Autre)")
-
-        # Set layout
-        splitter.addWidget(self.file_open_UI)
-        splitter.addWidget(self.tab_graphs_widget)
+        # Add widgets to dictionary
+        self.__dict_categories["Achats"] = {"widget": todo_achats}
+        self.__dict_categories["Déplacements domicile-travail"] = {"widget": todo_deplacement}
+        self.__dict_categories["Fluides"] = {"widget": todo_fluide}
+        self.__dict_categories["Matériel Informatique"] = {"widget": todo_materiel}
+        self.__dict_categories["Missions"] = {"widget": self.__missions_widget}
+        self.__dict_categories["Total"] = {"widget": todo_total}
         
-        self.setCentralWidget(splitter)
+        # Add differents class in the tab widget
+        self.__tab_widget_categories.addTab(todo_achats, "Achats")
+        self.__tab_widget_categories.addTab(todo_deplacement, "Déplacements domicile-travail")
+        self.__tab_widget_categories.addTab(todo_fluide, "Fluides")
+        self.__tab_widget_categories.addTab(todo_materiel, "Matériel Informatique")
+        self.__tab_widget_categories.addTab(self.__missions_widget, "Missions")
+        self.__tab_widget_categories.addTab(todo_total, "Total")
+        
+        self.__tab_widget_categories.setCurrentIndex(0)
+        
+        self.setCentralWidget(self.__tab_widget_categories)
         
         
     def __init_menu(self) -> None:
@@ -101,12 +115,13 @@ class MainWindow(QtWidgets.QMainWindow):
         display_data_action = QtWidgets.QAction("Données", self)
         display_data_action.triggered.connect(self.open_view_data)
         display_menu.addAction(display_data_action)
-                                              
-    
+
+
     def close_files(self) -> None:
-        """ Action to close a file
+        """ Action to close a file of the current category
         """
-        self.file_open_UI.close_files()
+        current_category = self.get_current_category()
+        self.__dict_categories[current_category]["widget"].close_files()
         
     
     def open_file_dialog(self) -> None:
@@ -118,9 +133,10 @@ class MainWindow(QtWidgets.QMainWindow):
     
     def export_file(self) -> None:
         """ Open a dialog to export a file.
-            The user can select a file from FileOpenUI
+            The user can select a file from FileOpenUI of the current category
         """
-        selected_file = self.file_open_UI.get_selected_files()
+        current_category = self.get_current_category()
+        selected_file = self.__dict_categories[current_category]["widget"].get_selected_files()
         self.dialog_export = ExportFileDialog(selected_file, self.__gesanalysis, self.__controller, self)
         self.dialog_export.exec()
         
@@ -131,4 +147,7 @@ class MainWindow(QtWidgets.QMainWindow):
         """
         view_data_dialog = ViewDataDialog(self.__gesanalysis, self)
         view_data_dialog.exec()
-        
+    
+    
+    def get_current_category(self):
+        return common.categories[self.__tab_widget_categories.currentIndex()]
