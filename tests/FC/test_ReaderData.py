@@ -248,28 +248,28 @@ def test_valid_xlsx_file_openpyxl():
 def test_csv_file_not_exist():
     """ Check a CSV file, who don't exist, gives an error
     """
-    with pytest.raises(FileNotFoundError, match="file 'not_exist.csv' not exist"):
+    with pytest.raises(FileNotFoundError, match="Le fichier 'not_exist.csv' n'existe pas"):
         reader.read_file(not_exist + ".csv")
    
     
 def test_tsv_file_not_exist():
     """ Same with a TSV file
     """
-    with pytest.raises(FileNotFoundError, match="file 'not_exist.tsv' not exist"):
+    with pytest.raises(FileNotFoundError, match="Le fichier 'not_exist.tsv' n'existe pas"):
         reader.read_file(not_exist + ".tsv")
    
     
 def test_txt_file_not_exist():
     """ Same with a TXT file
     """
-    with pytest.raises(FileNotFoundError, match="file 'not_exist.txt' not exist"):
+    with pytest.raises(FileNotFoundError, match="Le fichier 'not_exist.txt' n'existe pas"):
         reader.read_file(not_exist + ".txt")
 
 
 def test_xlsx_file_not_exist():
     """ Same with a XLSX file
     """
-    with pytest.raises(FileNotFoundError, match="file 'not_exist.xlsx' not exist"):
+    with pytest.raises(FileNotFoundError, match="Le fichier 'not_exist.xlsx' n'existe pas"):
         reader.read_file(not_exist + ".xlsx")
 # ------------------------------------------------------------------------------------------------------------------------
 # ------------------------------------------------------------------------------------------------------------------------
@@ -282,7 +282,7 @@ def test_xlsx_file_not_exist():
 def test_unsupported_file():
     """ Check if we catch the corresponding error when a file are not supported by the application
     """
-    with pytest.raises(TypeError, match="cannot read data from 'cant_read.py'. Should be a CSV, TSV, TXT or XLSX file"):
+    with pytest.raises(TypeError, match="Exportation impossible de 'cant_read.py'. Le fichier doit être de type CSV, TSV, TXT ou XLSX"):
         reader.read_file(cant_read)
 # ------------------------------------------------------------------------------------------------------------------------
 # ------------------------------------------------------------------------------------------------------------------------
@@ -295,14 +295,14 @@ def test_unsupported_file():
 def test_nb_column_diff():
     """ Check a file where some data missing and give an error
     """
-    with pytest.raises(ValueError, match="1 elements in line 4 but there is 2 columns"):
+    with pytest.raises(ValueError, match="La ligne 4 a 1 éléments mais il y a 2 colonnes"):
         reader.read_file(nb_col_diff)
 
 
 def test_type_diff():
     """ Check when there are different types in a column give an error
     """
-    with pytest.raises(TypeError, match="Element at row 3 and column Word has type int instead of type str"):
+    with pytest.raises(TypeError, match="L'élément à la ligne 3 et colonne Word est du type int au lieu du type str"):
         reader.read_file(type_diff)
 # ------------------------------------------------------------------------------------------------------------------------
 # ------------------------------------------------------------------------------------------------------------------------
@@ -315,7 +315,7 @@ def test_type_diff():
 def test_probleme_read_pandas():
     """ Check when we give a wrong reading engine give an error
     """
-    with pytest.raises(ValueError, match="'no_engine' is not an engine to read a file. Use 'pandas' or 'openpyxl'"):
+    with pytest.raises(ValueError, match="'no_engine' n'est pas un moteur de lecture. Utilisez 'pandas' ou 'openpyxl'"):
         reader.read_file(excel, engine='no_engine')
 # ------------------------------------------------------------------------------------------------------------------------
 # ------------------------------------------------------------------------------------------------------------------------

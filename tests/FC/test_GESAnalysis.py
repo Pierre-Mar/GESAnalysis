@@ -64,14 +64,14 @@ def test_read_file():
 def test_read_file_incorrect():
     """ Test to read file when the file is not supported
     """
-    with pytest.raises(Exception, match="cannot read data from 'export_invalid.py'. Should be a CSV, TSV, TXT or XLSX file"):
+    with pytest.raises(Exception, match="Exportation impossible de 'export_invalid.py'. Le fichier doit être de type CSV, TSV, TXT ou XLSX"):
         m.read_file(export_invalid, '2020', 'hello')
 
 
 def test_read_file_path_null():
     """ Test the file when the path is null
     """
-    with pytest.raises(Exception, match="cannot read file because the path is null"):
+    with pytest.raises(Exception, match="Impossible de lire le fichier car le chemin est invalide"):
         m.read_file(None, '2019', 'hello')
 # ------------------------------------------------------------------------------------------------------------------------
 # ------------------------------------------------------------------------------------------------------------------------
@@ -106,7 +106,7 @@ def test_export_close():
 def test_export_invalid():
     """ Test an invalid export
     """
-    with pytest.raises(Exception, match="cannot export data to 'invalid'. Should be a CSV, TSV or TXT file"):
+    with pytest.raises(Exception, match="Exportation impossible de 'invalid'. Le fichier doit être de type CSV, TSV ou TXT"):
         m.export(people, "invalid")
 # ------------------------------------------------------------------------------------------------------------------------
 # ------------------------------------------------------------------------------------------------------------------------
@@ -125,7 +125,7 @@ def test_close_file_correct():
         
         
 def test_close_file_not_open():
-    with pytest.raises(Exception, match="the file 'export_invalid.py' is not open yet"):
+    with pytest.raises(Exception, match="Le fichier 'export_invalid.py' n'est pas ouvert"):
         m.close_file(export_invalid)
 # ------------------------------------------------------------------------------------------------------------------------
 # ------------------------------------------------------------------------------------------------------------------------
@@ -222,7 +222,7 @@ def test_data_from_file_correct():
 
 
 def test_get_data_file_not_open():
-    with pytest.raises(Exception, match="there is no file 'not_open.csv' open"):
+    with pytest.raises(Exception, match="Le fichier 'not_open.csv' n'est pas ouvert"):
         m.get_data_from_file("not_open.csv")
 # ------------------------------------------------------------------------------------------------------------------------
 # ------------------------------------------------------------------------------------------------------------------------
