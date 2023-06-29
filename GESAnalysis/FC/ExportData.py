@@ -14,6 +14,9 @@ class ExportData:
         pass
     
 
+#######################################################################################################
+#  Export the data to a file                                                                          #
+#######################################################################################################
     def export_data(
         self,
         data_dict: Optional[Dict[str, Dict[str, List[Union[List[Union[int, float, bool, str]], str]]]]],
@@ -32,21 +35,19 @@ class ExportData:
             bool: True if all the data has been written in the file
         """
         if data_dict is None:
-            raise TypeError("cannot access to values because the dictionary is null")
-        
+            raise TypeError("Accès impossible au données car le dictionnaire est invalide")
         
         # Check the name of file
         self.__verif_fileout(fileout)
         
-        match self.__file_ext:
-            case ".csv":
-                return self.__write_in_file(data_dict, fileout, ';')
-            case ".tsv":
-                return self.__write_in_file(data_dict, fileout, '\t')
-            case _:
-                return self.__write_in_file(data_dict, fileout, ';')
-    
-    
+        if self.__file_ext == ".csv":
+            return self.__write_in_file(data_dict, fileout, ';')
+        elif self.__file_ext == ".tsv":
+            return self.__write_in_file(data_dict, fileout, '\t')
+        else:
+            return self.__write_in_file(data_dict, fileout, ';')
+
+
     def __verif_fileout(self, fileout: str) -> None:
         """ Check 'fileout' if it's a CSV, TSV or TXT file
 
@@ -54,7 +55,7 @@ class ExportData:
             fileout (str): Path to the file to write the data
 
         Raises:
-            TypeError: 'fileout' is not a CSV, TSV or TXT file
+            Exception: 'fileout' is not a CSV, TSV or TXT file
         """
         # Get the extension of the file
         root_filename, self.__file_ext = os.path.splitext(fileout)
@@ -69,9 +70,12 @@ class ExportData:
         file = path_to_file[len(path_to_file) - 1]
         
         if not self.__file_ext in self.__accepted_extension:
-            raise TypeError(f"cannot export data to '{file+self.__file_ext}'. Should be a CSV, TSV or TXT file")
+            raise Exception(f"Exportation impossible de '{file+self.__file_ext}'. Le fichier doit être de type CSV, TSV ou TXT")
     
-    
+
+#######################################################################################################
+#  Write the data into the file                                                                       #
+#######################################################################################################
     def __write_in_file(
         self,
         data: Dict[str, Dict[str, List[Union[List[Union[int, float, bool, str]], str]]]],
@@ -123,7 +127,7 @@ class ExportData:
         # if we catch an error, we remove the file
         except IOError:
             os.remove(fileout)
-            raise IOError(f"cannot open and write into the file '{fileout}'")
+            raise IOError(f"Problème rencontré pendant l'écriture du fichier '{fileout}'")
         except ValueError as v:
             os.remove(fileout)
             raise ValueError(str(v))
@@ -131,7 +135,7 @@ class ExportData:
     
     
     def __verif_number_lines(self, elems_col: List[List[Union[bool, str, float, int]]]) -> None:
-        """ Check that the number of elements of each row is the same
+        """ Check the number of elements of each row is the same
 
         Args:
             elems_col (list): List where the values of each columns is in a list
@@ -143,9 +147,12 @@ class ExportData:
         for i in range(1, len(elems_col)):
             nb_elements_line = len(elems_col[i])
             if nb_elements_line != nb_elements:
-                raise ValueError(f"{nb_elements_line} elements in line {i+1} instead of {nb_elements} elements")
+                raise ValueError(f"La ligne {i+1} a {nb_elements_line} éléments au lieu de {nb_elements} éléments")
 
 
+#######################################################################################################
+#  Getters                                                                                            #
+#######################################################################################################
     def __get_data(
         self,
         data_dict: Dict[str, Dict[str, List[Union[List[Union[int, float, bool, str]], str]]]]

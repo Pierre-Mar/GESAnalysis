@@ -19,6 +19,9 @@ class GESAnalysis(Observable):
         self.__file_open = {} # Dictionary to associate the name of file and his data
         
 
+#######################################################################################################
+#  Read the data from a file                                                                          #
+#######################################################################################################
     def read_file(self, filename: str, year:str, category:str, sep: str = None, engine: str = "pandas") -> None:
         """ Read the file 'filename'
 
@@ -28,10 +31,11 @@ class GESAnalysis(Observable):
             engine (str, optional): Reading engine for XLSX files. Defaults to "pandas".
         """
         if filename is None:
-            raise Exception("cannot read file because the path is null")
+            raise Exception("Impossible de lire le fichier car le chemin est invalide")
         try:
             data_file = self.__reader.read_file(filename, sep, engine)
             name_file = self.get_filename(filename)
+            self.__check_year(year)
             self.__file_open[name_file] = {}
             self.__file_open[name_file]["data"] = data_file
             self.__file_open[name_file]["year"] = year
@@ -40,7 +44,10 @@ class GESAnalysis(Observable):
         except Exception as e:
             raise Exception(str(e))
             
-            
+
+#######################################################################################################
+#  Write the data into a file                                                                         #
+#######################################################################################################      
     def export(self, filein: str, fileout: str) -> None:
         """ Write the current dictionnary into the file 'fileout'
 
@@ -64,7 +71,10 @@ class GESAnalysis(Observable):
         except Exception as e:
             raise Exception(str(e))
         
-        
+
+#######################################################################################################
+#  Close a file                                                                                       #
+#######################################################################################################  
     def close_file(self, filename: str) -> None:
         """ Remove the data from the dictionary
 
@@ -78,25 +88,69 @@ class GESAnalysis(Observable):
         try:
             del self.__file_open[file]
         except:
-            raise Exception(f"the file '{file}' is not open yet")
+            raise Exception(f"Le fichier '{file}' n'est pas ouvert")
         
         
-    def set_year(self, filename, year):
+    def __check_year(self, year: str) -> None:
+        """ Check if a year is correct
+
+        Args:
+            year (str): Year
+
+        Raises:
+            Exception: Year incorrect
+        """
+        try:
+            year_int = int(year)
+        except:
+            raise Exception(f"'{year}' n'est pas une année")
+
+
+#######################################################################################################
+#  Setters					                                                                          #
+#######################################################################################################
+    def set_year(self, filename: str, year: str) -> None:
+        """ Set the year for the file 'filename'
+
+        Args:
+            filename (str): File
+            year (str): Year
+
+        Raises:
+            Exception: File is not opened or a year is invalid
+        """
         file = self.get_filename(filename)
+        try:
+            self.__check_year(year)
+        except Exception as e:
+            raise Exception(str(e))
         try:
             self.__file_open[file]["year"] = year
         except:
-            raise Exception(f"the file '{file}' is not open yet")
+            raise Exception(f"Le fichier '{file}' n'est pas ouvert")
         
         
-    def set_category(self, filename, category):
+    def set_category(self, filename: str, category: str) -> None:
+        """ Set the category for the file 'filename'
+
+        Args:
+            filename (str): File
+            category (str): Category
+
+        Raises:
+            Exception: File is not opened
+        """
         file = self.get_filename(filename)
         try:
             self.__file_open[file]["category"] = category
         except:
-            raise Exception(f"the file '{file}' is not open yet")  
-        
-    def get_data(self):
+            raise Exception(f"Le fichier '{file}' n'est pas ouvert")
+
+
+#######################################################################################################
+#  Getters                                                                                            #
+#######################################################################################################                   
+    def get_data(self) -> Dict[str, Dict[str, List[Union[str, int, float, bool]]]]:
         """ Get the dictionary of data
 
         Returns:
@@ -115,8 +169,11 @@ class GESAnalysis(Observable):
     
     
     def get_data_from_file(self, filename:str) -> Dict[str, Dict[str, List[Union[List[Union[int, float, bool, str]], str]]]]:
-        """ Return the dictionary of data of the last file who was read
+        """ Return the dictionary of data of the file 'filename'
 
+        Raises:
+            Exception: File is not opened
+            
         Returns:
             dict: Dictionary of data
         """
@@ -124,7 +181,7 @@ class GESAnalysis(Observable):
         try:
             return self.__file_open[file]["data"]
         except:
-            raise Exception(f"there is no file '{file}' open")
+            raise Exception(f"Le fichier '{file}' n'est pas ouvert")
     
 
     def get_filename(self, path_file: str) -> str:
@@ -144,25 +201,58 @@ class GESAnalysis(Observable):
         return split_path[len(split_path)-1] + file_ext
     
     
-    def get_path(self, filename):
+    def get_path(self, filename: str) -> str:
+        """ Get the path of the file 'filename'
+
+        Args:
+            filename (str): File
+
+        Raises:
+            Exception: File is not opened
+
+        Returns:
+            str: Path
+        """
         filename = self.get_filename(filename)
         try:
             return self.__file_open[filename]["path"]
         except:
-            raise Exception(f"there is no file '{filename}' open")
+            raise Exception(f"Le fichier '{filename}' n'est pas ouvert")
     
     
-    def get_year(self, filename):
+    def get_year(self, filename: str) -> str:
+        """ Get the year of the file 'filename'
+
+        Args:
+            filename (str): File
+
+        Raises:
+            Exception: File is not opened
+
+        Returns:
+            str: Year
+        """
         filename = self.get_filename(filename)
         try:
             return self.__file_open[filename]["year"]
         except:
-            raise Exception(f"there is no file '{filename}' open")
+            raise Exception(f"Le fichier '{filename}' n'est pas ouvert")
         
     
-    def get_category(self, filename):
+    def get_category(self, filename: str) -> str:
+        """ Get the category of the file 'filename'
+
+        Args:
+            filename (str): File
+
+        Raises:
+            Exception: File is not opened
+
+        Returns:
+            str: Category
+        """
         filename = self.get_filename(filename)
         try:
             return self.__file_open[filename]["category"]
         except:
-            raise Exception(f"there is no file '{filename}' open")
+           raise Exception(f"Le fichier '{filename}' n'est pas ouvert")

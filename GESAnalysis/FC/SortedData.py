@@ -29,12 +29,12 @@ class SortedData:
             list: List of index indicating the position of the data
         """
         if data_dict is None:
-            raise TypeError("cannot access to values because the dictionary is null")
+            raise TypeError("Accès impossible au données car le dictionnaire est invalide")
         
         # Check the column name
         check_column = self.__check_column(data_dict, column)
         if check_column is None:
-            raise KeyError(f"there is no column '{column}' in data")
+            raise KeyError(f"La colonne '{column}' n'existe pas")
 
         list_data = data_dict[check_column]["data"].copy()
         for i in range(len(list_data)):
