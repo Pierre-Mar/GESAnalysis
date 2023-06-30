@@ -1,9 +1,14 @@
+from typing import Any
 from PyQt5 import QtWidgets
 from GESAnalysis.FC.Controleur import Controleur
 from GESAnalysis.FC.GESAnalysis import GESAnalysis
 from GESAnalysis.UI.OpenFileDialog import OpenFileDialog
 from GESAnalysis.UI.ExportFileDialog import ExportFileDialog
 from GESAnalysis.UI.ViewDataDialog import ViewDataDialog
+from GESAnalysis.UI.categories.achats.AchatsWidget import AchatsWidget
+from GESAnalysis.UI.categories.deplacement.DeplacementWidget import DeplacementWidget
+from GESAnalysis.UI.categories.fluide.FluideWidget import FluideWidget
+from GESAnalysis.UI.categories.materiel.MaterielWidget import MaterielWidget
 from GESAnalysis.UI.categories.missions.MissionsWidget import MissionsWidget
 from GESAnalysis.UI.categories.total.TotalWidget import TotalWidget
 
@@ -53,29 +58,34 @@ class MainWindow(QtWidgets.QMainWindow):
         self.__tab_widget_categories.setTabPosition(QtWidgets.QTabWidget.TabPosition.West)
         
         # Create the class for each category
-        # TODO : variable with "todo" need to be define
-        todo_achats = QtWidgets.QWidget(self.__tab_widget_categories)
-        todo_deplacement = QtWidgets.QWidget(self.__tab_widget_categories)
-        todo_fluide = QtWidgets.QWidget(self.__tab_widget_categories)
-        todo_materiel = QtWidgets.QWidget(self.__tab_widget_categories)
-        missions_widget = MissionsWidget(self.__gesanalysis, self.__controller, "Missions", self.__tab_widget_categories)
-        total_widget = TotalWidget(self.__gesanalysis, self.__controller, "Total", self.__tab_widget_categories)
+        self.__create_widget_catefories("Achats", AchatsWidget)
+        self.__create_widget_catefories("Déplacements domicile-travail", DeplacementWidget)
+        self.__create_widget_catefories("Fluides", FluideWidget)
+        self.__create_widget_catefories("Matériel Informatique", MaterielWidget)
+        self.__create_widget_catefories("Missions", MissionsWidget)
+        self.__create_widget_catefories("Total", TotalWidget)
+        # achats_widget = AchatsWidget(self.__gesanalysis, self.__controller, "Achats", self.__tab_widget_categories)
+        # deplacement_widget = DeplacementWidget(self.__gesanalysis, self.__controller, "Déplacements domicile-travail", self.__tab_widget_categories)
+        # fluide_widget = FluideWidget(self.__gesanalysis, self.__controller, "Fluides", self.__tab_widget_categories)
+        # materiel_widget = MaterielWidget(self.__gesanalysis, self.__controller, "Matériel Informatique", self.__tab_widget_categories)
+        # missions_widget = MissionsWidget(self.__gesanalysis, self.__controller, "Missions", self.__tab_widget_categories)
+        # total_widget = TotalWidget(self.__gesanalysis, self.__controller, "Total", self.__tab_widget_categories)
         
-        # Add widgets to dictionary
-        self.__dict_categories["Achats"] = {"widget": todo_achats}
-        self.__dict_categories["Déplacements domicile-travail"] = {"widget": todo_deplacement}
-        self.__dict_categories["Fluides"] = {"widget": todo_fluide}
-        self.__dict_categories["Matériel Informatique"] = {"widget": todo_materiel}
-        self.__dict_categories["Missions"] = {"widget": missions_widget}
-        self.__dict_categories["Total"] = {"widget": total_widget}
+        # # Add widgets to dictionary
+        # self.__dict_categories["Achats"] = {"widget": achats_widget}
+        # self.__dict_categories["Déplacements domicile-travail"] = {"widget": deplacement_widget}
+        # self.__dict_categories["Fluides"] = {"widget": fluide_widget}
+        # self.__dict_categories["Matériel Informatique"] = {"widget": materiel_widget}
+        # self.__dict_categories["Missions"] = {"widget": missions_widget}
+        # self.__dict_categories["Total"] = {"widget": total_widget}
         
-        # Add differents class in the tab widget
-        self.__tab_widget_categories.addTab(todo_achats, "Achats")
-        self.__tab_widget_categories.addTab(todo_deplacement, "Déplacements domicile-travail")
-        self.__tab_widget_categories.addTab(todo_fluide, "Fluides")
-        self.__tab_widget_categories.addTab(todo_materiel, "Matériel Informatique")
-        self.__tab_widget_categories.addTab(missions_widget, "Missions")
-        self.__tab_widget_categories.addTab(total_widget, "Total")
+        # # Add differents class in the tab widget
+        # self.__tab_widget_categories.addTab(achats_widget, "Achats")
+        # self.__tab_widget_categories.addTab(deplacement_widget, "Déplacements domicile-travail")
+        # self.__tab_widget_categories.addTab(fluide_widget, "Fluides")
+        # self.__tab_widget_categories.addTab(materiel_widget, "Matériel Informatique")
+        # self.__tab_widget_categories.addTab(missions_widget, "Missions")
+        # self.__tab_widget_categories.addTab(total_widget, "Total")
         
         self.__tab_widget_categories.setCurrentIndex(0)
         
@@ -116,6 +126,18 @@ class MainWindow(QtWidgets.QMainWindow):
         display_data_action = QtWidgets.QAction("Données", self)
         display_data_action.triggered.connect(self.open_view_data)
         display_menu.addAction(display_data_action)
+        
+        
+    def __create_widget_catefories(self, category: str, class_category: Any) -> None:
+        """ Create a widget of class 'class_category' for a category
+
+        Args:
+            category (str): Category
+            class_category (Any): Class of category
+        """
+        category_widget = class_category(self.__gesanalysis, self.__controller, category, self.__tab_widget_categories)
+        self.__dict_categories[category] = {"widget": category_widget}
+        self.__tab_widget_categories.addTab(self.__dict_categories[category]["widget"], category)
 
 
     def close_files(self) -> None:
