@@ -1,4 +1,4 @@
-import GESAnalysis.UI.plot.common as common
+import GESAnalysis.UI.categories.common as common
 import matplotlib
 
 matplotlib.use('Qt5Agg')
@@ -19,7 +19,7 @@ class EmissionMode(QtWidgets.QWidget, Observer):
     """
     __width = 0.5
     
-    def __init__(self, model, parent: QtWidgets.QWidget | None = ...) -> None:
+    def __init__(self, model, category: str, parent: QtWidgets.QWidget | None = ...) -> None:
         """_summary_
 
         Args:
@@ -30,7 +30,7 @@ class EmissionMode(QtWidgets.QWidget, Observer):
         
         self.__gesanalysis = model
         
-        self.__gesanalysis.add_observer(self, "Missions")
+        self.__gesanalysis.add_observer(self, category)
         
         self.__mode_ind = {}     # Dictionary where the key is the mode of transport and the value his index
         self.__position_ind = {} # Same with position

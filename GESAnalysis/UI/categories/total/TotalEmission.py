@@ -8,7 +8,7 @@ from matplotlib.figure import Figure
 from GESAnalysis.FC.PATTERNS.Observer import Observer
 from typing import Tuple, List
 
-import GESAnalysis.UI.plot.common as common 
+import GESAnalysis.UI.categories.common as common 
 
 
 class TotalEmission(QtWidgets.QWidget, Observer):
@@ -20,7 +20,7 @@ class TotalEmission(QtWidgets.QWidget, Observer):
     __spacing = 0.8                                 # Spacing between bars of each mode
     
     
-    def __init__(self, model, controller, parent: QtWidgets.QWidget | None = ...) -> None:
+    def __init__(self, model, controller, category, parent: QtWidgets.QWidget | None = ...) -> None:
         """ Initialize the class by setting the data and draw the graph
 
         Args:
@@ -34,7 +34,7 @@ class TotalEmission(QtWidgets.QWidget, Observer):
         self.__controller = controller
         
         # Add the graph to the observer when there is an update
-        self.__gesanalysis.add_observer(self)
+        self.__gesanalysis.add_observer(self, category)
         
         self.__years_ind = {}
         self.__name_ind = {}

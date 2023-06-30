@@ -5,6 +5,7 @@ from GESAnalysis.UI.OpenFileDialog import OpenFileDialog
 from GESAnalysis.UI.ExportFileDialog import ExportFileDialog
 from GESAnalysis.UI.ViewDataDialog import ViewDataDialog
 from GESAnalysis.UI.categories.missions.MissionsWidget import MissionsWidget
+from GESAnalysis.UI.categories.total.TotalWidget import TotalWidget
 
 import GESAnalysis.UI.common as common
 
@@ -57,24 +58,24 @@ class MainWindow(QtWidgets.QMainWindow):
         todo_deplacement = QtWidgets.QWidget(self.__tab_widget_categories)
         todo_fluide = QtWidgets.QWidget(self.__tab_widget_categories)
         todo_materiel = QtWidgets.QWidget(self.__tab_widget_categories)
-        self.__missions_widget = MissionsWidget(self.__gesanalysis, self.__controller, self.__tab_widget_categories)
-        todo_total = QtWidgets.QWidget(self.__tab_widget_categories)
+        missions_widget = MissionsWidget(self.__gesanalysis, self.__controller, "Missions", self.__tab_widget_categories)
+        total_widget = TotalWidget(self.__gesanalysis, self.__controller, "Total", self.__tab_widget_categories)
         
         # Add widgets to dictionary
         self.__dict_categories["Achats"] = {"widget": todo_achats}
         self.__dict_categories["Déplacements domicile-travail"] = {"widget": todo_deplacement}
         self.__dict_categories["Fluides"] = {"widget": todo_fluide}
         self.__dict_categories["Matériel Informatique"] = {"widget": todo_materiel}
-        self.__dict_categories["Missions"] = {"widget": self.__missions_widget}
-        self.__dict_categories["Total"] = {"widget": todo_total}
+        self.__dict_categories["Missions"] = {"widget": missions_widget}
+        self.__dict_categories["Total"] = {"widget": total_widget}
         
         # Add differents class in the tab widget
         self.__tab_widget_categories.addTab(todo_achats, "Achats")
         self.__tab_widget_categories.addTab(todo_deplacement, "Déplacements domicile-travail")
         self.__tab_widget_categories.addTab(todo_fluide, "Fluides")
         self.__tab_widget_categories.addTab(todo_materiel, "Matériel Informatique")
-        self.__tab_widget_categories.addTab(self.__missions_widget, "Missions")
-        self.__tab_widget_categories.addTab(todo_total, "Total")
+        self.__tab_widget_categories.addTab(missions_widget, "Missions")
+        self.__tab_widget_categories.addTab(total_widget, "Total")
         
         self.__tab_widget_categories.setCurrentIndex(0)
         

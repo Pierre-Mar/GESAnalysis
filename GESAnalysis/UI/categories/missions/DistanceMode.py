@@ -2,7 +2,7 @@ import matplotlib
 
 matplotlib.use('Qt5Agg')
 
-import GESAnalysis.UI.plot.common as common
+import GESAnalysis.UI.categories.common as common
 
 from PyQt5 import QtCore, QtWidgets
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg, NavigationToolbar2QT
@@ -29,6 +29,7 @@ class DistanceMode(QtWidgets.QWidget, Observer):
     def __init__(
         self,
         model,
+        category: str, 
         parent: Optional[QtWidgets.QWidget]
     ) -> None:
         """ Initialisation of class where we configure data to plot it
@@ -42,7 +43,7 @@ class DistanceMode(QtWidgets.QWidget, Observer):
         self.__gesanalysis = model
         
         # Add this observer into the list for observable
-        self.__gesanalysis.add_observer(self, "Missions")
+        self.__gesanalysis.add_observer(self, category)
         
         self.__mode_ind = {}     # Dictionary where the key is the mode of transport and the value his index
         self.__position_ind = {} # Same with position
