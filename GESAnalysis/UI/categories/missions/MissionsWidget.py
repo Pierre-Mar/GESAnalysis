@@ -57,7 +57,7 @@ class MissionsWidget(QtWidgets.QWidget):
         # Tab widget for right-splitter (graph)
         self.__tab_graphs_widget = QtWidgets.QTabWidget(splitter)
         self.__distance_canvas = DistanceMode(self.__tab_graphs_widget)
-        self.__emissions_canvas = EmissionMode(self.__gesanalysis, self.__category, self.__tab_graphs_widget)
+        self.__emissions_canvas = EmissionMode(self.__tab_graphs_widget)
         self.__tab_graphs_widget.addTab(self.__distance_canvas, "Distance")
         self.__tab_graphs_widget.addTab(self.__emissions_canvas, "Emission")
         
@@ -86,6 +86,12 @@ class MissionsWidget(QtWidgets.QWidget):
             self.__files[file] = {"read": True, "warning": []}
             
             data = data_file["data"]
+            
+            mission = common.get_column(data, "name")
+            if mission is None:
+                compare_column = False
+                self.__files[file]["read"] = False
+                self.__files[file]["warning"].append(f"Colonne 'name' non-trouvée")
             
             # Get the mode
             mode = common.get_column(data, "mode")
@@ -200,24 +206,27 @@ class MissionsWidget(QtWidgets.QWidget):
             
             data = data_file["data"]
             
+            mission = common.get_column(data, "name")
             mode = common.get_column(data, "mode")
             position = common.get_column(data, "position")
             distance = common.get_column(data, "distance")
             emission = common.get_column(data, "emission")
             year = data_file["year"]
             
-            for i in range(len(distance)):
+            for i in range(len(mission)):
+                
                 mode_val = self.__analyse_mode(mode[i][0])
                 pos_val = position[i][0]
                 
                 # Add the distance
                 sum_distance = sum(distance[i])
                 sum_emission = sum(emission[i])
-                data_dist[mode_val]["data"][pos_val][year]["mission"].append((i, sum_distance, sum_emission))
-                data_dist[mode_val]["data"][pos_val][year]["total_distance"] += sum_distance
-                data_dist[mode_val]["data"][pos_val][year]["total_emission"] += sum_emission
-                data_dist[mode_val]["sum"][year]["distance"] += sum_distance
-                data_dist[mode_val]["sum"][year]["emission"] += sum_emission
+                for mis in mission[i]:
+                    data_dist[mode_val]["data"][pos_val][year]["mission"].append((mis, sum_distance, sum_emission))
+                    data_dist[mode_val]["data"][pos_val][year]["total_distance"] += sum_distance
+                    data_dist[mode_val]["data"][pos_val][year]["total_emission"] += sum_emission
+                    data_dist[mode_val]["sum"][year]["distance"] += sum_distance
+                    data_dist[mode_val]["sum"][year]["emission"] += sum_emission
                 
         self.__data = {
             "data": data_dist,
@@ -267,3 +276,6 @@ class MissionsWidget(QtWidgets.QWidget):
         
         # Update the graph for distance
         self.__distance_canvas.update_canvas(self.__mode_ind, self.__position_ind, self.__years_ind, self.__data)
+        
+        # Update the graph for emission
+        self.__emissions_canvas.update_canvas(self.__mode_ind, self.__years_ind, self.__data)

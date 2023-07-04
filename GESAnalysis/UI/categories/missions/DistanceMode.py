@@ -423,9 +423,10 @@ class DistanceMode(QtWidgets.QWidget):
         self.__remove_list_buttons(self.__position_dict, self.__layout_checkbuttons_positions)
         
         # Update the structure
-        self.__mode_dict = mode_dict.copy()
-        self.__position_dict = position_dict.copy()
-        self.__years_dict = year_dict.copy()
+        self.__mode_dict = self.__update_structure(mode_dict)
+        self.__position_dict = self.__update_structure(position_dict)
+        self.__years_dict = self.__update_structure(year_dict)
+
         self.__data_dict = self.__rearrange_data_dict(data_dict["data"].copy())
         self.__unit = data_dict["unit_distance"]
         
@@ -456,3 +457,10 @@ class DistanceMode(QtWidgets.QWidget):
                 dictionary[mode]["sum"][year] = sum_year["distance"]
         
         return dictionary
+    
+    
+    def __update_structure(self, data_dict):
+        data_class = {}
+        for data in data_dict.keys():
+            data_class[data] = {}
+        return data_class

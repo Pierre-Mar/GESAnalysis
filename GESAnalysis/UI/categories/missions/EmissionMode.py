@@ -6,45 +6,32 @@ matplotlib.use('Qt5Agg')
 from PyQt5 import QtWidgets, QtCore
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg, NavigationToolbar2QT
 from matplotlib.figure import Figure
-from GESAnalysis.FC.PATTERNS.Observer import Observer
-from GESAnalysis.FC.SortedData import SortedData
 from functools import partial
 from typing import Any, Callable, Dict, List, Tuple, Union
 
 
-class EmissionMode(QtWidgets.QWidget, Observer):
+class EmissionMode(QtWidgets.QWidget):
     """ Class to represent graphically
         the emission for each mission according to the mode of transport
         and the position of people
     """
     __width = 0.5
     
-    def __init__(self, model, category: str, parent: QtWidgets.QWidget | None = ...) -> None:
-        """_summary_
+    def __init__(self, parent: QtWidgets.QWidget | None = ...) -> None:
+        """ Initialise the class
 
         Args:
-            model (GESAnalysis): model
             parent (QtWidgets.QWidget | None, optional): Parent of this widget. Defaults to ....
         """
         super(EmissionMode, self).__init__(parent)
         
-        self.__gesanalysis = model
-        
-        self.__gesanalysis.add_observer(self, category)
-        
-        self.__mode_ind = {}     # Dictionary where the key is the mode of transport and the value his index
-        self.__position_ind = {} # Same with position
-        self.__years_ind = {}    # Same with year
-        self.__data_emission = {}    # Dictionary where the key is a year and the value a list with distance for all mode
+        self.__mode_dict = {}     # Dictionary where the key is the mode of transport and the value his index
+        self.__years_dict = {}    # Same with year
+        self.__emission_dict = {}    # Dictionary where the key is a year and the value a list with distance for all mode
         self.__is_pourcentage = False
         self.__accumulate = False
         self.__is_bars_selected = True
-        
-        self.__sort = SortedData()
-        
-        # Add values from the model to the structures define above
-        self.__unit = common.check_value(self.__gesanalysis, "emission")
-        self.__configure_data()
+        self.__unit = ""
         
         # Create figure
         self.__fig = Figure()
@@ -53,9 +40,6 @@ class EmissionMode(QtWidgets.QWidget, Observer):
         
         # Initialisation UI
         self.__init_UI()
-        
-        # Draw canvas
-        self.__draw()
 
 
 #######################################################################################################
@@ -75,7 +59,7 @@ class EmissionMode(QtWidgets.QWidget, Observer):
         
         # Create a widget to display a list of buttons to choose the year
         self.__widget_button_years, self.layout_button_years = self.__create_list_buttons(
-            self.__years_ind,
+            self.__years_dict,
             QtWidgets.QRadioButton if self.__is_bars_selected else QtWidgets.QCheckBox,
             self.__click_year_radiobutton if self.__is_bars_selected else self.__click_year_checkbutton
         )
@@ -200,10 +184,10 @@ class EmissionMode(QtWidgets.QWidget, Observer):
             type_button (Union[QtWidgets.QRadioButton, QtWidgets.QCheckBox]): New type of buttons
             fct (Callable): Function calls when the buttons is pressed
         """
-        # Add a button for each key of the diictionary
+        # Add a button for each key of the dictionary
         for data_ind, data in enumerate(data_dict.keys()):
             data_dict[data]["button"] = type_button(data)
-            # If the type of button is a radio button, we need to have oonly one activated
+            # If the type of button is a radio button, we need to have only one activated
             if type_button == QtWidgets.QRadioButton:
                 data_dict[data]["checked"] = True if data_ind == 0 else False
             else:
@@ -244,9 +228,9 @@ class EmissionMode(QtWidgets.QWidget, Observer):
         """
         has_bars = False
         nb_missions = 0
-        for year in self.__years_ind.keys():
+        for year in self.__years_dict.keys():
             # No need to draw a bar for a year who are not selected by the user
-            if not self.__years_ind[year]["checked"]:
+            if not self.__years_dict[year]["checked"]:
                 continue
             
             # Get the data to plot bars
@@ -285,19 +269,19 @@ class EmissionMode(QtWidgets.QWidget, Observer):
         # - mission: a list with the number of the mission for a certain mode
         # - value: a list with the emission due to the mission by the moe
         x_label_value = {}
-        for mode in self.__mode_ind.keys():
+        for mode in self.__mode_dict.keys():
             x_label_value[mode] = {"mission" : [], "value": []}
         
-        data_year = self.__data_emission[year]["data"]
-        data_year_sum = self.__data_emission[year]["sum"]
+        data_year = self.__emission_dict[year]["data"]
+        data_year_sum = self.__emission_dict[year]["sum"]
         value_accumulate = 0
-        for val in data_year:
-            mission, value, mode, pos = val
-            x_label_value[mode]["mission"].append(mission + 1)
+        for val_ind, val in enumerate(data_year):
+            emission, mode = val
+            x_label_value[mode]["mission"].append(val_ind + 1)
             
             # Depending on the parameters, we calculate the correct value
             # Pourcentage or value, and if it's accumulate
-            value_modif = 100*value/data_year_sum if self.__is_pourcentage else value
+            value_modif = 100*emission/data_year_sum if self.__is_pourcentage else emission
             value_accumulate += value_modif
             x_label_value[mode]["value"].append(value_accumulate if self.__accumulate else value_modif)
 
@@ -309,9 +293,9 @@ class EmissionMode(QtWidgets.QWidget, Observer):
         """
         has_curve = False
         nb_mission_max = 0
-        for year in self.__years_ind.keys():
+        for year in self.__years_dict.keys():
             # If the year is not selected by the user, no need to plot it
-            if not self.__years_ind[year]["checked"]:
+            if not self.__years_dict[year]["checked"]:
                 continue
             
             # Get data to plot curve for the year
@@ -341,15 +325,15 @@ class EmissionMode(QtWidgets.QWidget, Observer):
         """
         # Structure is the same as bars
         x_label_value = {"mission": [], "value": []}
-        data_year = self.__data_emission[year]["data"]
-        data_year_sum = self.__data_emission[year]["sum"]
+        data_year = self.__emission_dict[year]["data"]
+        data_year_sum = self.__emission_dict[year]["sum"]
         value_accumulate = 0
         if self.__accumulate:
             x_label_value["mission"].append(0)
             x_label_value["value"].append(0)
-        for val in data_year:
-            mission, value, mode, pos = val
-            x_label_value["mission"].append(mission + 1)
+        for val_ind, val in enumerate(data_year):
+            value = val[0]
+            x_label_value["mission"].append(val_ind + 1)
             
             # Depending on the parameters, we calculate the correct value
             # Pourcentage or value, and if it's accumulate
@@ -358,69 +342,6 @@ class EmissionMode(QtWidgets.QWidget, Observer):
             x_label_value["value"].append(value_accumulate if self.__accumulate else value_modif)
             
         return x_label_value
-
-#######################################################################################################
-#  Configure data to plot in the graph                                                                #
-#######################################################################################################  
-    def __configure_data(self) -> None:
-        """ Create and fill the different structure defined in init()
-        """
-        ind_mode = 0
-        ind_year = 0
-        ind_position = 0
-        for val_ges in self.__gesanalysis.get_data().values():
-            if val_ges["category"] != "Missions":
-                continue
-            
-            data = val_ges["data"]
-            
-            mode = common.get_column(data, "mode")
-            if mode is None:
-                continue
-            
-            position = common.get_column(data, "position")
-            if position is None:
-                continue
-                
-            year = val_ges["year"]
-            if year not in self.__years_ind.keys():
-                self.__years_ind[year] = {"index": ind_year}
-                ind_year += 1
-                
-            for i in range(len(mode)):
-                if mode[i][0] not in self.__mode_ind.keys():
-                    self.__mode_ind[mode[i][0]] = {"index": ind_mode}
-                    ind_mode += 1
-                if position[i][0] not in self.__position_ind.keys():
-                    self.__position_ind[position[i][0]] = {"index": ind_position}
-                    ind_position += 1
-        self.__sorted_data()
-                    
-                    
-    def __sorted_data(self) -> None:
-        """ Sort the data and add into the structure
-        """
-        for val_ges in self.__gesanalysis.get_data().values():
-            if val_ges["category"] != "Missions":
-                continue
-            year = val_ges["year"]
-            data_val_ges = val_ges["data"]
-            
-            self.__data_emission[year] = {"data": [], "sum": 0}
-            
-            column_values = common.get_name_column(data_val_ges, "emission")
-            column_mode = common.get_name_column(data_val_ges, "mode")
-            column_position = common.get_name_column(data_val_ges, "position")
-            sort_data_list = self.__sort.sorted_by_column(data_val_ges, "emission", reversed=True)
-
-            # Add values into the structure (index, value emission, mode, position)
-            for i in range(len(sort_data_list)):
-                ind = sort_data_list.index(i)
-                value = sum(data_val_ges[column_values]["data"][ind])
-                mode = data_val_ges[column_mode]["data"][ind][0]
-                position = data_val_ges[column_position]["data"][ind][0]
-                self.__data_emission[year]["data"].append((i, value, mode, position))
-                self.__data_emission[year]["sum"] += value
 
 
 #######################################################################################################
@@ -433,8 +354,8 @@ class EmissionMode(QtWidgets.QWidget, Observer):
             year (str): radio button associated to the year
             state (bool): if it's checked or not
         """
-        self.__years_ind[year]["checked"] = state
-        if state or len(self.__years_ind.keys()) == 1:
+        self.__years_dict[year]["checked"] = state
+        if state or len(self.__years_dict.keys()) == 1:
             self.__draw()
             
             
@@ -445,7 +366,7 @@ class EmissionMode(QtWidgets.QWidget, Observer):
             year (str): check button associated to the year
             state (bool): if it's checked or not
         """
-        self.__years_ind[year]["checked"] = state
+        self.__years_dict[year]["checked"] = state
         self.__draw()
 
 
@@ -477,9 +398,9 @@ class EmissionMode(QtWidgets.QWidget, Observer):
         """
         if selected:
             self.__is_bars_selected = True
-            self.__remove_buttons_layout(self.__years_ind, self.layout_button_years)
+            self.__remove_buttons_layout(self.__years_dict, self.layout_button_years)
             self.__update_buttons_layout(
-                self.__years_ind,
+                self.__years_dict,
                 self.layout_button_years,
                 QtWidgets.QRadioButton if self.__is_bars_selected else QtWidgets.QCheckBox,
                 self.__click_year_radiobutton if self.__is_bars_selected else self.__click_year_checkbutton
@@ -495,36 +416,66 @@ class EmissionMode(QtWidgets.QWidget, Observer):
         """
         if selected:
             self.__is_bars_selected = False
-            self.__remove_buttons_layout(self.__years_ind, self.layout_button_years)
+            self.__remove_buttons_layout(self.__years_dict, self.layout_button_years)
             self.__update_buttons_layout(
-                self.__years_ind,
+                self.__years_dict,
                 self.layout_button_years,
                 QtWidgets.QRadioButton if self.__is_bars_selected else QtWidgets.QCheckBox,
                 self.__click_year_radiobutton if self.__is_bars_selected else self.__click_year_checkbutton
             )
             self.__draw()
 
+
 #######################################################################################################
-#  Update graph from Observer                                                                         #
+#  Update graph from Mission Widget                                                                   #
 #######################################################################################################    
-    def update(self):
-        """ Update the structure and the UI of the graph when the controller is update.
+    def update_canvas(self, mode_ind, years_ind, data_dict):
+        """ Update the structure and the UI of the graph when it's call by MissionWidget.
         """
-        self.__remove_buttons_layout(self.__years_ind, self.layout_button_years)
+        self.__remove_buttons_layout(self.__years_dict, self.layout_button_years)
         
-        self.__mode_ind = {}     # Dictionary where the key is the mode of transport and the value his index
-        self.__position_ind = {} # Same with position
-        self.__years_ind = {}    # Same with year
-        self.__data_emission = {}    # Dictionary where the key is a year and the value a list with distance for all mode
-        
-        self.__unit = common.check_value(self.__gesanalysis, "emission")
-        self.__configure_data()
+        self.__mode_dict = self.__update_structure(mode_ind)
+        self.__years_dict = self.__update_structure(years_ind)
+        self.__emission_dict = self.__rearrange_data(data_dict["data"].copy())
+        self.__unit = data_dict["unit_emission"]       
         
         self.__update_buttons_layout(
-            self.__years_ind,
+            self.__years_dict,
             self.layout_button_years,
             QtWidgets.QRadioButton if self.__is_bars_selected else QtWidgets.QCheckBox,
             self.__click_year_radiobutton if self.__is_bars_selected else self.__click_year_checkbutton
         )
         
         self.__draw()
+        
+        
+    def __rearrange_data(self, data_dict):
+        dictionary = {}
+        for year in self.__years_dict.keys():
+            dictionary[year] = {
+                "data" :[],
+                "sum": 0
+            }
+        
+        # Arrange data into the dictionary
+        for mode, data_mode in data_dict.items():
+            for position, position_data in data_mode["data"].items():
+                for year, year_data in position_data.items():
+                    missions = year_data["mission"]
+                    for value in missions:
+                        emis = value[1]
+                        dictionary[year]["data"].append((emis, mode))
+                        dictionary[year]["sum"] += emis
+        
+        # Sort value of emission by descending order
+        for data_year in dictionary.values():
+            data_year["data"].sort(key=lambda a:a[0], reverse=True)
+
+        return dictionary
+    
+
+    def __update_structure(self, data_dict):
+        data_class = {}
+        for data in data_dict.keys():
+            data_class[data] = {}
+        return data_class
