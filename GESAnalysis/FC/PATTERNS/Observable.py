@@ -43,4 +43,5 @@ class Observable:
         """
         for observer, category in self.__observer:
             if category == c:
+                print(category, observer)
                 observer.update()

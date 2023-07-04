@@ -201,6 +201,8 @@ class MissionsWidget(QtWidgets.QWidget):
                     
         # Now calculate the distance
         for file, data_file in self.__gesanalysis.get_data().items():
+            if data_file["category"] != self.__category:
+                continue
             if not self.__files[file]["read"]:
                 continue
             
@@ -272,6 +274,13 @@ class MissionsWidget(QtWidgets.QWidget):
     def update(self):
         """ Update all the widget of this widget when the model change
         """
+        # Remove all data inside the structure
+        self.__data.clear()
+        self.__position_ind.clear()
+        self.__years_ind.clear()
+        self.__mode_ind.clear()
+        self.__files.clear()
+        
         self.__configure_data()
         
         # Update the graph for distance

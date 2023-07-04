@@ -58,10 +58,11 @@ class Controleur:
             raise Exception(str(e))
         
     
-    def set_category_year(self, filename, year, category):
+    def set_category_year(self, filename, year, category, old_category):
         try:
             self.__gesanalysis.set_year(filename, year)
             self.__gesanalysis.set_category(filename, category)
-            self.__gesanalysis.update()
+            self.__gesanalysis.update(old_category)
+            self.__gesanalysis.update(category)
         except Exception as e:
             raise Exception(str(e))

@@ -85,7 +85,7 @@ class ChangeYearCateDialog(QtWidgets.QDialog):
             super().accept()
             
         try:
-            self.__controleur.set_category_year(self.__modify_file, selected_year, selected_category)
+            self.__controleur.set_category_year(self.__modify_file, selected_year, selected_category, old_category)
             super().accept()
         except Exception as e:
             self.message_error(str(e))
