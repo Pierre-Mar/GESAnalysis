@@ -1,20 +1,18 @@
-from PyQt5 import QtWidgets, QtCore
-from GESAnalysis.FC.Controleur import Controleur
-from GESAnalysis.FC.GESAnalysis import GESAnalysis
-from GESAnalysis.FC.PATTERNS.Observer import Observer
-from typing import List
+from PyQt5 import QtWidgets, QtCore, QtGui
+from typing import List, Dict, Union
 from functools import partial
+from GESAnalysis.FC.Controleur import Controleur
 from GESAnalysis.UI.ChangeYearCateDialog import ChangeYearCateDialog
 
-class FileOpenUI(QtWidgets.QWidget, Observer):
+class FileOpenUI(QtWidgets.QWidget):
     """ Widget containing all the name of file who are currently read for a category
     """
     
     def __init__(
         self,
-        model: GESAnalysis,
-        controller: Controleur,
+        files_category: Dict[str, Union[bool, List[str], str]],
         category: str,
+        controller: Controleur,
         parent: QtWidgets.QWidget | None = ...
     ) -> None:
         """ Initialise the widget
@@ -26,12 +24,10 @@ class FileOpenUI(QtWidgets.QWidget, Observer):
             parent (QtWidgets.QWidget | None, optional): Parent to this dialog. Defaults to ....
         """
         super(FileOpenUI, self).__init__(parent)
-                
-        self.__gesanalysis = model
+        
+        self.__files_category = files_category
         self.__controller = controller
         self.__category = category
-        
-        self.__gesanalysis.add_observer(self, self.__category)
         
         self.__init_UI()
 
@@ -46,13 +42,17 @@ class FileOpenUI(QtWidgets.QWidget, Observer):
         self.__list_widget = QtWidgets.QListWidget(self)
         self.__list_widget.setSelectionMode(QtWidgets.QAbstractItemView.MultiSelection)
         self.__list_widget.installEventFilter(self)
+        
+        icon_warning = QtGui.QIcon("GESAnalysis/UI/assets/exclamation.png")
 
         # display items (here file)
-        for file in self.__gesanalysis.get_file_open():
-            if self.__gesanalysis.get_category(file) == self.__category:
-                item = QtWidgets.QListWidgetItem()
-                item.setText(file)
-                self.__list_widget.addItem(item)
+        for file, data_file in self.__files_category.items():
+            item = QtWidgets.QListWidgetItem()
+            item.setText(file)
+            if not data_file["read"]:
+                # Add icon because the file was not read
+                item.setIcon(icon_warning)
+            self.__list_widget.addItem(item)
 
 
 #######################################################################################################
@@ -96,7 +96,9 @@ class FileOpenUI(QtWidgets.QWidget, Observer):
         item = source.itemAt(event.pos())
         if not isinstance(item, QtWidgets.QListWidgetItem):
             return
-        dialog = ChangeYearCateDialog(item.text(), self.__gesanalysis, self.__controller, self)
+        file_selected = item.text()
+        year_file = self.__files_category[file_selected]["year"]
+        dialog = ChangeYearCateDialog(file_selected, year_file, self.__category, self.__controller, self)
         dialog.exec()
             
             
@@ -107,20 +109,25 @@ class FileOpenUI(QtWidgets.QWidget, Observer):
     
 
 #######################################################################################################
-#  Update (from observers)                                                                            #
+#  Update (from Widget)                                                                            #
 #######################################################################################################
-    def update(self) -> None:
+    def update_widget(self, files_category) -> None:
         """ Update the widget (From observers)
         """
         # Remove all the items
         self.__list_widget.clear()
         
+        self.__files_category = files_category
+        
         # Add others items
-        for file in self.__gesanalysis.get_file_open():
-            if self.__gesanalysis.get_category(file) == self.__category:
-                item = QtWidgets.QListWidgetItem()
-                item.setText(file)
-                self.__list_widget.addItem(item)
+        icon_warning = QtGui.QIcon("GESAnalysis/UI/assets/exclamation.png")
+        for file, data_file in self.__files_category.items():
+            item = QtWidgets.QListWidgetItem()
+            item.setText(file)
+            if not data_file["read"]:
+                # Add icon because the file was not read
+                item.setIcon(icon_warning)
+            self.__list_widget.addItem(item)
 
 
 #######################################################################################################

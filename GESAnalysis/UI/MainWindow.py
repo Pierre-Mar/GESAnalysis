@@ -64,28 +64,6 @@ class MainWindow(QtWidgets.QMainWindow):
         self.__create_widget_catefories("Matériel Informatique", MaterielWidget)
         self.__create_widget_catefories("Missions", MissionsWidget)
         self.__create_widget_catefories("Total", TotalWidget)
-        # achats_widget = AchatsWidget(self.__gesanalysis, self.__controller, "Achats", self.__tab_widget_categories)
-        # deplacement_widget = DeplacementWidget(self.__gesanalysis, self.__controller, "Déplacements domicile-travail", self.__tab_widget_categories)
-        # fluide_widget = FluideWidget(self.__gesanalysis, self.__controller, "Fluides", self.__tab_widget_categories)
-        # materiel_widget = MaterielWidget(self.__gesanalysis, self.__controller, "Matériel Informatique", self.__tab_widget_categories)
-        # missions_widget = MissionsWidget(self.__gesanalysis, self.__controller, "Missions", self.__tab_widget_categories)
-        # total_widget = TotalWidget(self.__gesanalysis, self.__controller, "Total", self.__tab_widget_categories)
-        
-        # # Add widgets to dictionary
-        # self.__dict_categories["Achats"] = {"widget": achats_widget}
-        # self.__dict_categories["Déplacements domicile-travail"] = {"widget": deplacement_widget}
-        # self.__dict_categories["Fluides"] = {"widget": fluide_widget}
-        # self.__dict_categories["Matériel Informatique"] = {"widget": materiel_widget}
-        # self.__dict_categories["Missions"] = {"widget": missions_widget}
-        # self.__dict_categories["Total"] = {"widget": total_widget}
-        
-        # # Add differents class in the tab widget
-        # self.__tab_widget_categories.addTab(achats_widget, "Achats")
-        # self.__tab_widget_categories.addTab(deplacement_widget, "Déplacements domicile-travail")
-        # self.__tab_widget_categories.addTab(fluide_widget, "Fluides")
-        # self.__tab_widget_categories.addTab(materiel_widget, "Matériel Informatique")
-        # self.__tab_widget_categories.addTab(missions_widget, "Missions")
-        # self.__tab_widget_categories.addTab(total_widget, "Total")
         
         self.__tab_widget_categories.setCurrentIndex(0)
         

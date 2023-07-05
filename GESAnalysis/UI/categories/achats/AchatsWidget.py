@@ -2,10 +2,11 @@ from typing import List
 from PyQt5 import QtWidgets
 from GESAnalysis.FC.Controleur import Controleur
 from GESAnalysis.FC.GESAnalysis import GESAnalysis
+from GESAnalysis.FC.PATTERNS.Observer import Observer
 from GESAnalysis.UI.FileOpenUI import FileOpenUI
 
 
-class AchatsWidget(QtWidgets.QWidget):
+class AchatsWidget(QtWidgets.QWidget, Observer):
     
     def __init__(
         self,
@@ -28,6 +29,12 @@ class AchatsWidget(QtWidgets.QWidget):
         self.__controller = controller
         self.__category = category
         
+        self.__gesanalysis.add_observer(self, self.__category)
+        
+        self.__files = {}
+        
+        self.__configure_data()
+        
         self.__init_UI()
         
         
@@ -42,7 +49,7 @@ class AchatsWidget(QtWidgets.QWidget):
         # Widget for left-splitter (file open + stats)
         splitter_left_widget = QtWidgets.QWidget(splitter)
         splitter_left_layout = QtWidgets.QVBoxLayout(splitter_left_widget)
-        self.__file_achats_widget = FileOpenUI(self.__gesanalysis, self.__controller, self.__category, splitter_left_widget)
+        self.__file_achats_widget = FileOpenUI(self.__files, self.__category, self.__controller, splitter_left_widget)
         splitter_left_layout.addWidget(self.__file_achats_widget)
         
         # Tab widget for right-splitter (graph)
@@ -69,3 +76,19 @@ class AchatsWidget(QtWidgets.QWidget):
             List[str]: List of file name's
         """
         return self.__file_achats_widget.get_selected_files()
+    
+    
+    def __configure_data(self):
+        for file, data_file in self.__gesanalysis.get_data().items():
+            if data_file["category"] != self.__category:
+                continue
+            
+            self.__files[file] = {"read": True, "warning": [], "year": data_file["year"]}
+            
+            
+    def update(self):
+        self.__files.clear()
+        
+        self.__configure_data()
+        
+        self.__file_achats_widget.update_widget(self.__files)

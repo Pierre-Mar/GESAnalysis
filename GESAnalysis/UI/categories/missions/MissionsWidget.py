@@ -3,13 +3,14 @@ from typing import List
 from PyQt5 import QtWidgets
 from GESAnalysis.FC.GESAnalysis import GESAnalysis
 from GESAnalysis.FC.Controleur import Controleur
+from GESAnalysis.FC.PATTERNS.Observer import Observer
 from GESAnalysis.UI.FileOpenUI import FileOpenUI
 from .DistanceMode import DistanceMode
 from .EmissionMode import EmissionMode
 import GESAnalysis.UI.categories.common as common
 
 
-class MissionsWidget(QtWidgets.QWidget):
+class MissionsWidget(QtWidgets.QWidget, Observer):
      
     def __init__(
         self,
@@ -31,13 +32,15 @@ class MissionsWidget(QtWidgets.QWidget):
         self.__controller = controller
         self.__category = category
         
-        model.add_observer(self, self.__category)
+        self.__gesanalysis.add_observer(self, self.__category)
         
         self.__files = {}        # Dictionary where the key is the file in 'category' and a bool if it's read or not
         self.__mode_ind = {}     # Dictionary where the key is the mode of transport and the value his index
         self.__years_ind = {}    # Same with year
         self.__position_ind = {} # Same with position
         self.__data = {}         # Dictionary where the key is a year and the value a list with distance for all mode
+
+        self.__configure_data()
         
         self.__init_UI()
         
@@ -51,7 +54,7 @@ class MissionsWidget(QtWidgets.QWidget):
         # Widget for left-splitter (file open + stats)
         splitter_left_widget = QtWidgets.QWidget(splitter)
         splitter_left_layout = QtWidgets.QVBoxLayout(splitter_left_widget)
-        self.__file_mission_widget = FileOpenUI(self.__gesanalysis, self.__controller, self.__category, splitter_left_widget)
+        self.__file_mission_widget = FileOpenUI(self.__files, self.__category, self.__controller, splitter_left_widget)
         splitter_left_layout.addWidget(self.__file_mission_widget)
         
         # Tab widget for right-splitter (graph)
@@ -83,7 +86,7 @@ class MissionsWidget(QtWidgets.QWidget):
                 continue
             
             # Add file to self.__files and set bool
-            self.__files[file] = {"read": True, "warning": []}
+            self.__files[file] = {"read": True, "warning": [], "year": data_file["year"]}
             
             data = data_file["data"]
             
@@ -282,6 +285,9 @@ class MissionsWidget(QtWidgets.QWidget):
         self.__files.clear()
         
         self.__configure_data()
+        
+        # Update FileOpenUI
+        self.__file_mission_widget.update_widget(self.__files)
         
         # Update the graph for distance
         self.__distance_canvas.update_canvas(self.__mode_ind, self.__position_ind, self.__years_ind, self.__data)

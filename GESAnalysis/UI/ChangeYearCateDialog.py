@@ -7,7 +7,7 @@ class ChangeYearCateDialog(QtWidgets.QDialog):
     """
     
     
-    def __init__(self, file, model, controller, parent: QtWidgets.QWidget | None = ...) -> None:
+    def __init__(self, file, year_file, category_file, controller, parent: QtWidgets.QWidget | None = ...) -> None:
         """ Initialize the class and the UI
 
         Args:
@@ -18,9 +18,10 @@ class ChangeYearCateDialog(QtWidgets.QDialog):
         """
         super(ChangeYearCateDialog, self).__init__(parent)
         
-        self.__gesanalysis = model
         self.__controleur = controller
         self.__modify_file = file
+        self.__year_file = year_file
+        self.__category_file = category_file
         
         self.__init_UI()
         
@@ -50,7 +51,7 @@ class ChangeYearCateDialog(QtWidgets.QDialog):
         # Label and line edit to modify the year
         choose_year_label = QtWidgets.QLabel("Année :", form_widget)
         self.choose_year = QtWidgets.QLineEdit(form_widget)
-        self.choose_year.setPlaceholderText(self.__gesanalysis.get_year(self.__modify_file))
+        self.choose_year.setPlaceholderText(self.__year_file)
         
         form_layout.addRow(choose_year_label, self.choose_year)
         
@@ -58,7 +59,7 @@ class ChangeYearCateDialog(QtWidgets.QDialog):
         choose_category_label = QtWidgets.QLabel("Catégorie :", form_widget)
         self.choose_category = QtWidgets.QComboBox(form_widget)
         self.choose_category.addItems(common.categories)
-        self.choose_category.setCurrentText(self.__gesanalysis.get_category(self.__modify_file))
+        self.choose_category.setCurrentText(self.__category_file)
         
         form_layout.addRow(choose_category_label, self.choose_category)
         
@@ -75,17 +76,15 @@ class ChangeYearCateDialog(QtWidgets.QDialog):
         selected_year = self.choose_year.text()
         selected_category = self.choose_category.currentText()
         
-        old_year = self.__gesanalysis.get_year(self.__modify_file)
         if selected_year == '':
-            selected_year = old_year
-        old_category = self.__gesanalysis.get_category(self.__modify_file)
+            selected_year = self.__year_file
         
         # Compare values, if there are no change, we skip directly
-        if selected_year == old_year and selected_category == old_category:
+        if selected_year == self.__year_file and selected_category == self.__category_file:
             super().accept()
             
         try:
-            self.__controleur.set_category_year(self.__modify_file, selected_year, selected_category, old_category)
+            self.__controleur.set_category_year(self.__modify_file, selected_year, selected_category, self.__category_file)
             super().accept()
         except Exception as e:
             self.message_error(str(e))
@@ -110,4 +109,4 @@ class ChangeYearCateDialog(QtWidgets.QDialog):
         """
         # Clear the input
         self.choose_year.setText("")
-        self.choose_category.setCurrentText(self.__gesanalysis.get_category(self.__modify_file))
+        self.choose_category.setCurrentText(self.__category_file)
