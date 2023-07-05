@@ -201,15 +201,12 @@ class MissionsWidget(QtWidgets.QWidget, Observer):
                         "emission": 0
                     }
                     
-                    
         # Now calculate the distance
-        for file, data_file in self.__gesanalysis.get_data().items():
-            if data_file["category"] != self.__category:
-                continue
+        for file in self.__files.keys():
             if not self.__files[file]["read"]:
                 continue
             
-            data = data_file["data"]
+            data = self.__gesanalysis.get_data_from_file(file)
             
             mission = common.get_column(data, "name")
             mode = common.get_column(data, "mode")
