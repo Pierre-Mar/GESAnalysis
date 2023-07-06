@@ -52,7 +52,7 @@ class FileOpenUI(QtWidgets.QWidget):
             if not data_file["read"]:
                 # Add icon because the file was not read
                 item.setIcon(icon_warning)
-                item.setToolTip(";".join(data_file["warning"]))
+                item.setToolTip("\n".join(data_file["warning"]))
             self.__list_widget.addItem(item)
 
 

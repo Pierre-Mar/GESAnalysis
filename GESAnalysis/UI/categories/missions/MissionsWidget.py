@@ -79,7 +79,6 @@ class MissionsWidget(QtWidgets.QWidget, Observer):
         ind_position = 0
         unit_distance = ""
         unit_emission = ""
-        compare_column = True
         # Get all the mode, position and for each file
         for file, data_file in self.__gesanalysis.get_data().items():
             if data_file["category"] != self.__category:
@@ -87,6 +86,8 @@ class MissionsWidget(QtWidgets.QWidget, Observer):
             
             # Add file to self.__files and set bool
             self.__files[file] = {"read": True, "warning": [], "year": data_file["year"]}
+            
+            compare_column = True
             
             data = data_file["data"]
             
@@ -113,7 +114,7 @@ class MissionsWidget(QtWidgets.QWidget, Observer):
             # Check if there are the same number of lines between position and mode
             if not compare_column or len(mode) != len(position):
                 self.__files[file]["read"] = False
-                self.__files[file]["warning"].append(f"Colonnes 'mode' et 'position' n'ont pas le même nombre de lignes")
+                self.__files[file]["warning"].append(f"Colonnes 'mode' et 'position' n'ont pas les mêmes lignes")
 
             # Check if the column distance exist and there is the same number of lines with mode and position
             distance = common.get_column(data, "distance")
