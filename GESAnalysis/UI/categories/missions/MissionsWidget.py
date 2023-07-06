@@ -181,7 +181,11 @@ class MissionsWidget(QtWidgets.QWidget, Observer):
             # Add year to his dictionary        
             self.__years_ind[year] = {"index": ind_year}
             ind_year += 1
-                    
+        
+        # print(self.__files)
+        # print(self.__mode_ind)
+        # print(self.__years_ind)
+        # print(self.__position_ind)  
         # Create structure to calculate the distance
         data_dist = {}
         for mode in self.__mode_ind.keys():
@@ -203,7 +207,7 @@ class MissionsWidget(QtWidgets.QWidget, Observer):
                     }
                     
         # Now calculate the distance
-        for file in self.__files.keys():
+        for file, data_file in self.__files.items():
             if not self.__files[file]["read"]:
                 continue
             
@@ -283,6 +287,8 @@ class MissionsWidget(QtWidgets.QWidget, Observer):
         self.__files.clear()
         
         self.__configure_data()
+        
+        #print(self.__data)
         
         # Update FileOpenUI
         self.__file_mission_widget.update_widget(self.__files)
