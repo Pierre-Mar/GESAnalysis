@@ -68,6 +68,8 @@ class MissionsWidget(QtWidgets.QWidget, Observer):
         splitter.addWidget(splitter_left_widget)
         splitter.addWidget(self.__tab_graphs_widget)
         
+        splitter.setSizes([230, 800])
+        
         layout_principal.addWidget(splitter)
         
         
@@ -181,11 +183,7 @@ class MissionsWidget(QtWidgets.QWidget, Observer):
             # Add year to his dictionary        
             self.__years_ind[year] = {"index": ind_year}
             ind_year += 1
-        
-        # print(self.__files)
-        # print(self.__mode_ind)
-        # print(self.__years_ind)
-        # print(self.__position_ind)  
+         
         # Create structure to calculate the distance
         data_dist = {}
         for mode in self.__mode_ind.keys():

@@ -41,8 +41,13 @@ class GESAnalysis(Observable):
             self.__file_open[name_file]["year"] = year
             self.__file_open[name_file]["category"] = category
             self.__file_open[name_file]["path"] = filename
+            self.__sort_by_year()
         except Exception as e:
             raise Exception(str(e))
+        
+    
+    def __sort_by_year(self) -> None:
+        self.__file_open = dict(sorted(self.__file_open.items(), key=lambda item: item[1]["year"]))
             
 
 #######################################################################################################
