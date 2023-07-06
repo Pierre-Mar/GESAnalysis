@@ -33,6 +33,7 @@ class TotalEmission(QtWidgets.QWidget, Observer):
         self.__years_ind = {}
         self.__name_ind = {}
         self.__data_tot = {}
+        self.__unit = ""
         
         self.__fig = Figure()
         self.__axes = self.__fig.add_subplot(111)
@@ -92,6 +93,9 @@ class TotalEmission(QtWidgets.QWidget, Observer):
         if len(y_labels):
             self.__axes.legend(y_labels)
         
+        # Put a label on y-axis
+        self.__axes.set_ylabel(f"Empreinte carbonne ({self.__unit})")
+        
         # Draw the canvas
         self.__figCanvas.draw()
         
@@ -120,6 +124,7 @@ class TotalEmission(QtWidgets.QWidget, Observer):
         """
         self.__years_ind = years_ind
         self.__name_ind = name_ind
-        self.__data_tot = data_dict
+        self.__data_tot = data_dict["data"]
+        self.__unit = data_dict["unit"]
 
         self.__draw()

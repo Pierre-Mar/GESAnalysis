@@ -36,6 +36,7 @@ class TotalWidget(QtWidgets.QWidget, Observer):
         self.__years_ind = {}
         self.__name_ind = {}
         self.__data = {}
+        self.__unit = ""
         
         self.__configure_data()
         
@@ -127,10 +128,11 @@ class TotalWidget(QtWidgets.QWidget, Observer):
             ind_year += 1
             
         # Create structure
+        data_total = {}
         for name in self.__name_ind.keys():
-            self.__data[name] = {}
+            data_total[name] = {}
             l = [0 for i in range(len(self.__years_ind))]
-            self.__data[name]["data"] = l
+            data_total[name]["data"] = l
             
         # Fill the structure
         for file, data_file in self.__files.items():
@@ -147,7 +149,10 @@ class TotalWidget(QtWidgets.QWidget, Observer):
                 name_val = name[i][0]
                 intensity_val = sum(intensity[i])
                 
-                self.__data[name_val]["data"][self.__years_ind[year]["index"]] += intensity_val
+                data_total[name_val]["data"][self.__years_ind[year]["index"]] += intensity_val
+        
+        self.__data["data"] = data_total    
+        self.__data["unit"] = unit_intensity
                 
             
     def update(self):

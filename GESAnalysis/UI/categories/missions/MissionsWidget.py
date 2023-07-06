@@ -288,8 +288,6 @@ class MissionsWidget(QtWidgets.QWidget, Observer):
         
         self.__configure_data()
         
-        #print(self.__data)
-        
         # Update FileOpenUI
         self.__file_mission_widget.update_widget(self.__files)
         
