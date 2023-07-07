@@ -1,12 +1,13 @@
 from typing import List
 
-from PyQt5 import QtWidgets
+from PyQt5 import QtCore, QtWidgets
 from GESAnalysis.FC.GESAnalysis import GESAnalysis
 from GESAnalysis.FC.Controleur import Controleur
 from GESAnalysis.FC.PATTERNS.Observer import Observer
 from GESAnalysis.UI.FileOpenUI import FileOpenUI
 from .DistanceMode import DistanceMode
 from .EmissionMode import EmissionMode
+from .MissionStatWidget import MissionStatWidget
 import GESAnalysis.UI.categories.common as common
 
 
@@ -48,6 +49,7 @@ class MissionsWidget(QtWidgets.QWidget, Observer):
     def __init_UI(self) -> None:
         """ Initialise the UI
         """
+        self.setSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding)
         layout_principal = QtWidgets.QHBoxLayout(self)
         splitter = QtWidgets.QSplitter(self)
         
@@ -55,7 +57,10 @@ class MissionsWidget(QtWidgets.QWidget, Observer):
         splitter_left_widget = QtWidgets.QWidget(splitter)
         splitter_left_layout = QtWidgets.QVBoxLayout(splitter_left_widget)
         self.__file_mission_widget = FileOpenUI(self.__files, self.__category, self.__controller, splitter_left_widget)
+        self.__stat_mission_widget = MissionStatWidget(splitter_left_widget)
         splitter_left_layout.addWidget(self.__file_mission_widget)
+        splitter_left_layout.addWidget(self.__stat_mission_widget)
+        splitter_left_widget.setLayout(splitter_left_layout)
         
         # Tab widget for right-splitter (graph)
         self.__tab_graphs_widget = QtWidgets.QTabWidget(splitter)
@@ -67,10 +72,11 @@ class MissionsWidget(QtWidgets.QWidget, Observer):
         # Add both widgets to splitter
         splitter.addWidget(splitter_left_widget)
         splitter.addWidget(self.__tab_graphs_widget)
-        
-        splitter.setSizes([230, 800])
+        splitter.setSizes([200, 1000])
         
         layout_principal.addWidget(splitter)
+        
+        self.setLayout(layout_principal)
         
         
     def __configure_data(self) -> None:
@@ -289,8 +295,18 @@ class MissionsWidget(QtWidgets.QWidget, Observer):
         # Update FileOpenUI
         self.__file_mission_widget.update_widget(self.__files)
         
+        # Update Stats
+        self.__stat_mission_widget.update_widget(self.__years_ind, self.__mode_ind, self.__position_ind, self.__data)
+        
         # Update the graph for distance
         self.__distance_canvas.update_canvas(self.__mode_ind, self.__position_ind, self.__years_ind, self.__data)
         
         # Update the graph for emission
         self.__emissions_canvas.update_canvas(self.__mode_ind, self.__years_ind, self.__data)
+        
+        
+    def sizeHint(self) -> QtCore.QSize:
+        return QtCore.QSize(1280, 720)
+    
+    def minimumSizeHint(self) -> QtCore.QSize:
+        return QtCore.QSize(640, 360)

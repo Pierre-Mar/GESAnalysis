@@ -463,7 +463,7 @@ class EmissionMode(QtWidgets.QWidget):
                 for year, year_data in position_data.items():
                     missions = year_data["mission"]
                     for value in missions:
-                        emis = value[1]
+                        emis = value[2]
                         dictionary[year]["data"].append((emis, mode))
                         dictionary[year]["sum"] += emis
         

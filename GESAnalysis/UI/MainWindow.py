@@ -49,6 +49,7 @@ class MainWindow(QtWidgets.QMainWindow):
         """
         self.setWindowTitle("GESAnalysis")
         self.resize(self.width, self.height)
+        self.setMinimumSize(640, 360)
         
         # Create the menu
         self.__init_menu()
@@ -58,12 +59,12 @@ class MainWindow(QtWidgets.QMainWindow):
         self.__tab_widget_categories.setTabPosition(QtWidgets.QTabWidget.TabPosition.West)
         
         # Create the class for each category
-        self.__create_widget_catefories("Achats", AchatsWidget)
-        self.__create_widget_catefories("Déplacements domicile-travail", DeplacementWidget)
-        self.__create_widget_catefories("Fluides", FluideWidget)
-        self.__create_widget_catefories("Matériel Informatique", MaterielWidget)
-        self.__create_widget_catefories("Missions", MissionsWidget)
-        self.__create_widget_catefories("Total", TotalWidget)
+        self.__create_widget_categories("Achats", AchatsWidget)
+        self.__create_widget_categories("Déplacements domicile-travail", DeplacementWidget)
+        self.__create_widget_categories("Fluides", FluideWidget)
+        self.__create_widget_categories("Matériel Informatique", MaterielWidget)
+        self.__create_widget_categories("Missions", MissionsWidget)
+        self.__create_widget_categories("Total", TotalWidget)
         
         self.__tab_widget_categories.setCurrentIndex(0)
         
@@ -106,7 +107,7 @@ class MainWindow(QtWidgets.QMainWindow):
         display_menu.addAction(display_data_action)
         
         
-    def __create_widget_catefories(self, category: str, class_category: Any) -> None:
+    def __create_widget_categories(self, category: str, class_category: Any) -> None:
         """ Create a widget of class 'class_category' for a category
 
         Args:

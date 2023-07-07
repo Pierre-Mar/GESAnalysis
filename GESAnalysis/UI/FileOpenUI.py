@@ -1,6 +1,8 @@
 from PyQt5 import QtWidgets, QtCore, QtGui
 from typing import List, Dict, Union
 from functools import partial
+
+from PyQt5.QtWidgets import QSizePolicy
 from GESAnalysis.FC.Controleur import Controleur
 from GESAnalysis.UI.ChangeYearCateDialog import ChangeYearCateDialog
 
@@ -38,10 +40,14 @@ class FileOpenUI(QtWidgets.QWidget):
     def __init_UI(self) -> None:
         """ Initialise the UI of the widget
         """
+        self.setSizePolicy(QtWidgets.QSizePolicy.MinimumExpanding, QtWidgets.QSizePolicy.Fixed)
+        layout = QtWidgets.QHBoxLayout(self)
+        
         # Create list view to display the files who are open
         self.__list_widget = QtWidgets.QListWidget(self)
         self.__list_widget.setSelectionMode(QtWidgets.QAbstractItemView.MultiSelection)
         self.__list_widget.installEventFilter(self)
+        self.__list_widget.setSizePolicy(self.sizePolicy())
         
         icon_warning = QtGui.QIcon("GESAnalysis/UI/assets/exclamation.png")
 
@@ -54,6 +60,9 @@ class FileOpenUI(QtWidgets.QWidget):
                 item.setIcon(icon_warning)
                 item.setToolTip("\n".join(data_file["warning"]))
             self.__list_widget.addItem(item)
+            
+        layout.addWidget(self.__list_widget)
+        self.setLayout(layout)
 
 
 #######################################################################################################
@@ -142,3 +151,13 @@ class FileOpenUI(QtWidgets.QWidget):
             List(str): selected files
         """
         return [item.text() for item in self.__list_widget.selectedItems()]
+    
+    
+    def sizeHint(self) -> QtCore.QSize:
+        return QtCore.QSize(150, 192)
+    
+    def minimumSizeHint(self) -> QtCore.QSize:
+        return QtCore.QSize(150, 192)
+    
+    def sizePolicy(self) -> QtWidgets.QSizePolicy:
+        return QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.MinimumExpanding, QtWidgets.QSizePolicy.Fixed)
