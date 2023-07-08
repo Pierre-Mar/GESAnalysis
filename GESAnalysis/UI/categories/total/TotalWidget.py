@@ -1,10 +1,11 @@
 from typing import List
-from PyQt5 import QtWidgets
+from PyQt5 import QtWidgets, QtCore
 from GESAnalysis.FC.GESAnalysis import GESAnalysis
 from GESAnalysis.FC.Controleur import Controleur
 from GESAnalysis.FC.PATTERNS.Observer import Observer
 from GESAnalysis.UI.FileOpenUI import FileOpenUI
 from GESAnalysis.UI.categories import common
+from GESAnalysis.UI.categories.total.TotalStatWidget import TotalStatWidget
 from .TotalEmission import TotalEmission
 
 
@@ -36,7 +37,6 @@ class TotalWidget(QtWidgets.QWidget, Observer):
         self.__years_ind = {}
         self.__name_ind = {}
         self.__data = {}
-        self.__unit = ""
         
         self.__configure_data()
         
@@ -46,13 +46,17 @@ class TotalWidget(QtWidgets.QWidget, Observer):
     def __init_UI(self) -> None:
         """ Initialise the UI
         """
+        self.setSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding)
         layout_principal = QtWidgets.QHBoxLayout(self)
         splitter = QtWidgets.QSplitter(self)
         
         splitter_left_widget = QtWidgets.QWidget(splitter)
         splitter_left_layout = QtWidgets.QVBoxLayout(splitter_left_widget)
         self.__file_total_widget = FileOpenUI(self.__files, self.__category, self.__controller, splitter_left_widget)
+        self.__stat_total_widget = TotalStatWidget(splitter_left_widget)
         splitter_left_layout.addWidget(self.__file_total_widget)
+        splitter_left_layout.addWidget(self.__stat_total_widget)
+        splitter_left_widget.setLayout(splitter_left_layout)
         
         self.__tab_graph = QtWidgets.QTabWidget(splitter)
         self.__total_emission = TotalEmission(self.__tab_graph)
@@ -60,8 +64,11 @@ class TotalWidget(QtWidgets.QWidget, Observer):
         
         splitter.addWidget(splitter_left_widget)
         splitter.addWidget(self.__tab_graph)
+        splitter.setSizes([200, 1000])
         
         layout_principal.addWidget(splitter)
+
+        self.setLayout(layout_principal)
         
     
     def close_files(self) -> None:
@@ -164,6 +171,14 @@ class TotalWidget(QtWidgets.QWidget, Observer):
         self.__configure_data()
         
         self.__file_total_widget.update_widget(self.__files)
+
+        self.__stat_total_widget.update_widget(self.__years_ind, self.__name_ind, self.__data)
         
         self.__total_emission.update_canvas(self.__name_ind, self.__years_ind, self.__data)
+
+    def sizeHint(self) -> QtCore.QSize:
+        return QtCore.QSize(1280, 720)
+    
+    def minimumSizeHint(self) -> QtCore.QSize:
+        return QtCore.QSize(640, 360)
         

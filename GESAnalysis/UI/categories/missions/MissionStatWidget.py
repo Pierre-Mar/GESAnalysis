@@ -92,6 +92,7 @@ class MissionStatWidget(QtWidgets.QWidget):
                 if position == "total":
                     data = str(data_total_mode)
                     data_item = QtWidgets.QTableWidgetItem(data)
+                    data_item.setFlags(QtCore.Qt.ItemIsSelectable |  QtCore.Qt.ItemIsEnabled)
                     self.__tab_stats.setItem(mode_ind, pos_ind, data_item)
                     continue
                 
@@ -102,6 +103,7 @@ class MissionStatWidget(QtWidgets.QWidget):
                 total_position_dict[position] += data
                 data = str(data)
                 data_item = QtWidgets.QTableWidgetItem(data)
+                data_item.setFlags(QtCore.Qt.ItemIsSelectable |  QtCore.Qt.ItemIsEnabled)
                 self.__tab_stats.setItem(mode_ind, pos_ind, data_item)
             data_all_mode += data_total_mode
         
@@ -111,11 +113,13 @@ class MissionStatWidget(QtWidgets.QWidget):
             data_pos = total_position_dict[position]
             data = str(data_pos)
             data_item = QtWidgets.QTableWidgetItem(data)
+            data_item.setFlags(QtCore.Qt.ItemIsSelectable |  QtCore.Qt.ItemIsEnabled)
             self.__tab_stats.setItem(index_total_mode, pos_ind, data_item)
             data_all_position += data_pos
         
         index_total_position = self.__position_stat_list.index("total")
-        total_item = total_item = QtWidgets.QTableWidgetItem("ERROR" if data_all_position != data_all_mode else str(data_all_mode))            
+        total_item = total_item = QtWidgets.QTableWidgetItem("ERROR" if data_all_position != data_all_mode else str(data_all_mode))  
+        total_item.setFlags(QtCore.Qt.ItemIsSelectable |  QtCore.Qt.ItemIsEnabled)          
         self.__tab_stats.setItem(index_total_mode, index_total_position, total_item)
             
     

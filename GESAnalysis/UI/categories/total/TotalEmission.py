@@ -59,9 +59,12 @@ class TotalEmission(QtWidgets.QWidget, Observer):
         layout_canvas = QtWidgets.QVBoxLayout(widget_canvas)
         layout_canvas.addWidget(toolbar)
         layout_canvas.addWidget(self.__figCanvas)
+        widget_canvas.setLayout(layout_canvas)
         
         layout_principal = QtWidgets.QHBoxLayout(self)
         layout_principal.addWidget(widget_canvas)
+
+        self.setLayout(layout_principal)
     
 
 #######################################################################################################
