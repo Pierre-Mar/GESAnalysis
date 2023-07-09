@@ -99,7 +99,7 @@ class TotalWidget(QtWidgets.QWidget, Observer):
                 self.__files[file]["warning"].append(f"Colonne 'name' non-trouvée")
                 
             intensity = common.get_column(data, "intensity")
-            if name is None:
+            if intensity is None:
                 compare_columns = False
                 self.__files[file]["read"] = False
                 self.__files[file]["warning"].append(f"Colonne 'intensity' non-trouvée")
