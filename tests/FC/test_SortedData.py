@@ -19,7 +19,7 @@ if platform.system() == "Windows":
 # ------------------------------------------------------------------------------------------------------------------------
 # Tests to check if the sort is correct
 # ------------------------------------------------------------------------------------------------------------------------
-def test_correct_column():
+def test_sort_column():
     """ Test the sort with an ascending order
     """
     d = reader.read_file(hw_5)
@@ -27,7 +27,7 @@ def test_correct_column():
     assert correct_sort == sort.sorted_by_column(d,"height")
 
 
-def test_incorrect_column():
+def test_sort_column_reverse():
     """ Test the sort with a descending order
     """
     d = reader.read_file(hw_5)
@@ -41,16 +41,16 @@ def test_incorrect_column():
 # ------------------------------------------------------------------------------------------------------------------------
 # Tests to check the errors when we give invalid values
 # ------------------------------------------------------------------------------------------------------------------------
-def test_correct_column_reverse():
+def test_incorrect_column():
     """ Test the sort when a column not exists
     """
     d = reader.read_file(hw_5)
-    with pytest.raises(KeyError, match="there is no column 'not a column' in data"):
+    with pytest.raises(KeyError, match="La colonne 'not a column' n'existe pas"):
         sort.sorted_by_column(d, "not a column")
 
 
 def test_null_data():
-    with pytest.raises(TypeError, match="cannot access to values because the dictionary is null"):
+    with pytest.raises(TypeError, match="Accès impossible au données car le dictionnaire est invalide"):
         sort.sorted_by_column(None, "weight")
 # ------------------------------------------------------------------------------------------------------------------------
 # ------------------------------------------------------------------------------------------------------------------------

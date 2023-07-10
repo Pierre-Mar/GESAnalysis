@@ -90,11 +90,11 @@ class ReaderData:
         
         # Check if the file exists
         if not os.path.isfile(filename):
-            raise FileNotFoundError(f"file '{file+self.__ext}' not exist")
+            raise FileNotFoundError(f"Le fichier '{file+self.__ext}' n'existe pas")
         
         # Check if the file is supported by the application
         if not self.__ext in self.__accepted_extension:
-            raise TypeError(f"cannot read data from '{file+self.__ext}'. Should be a CSV, TSV, TXT or XLSX file")
+            raise TypeError(f"Exportation impossible de '{file+self.__ext}'. Le fichier doit être de type CSV, TSV, TXT ou XLSX")
     
     
     def __detect_delimiter(self, filename: str) -> str:
@@ -162,7 +162,7 @@ class ReaderData:
                 nb_elems_line = len(list_lines)
                 # Check that the number of elements of a row is equal to the number of columns
                 if nb_elems_line != nb_column:
-                    raise ValueError(f"{nb_elems_line} elements in line {lines_iter+1} but there is {nb_column} columns")
+                    raise ValueError(f"La ligne {lines_iter+1} a {nb_elems_line} éléments mais il y a {nb_column} colonnes")
                 
                 # Add the row elements into data
                 # The elements are in a list where the key is the name of the column
@@ -174,8 +174,16 @@ class ReaderData:
                     # Else, we compare if it's the same type
                     else:
                         correct_type = data[name_column[elem_index]]["type"]
+                        # If it's an int or a float, we accept both of them
+                        if correct_type == int and type_elem == float:
+                            correct_type = float
+                            data[name_column[elem_index]]["type"] = correct_type
+                        elif correct_type == float and type_elem == int:
+                            for i in range(len(elem)):
+                                elem[i] = float(elem[i])
+                            type_elem = float
                         if type_elem != correct_type:
-                            raise TypeError(f"Element at row {lines_iter+1} and column {'.'.join(data[name_column[elem_index]]['name'])} has type {self.__type_to_str(type_elem)} instead of type {self.__type_to_str(correct_type)}")
+                            raise TypeError(f"L'élément à la ligne {lines_iter+1} et colonne {'.'.join(data[name_column[elem_index]]['name'])} est du type {self.__type_to_str(type_elem)} au lieu du type {self.__type_to_str(correct_type)}")
                     
                     # Add into data
                     data[name_column[elem_index]]["data"].append(elem)
@@ -285,7 +293,7 @@ class ReaderData:
                 except:
                     return self.__read_xlsx_pandas(filename)
             case _:
-                raise ValueError(f"'{engine}' is not an engine to read a file. Use 'pandas' or 'openpyxl'")
+                raise ValueError(f"'{engine}' n'est pas un moteur de lecture. Utilisez 'pandas' ou 'openpyxl'")
             
        
     def __read_xlsx_pandas(self, filename: str) -> Dict[str, Dict[str, List[Union[List[Union[int, float, bool, str]], str]]]]:
@@ -306,7 +314,7 @@ class ReaderData:
             data = pandas.read_excel(filename)
             return self.__transform_data_pandas(data.to_dict('split'))       
         except:
-            raise IOError("unexcepted problem. Cannot read the excel file with 'pandas'. Try with 'openpyxl'")
+            raise IOError("Problème rencontré. Lecture impossible avec 'pandas'. Essayez avec 'openpyxl'")
     
     
     def __read_xlsx_openpyxl(self, filename: str) -> Dict[str, Dict[str, List[Union[List[Union[int, float, bool, str]], str]]]]:
@@ -354,7 +362,7 @@ class ReaderData:
                     data[name_column[col-1]]["data"].append([cell.value])
             return data
         except:
-            raise IOError("unexcepted problem. Cannot read the excel file with 'openpyxl'. Try with 'pandas'")
+            raise IOError("Problème rencontré. Lecture impossible avec 'openpyxl'. Essayez avec 'pandas'")
         
         
     def __transform_data_pandas(self, data: Dict[str, List[Union[str, bool, int, float]]]) -> Dict[str, Dict[str, List[Union[List[Union[int, float, bool, str]], str]]]]:

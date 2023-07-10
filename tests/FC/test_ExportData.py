@@ -106,14 +106,14 @@ def test_invalid_file_export():
             "type": str
         }
     }
-    with pytest.raises(TypeError, match="cannot export data to 'export_invalid.py'. Should be a CSV, TSV or TXT file"):
+    with pytest.raises(Exception, match="Exportation impossible de 'export_invalid.py'. Le fichier doit être de type CSV, TSV ou TX"):
         export.export_data(data, export_invalid)
 
 
 def test_invalid_data():
     """ Check if a dictionary of data is None, then we catch the error
     """
-    with pytest.raises(TypeError, match="cannot access to values because the dictionary is null"):
+    with pytest.raises(TypeError, match="Accès impossible au données car le dictionnaire est invalide"):
         export.export_data(None, tmp_file+".txt")
 
 
@@ -134,7 +134,7 @@ def test_nb_elem_col_diff_data():
             "type": str
         }
     }
-    with pytest.raises(ValueError, match="1 elements in line 2 instead of 2 elements"):
+    with pytest.raises(ValueError, match="La ligne 2 a 1 éléments au lieu de 2 éléments"):
         export.export_data(data, tmp_file+".txt")
 # ------------------------------------------------------------------------------------------------------------------------
 # ------------------------------------------------------------------------------------------------------------------------
