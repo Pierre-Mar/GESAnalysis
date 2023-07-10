@@ -107,7 +107,7 @@ class OpenFileDialog(QtWidgets.QDialog):
         
         # Send notification to controller to read file
         try:
-            self.__controller.read_file(self.selected_file, self.selected_year, self.selected_category)
+            self.__controller.open_file(self.selected_file, self.selected_year, self.selected_category)
             # Close dialog if the file was read
             super().accept()
         # In case of error, display a message with the corresponding error

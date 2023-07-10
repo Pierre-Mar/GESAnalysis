@@ -8,7 +8,7 @@ from matplotlib.figure import Figure
 from GESAnalysis.FC.PATTERNS.Observer import Observer
 from typing import Tuple, List
 
-import GESAnalysis.UI.plot.common as common 
+import GESAnalysis.UI.categories.common as common 
 
 
 class TotalEmission(QtWidgets.QWidget, Observer):
@@ -20,7 +20,7 @@ class TotalEmission(QtWidgets.QWidget, Observer):
     __spacing = 0.8                                 # Spacing between bars of each mode
     
     
-    def __init__(self, model, controller, parent: QtWidgets.QWidget | None = ...) -> None:
+    def __init__(self, parent: QtWidgets.QWidget | None = ...) -> None:
         """ Initialize the class by setting the data and draw the graph
 
         Args:
@@ -30,22 +30,14 @@ class TotalEmission(QtWidgets.QWidget, Observer):
         """
         super(TotalEmission, self).__init__(parent)
         
-        self.__gesanalysis = model
-        self.__controller = controller
-        
-        # Add the graph to the observer when there is an update
-        self.__gesanalysis.add_observer(self)
-        
         self.__years_ind = {}
         self.__name_ind = {}
         self.__data_tot = {}
+        self.__unit = ""
         
         self.__fig = Figure()
         self.__axes = self.__fig.add_subplot(111)
         self.__figCanvas = FigureCanvasQTAgg(self.__fig)
-        
-        # Configure the data for the graph
-        self.__configure_data()
         
         # Initialise the UI
         self.__init_UI()
@@ -67,9 +59,12 @@ class TotalEmission(QtWidgets.QWidget, Observer):
         layout_canvas = QtWidgets.QVBoxLayout(widget_canvas)
         layout_canvas.addWidget(toolbar)
         layout_canvas.addWidget(self.__figCanvas)
+        widget_canvas.setLayout(layout_canvas)
         
         layout_principal = QtWidgets.QHBoxLayout(self)
         layout_principal.addWidget(widget_canvas)
+
+        self.setLayout(layout_principal)
     
 
 #######################################################################################################
@@ -101,6 +96,9 @@ class TotalEmission(QtWidgets.QWidget, Observer):
         if len(y_labels):
             self.__axes.legend(y_labels)
         
+        # Put a label on y-axis
+        self.__axes.set_ylabel(f"Empreinte carbonne ({self.__unit})")
+        
         # Draw the canvas
         self.__figCanvas.draw()
         
@@ -119,77 +117,17 @@ class TotalEmission(QtWidgets.QWidget, Observer):
             current_space += self.__spacing
             x_labels[self.__years_ind[year]["index"]] = year
         return x_bars, x_labels
-    
-
-#######################################################################################################
-#  Configure data to plot in the graph                                                                #
-#######################################################################################################  
-    def __configure_data(self) -> None:
-        """ Configure the data for the graph
-        """
-        ind_year = 0
-        ind_name = 0
-        for val_ges in self.__gesanalysis.get_data().values():
-            if val_ges["category"] != "Total":
-                continue
-            
-            data = val_ges["data"]
-            
-            name = common.get_column(data, "name")
-            if name is None:
-                continue
-            
-            # Add all the year concerned for the graph
-            year = val_ges["year"]
-            if year not in self.__years_ind.keys():
-                self.__years_ind[year] = {"index": ind_year}
-                ind_year += 1
-            
-            # Get all the post for each year
-            for i in range(len(name)):
-                if name[i][0] not in self.__name_ind.keys():
-                    self.__name_ind[name[i][0]] = {"index": ind_name}
-                    ind_name += 1
-        
-        # Create the structure
-        for name in self.__name_ind.keys():
-            self.__data_tot[name] = {}
-            l = [0 for i in range(len(self.__years_ind.keys()))]
-            self.__data_tot[name]["data"] = l
-            
-        # Fill the structure
-        for val_ges in self.__gesanalysis.get_data().values():
-            if val_ges["category"] != "Total":
-                continue
-            
-            data = val_ges["data"]
-            
-            name = common.get_column(data, "name")
-            if name is None:
-                continue
-            
-            intensity = common.get_column(data, "intensity")
-            if intensity is None:
-                continue
-            
-            year = val_ges["year"]
-            
-            # Add intensity the correct list
-            for i in range(len(intensity)):
-                name_val = name[i][0]
-                intensity_val = sum(intensity[i])
-                
-                self.__data_tot[name_val]["data"][self.__years_ind[year]["index"]] += intensity_val
             
 
 #######################################################################################################
 #  Update graph from Observer                                                                         #
 #######################################################################################################
-    def update(self) -> None:
+    def update_canvas(self, name_ind, years_ind, data_dict) -> None:
         """ Update the structure when the model are updated
         """
-        self.__years_ind = {}
-        self.__name_ind = {}
-        self.__data_tot = {}
-        self.__configure_data()
+        self.__years_ind = years_ind
+        self.__name_ind = name_ind
+        self.__data_tot = data_dict["data"]
+        self.__unit = data_dict["unit"]
+
         self.__draw()
