@@ -110,7 +110,6 @@ class TotalWidget(QtWidgets.QWidget, Observer):
 
             unit = common.get_unit(data, "intensity")
             if unit is None:
-                self.__files[file]["read"] = False
                 self.__files[file]["warning"].append(f"Colonne 'intensity' n'a pas d'unité")
             else:
                 unit = '/'.join(unit)

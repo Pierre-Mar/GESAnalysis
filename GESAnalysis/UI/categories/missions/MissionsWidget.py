@@ -146,7 +146,6 @@ class MissionsWidget(QtWidgets.QWidget, Observer):
             # Check the unit of distance
             unit = common.get_unit(data, "distance")
             if unit is None:
-                self.__files[file]["read"] = False
                 self.__files[file]["warning"].append(f"Colonne 'distance' n'a pas d'unité")
             else:
                 unit = "/".join(unit)
@@ -159,7 +158,6 @@ class MissionsWidget(QtWidgets.QWidget, Observer):
             # Same with emission
             unit = common.get_unit(data, "emission")
             if unit is None:
-                self.__files[file]["read"] = False
                 self.__files[file]["warning"].append(f"Colonne 'emission' n'a pas d'unité")
             else:
                 unit = "/".join(unit)
