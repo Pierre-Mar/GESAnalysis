@@ -56,6 +56,10 @@ class Controleur:
             self.__gesanalysis.export(filein, fileout)
         except Exception as e:
             raise Exception(str(e))
+
+
+    def export_stat(self, data, header_column, header_row, fileout):
+        self.__gesanalysis.export_stat(data, header_column, header_row, fileout)
         
     
     def set_category_year(self, filename, year, category, old_category):

@@ -46,6 +46,25 @@ class ExportData:
             return self.__write_in_file(data_dict, fileout, '\t')
         else:
             return self.__write_in_file(data_dict, fileout, ';')
+        
+    
+    def export_stat(self, data: List[List[str]], header_column: List[str], header_row: List[str], fileout: str):
+        self.__verif_fileout(fileout)
+        
+        self.__verif_number_lines(data)
+        if len(header_column) != len(data[0]):
+            raise ValueError(f"Il y a {len(data[0])} éléments alors qu'il y a {len(header_column)} colonnes")
+
+        if len(data) != len(header_row):
+            raise ValueError(f"Il y a {len(data)} lignes d'éléments alors qu'il y a {len(header_row)} en-têtes de lignes")
+        
+        if self.__file_ext == ".csv":
+            return self.__write_stat(data, header_column, header_row, fileout, ";")
+        elif self.__file_ext == ".tsv":
+            return self.__write_stat(data, header_column, header_row, fileout, '\t')
+        else:
+            return self.__write_stat(data, header_column, header_row, fileout, ";")
+        
 
 
     def __verif_fileout(self, fileout: str) -> None:
@@ -132,6 +151,26 @@ class ExportData:
             os.remove(fileout)
             raise ValueError(str(v))
         return True
+    
+    
+    def __write_stat(self, data: List[List[str]], header_column: List[str], header_row: List[str], fileout: str, sep: str):
+        # try:
+        with open(fileout, "w") as write_fileout:
+            columns = ["header row"] + header_column
+            write_column = sep.join(columns) + "\n"
+            write_fileout.write(write_column)
+            
+            for num_line in range(len(data)):
+                ph = header_row[num_line] + sep
+                
+                join_list = sep.join(data[num_line])
+                ph += join_list + '\n'
+                
+                write_fileout.write(ph)
+        # except:
+        #     os.remove(fileout)
+        #     raise ValueError("Problème rencontré lors de l'exportation des statistiques")
+        # return True
     
     
     def __verif_number_lines(self, elems_col: List[List[Union[bool, str, float, int]]]) -> None:

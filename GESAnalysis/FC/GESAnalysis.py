@@ -32,24 +32,38 @@ class GESAnalysis(Observable):
         """
         if filename is None:
             raise Exception("Impossible de lire le fichier car le chemin est invalide")
-        try:
-            data_file = self.__reader.read_file(filename, sep, engine)
-            name_file = self.get_filename(filename)
-            self.__check_year(year)
-            self.__file_open[name_file] = {}
-            self.__file_open[name_file]["data"] = data_file
-            self.__file_open[name_file]["year"] = year
-            self.__file_open[name_file]["category"] = category
-            self.__file_open[name_file]["path"] = filename
-            self.__sort_by_year()
-        except Exception as e:
-            raise Exception(str(e))
+        
+        self.__check_year(year)
+        
+        data_file = self.__reader.read_file(filename, sep, engine)
+        name_file = self.get_filename(filename)
+        self.__file_open[name_file] = {}
+        self.__file_open[name_file]["data"] = data_file
+        self.__file_open[name_file]["year"] = year
+        self.__file_open[name_file]["category"] = category
+        self.__file_open[name_file]["path"] = filename
+        self.__sort_by_year()
         
     
     def __sort_by_year(self) -> None:
         self.__file_open = dict(sorted(self.__file_open.items(), key=lambda item: item[1]["year"]))
-            
+        
+    
+    def __check_year(self, year: str) -> None:
+        """ Check if a year is correct
 
+        Args:
+            year (str): Year
+
+        Raises:
+            Exception: Year incorrect
+        """
+        try:
+            year_int = int(year)
+        except:
+            raise Exception(f"'{year}' n'est pas une année")
+
+            
 #######################################################################################################
 #  Write the data into a file                                                                         #
 #######################################################################################################      
@@ -63,19 +77,17 @@ class GESAnalysis(Observable):
         file = self.get_filename(filein)
         # If the file is already open, then we export the data
         if file in self.__file_open.keys():
-            try:
-                self.__export.export_data(self.__file_open[file]["data"], fileout)
-                return
-            except Exception as e:
-                raise Exception(str(e))
+            self.__export.export_data(self.__file_open[file]["data"], fileout)
+            return
             
         # Else, we read the data and export it
-        try:
-            data_file = self.__reader.read_file(filein)
-            self.__export.export_data(data_file, fileout)
-        except Exception as e:
-            raise Exception(str(e))
+        data_file = self.__reader.read_file(filein)
+        self.__export.export_data(data_file, fileout)
         
+        
+    def export_stat(self, data, header_column, header_row, fileout):
+        self.__export.export_stat(data, header_column, header_row, fileout)
+
 
 #######################################################################################################
 #  Close a file                                                                                       #
@@ -94,21 +106,7 @@ class GESAnalysis(Observable):
             del self.__file_open[file]
         except:
             raise Exception(f"Le fichier '{file}' n'est pas ouvert")
-        
-        
-    def __check_year(self, year: str) -> None:
-        """ Check if a year is correct
 
-        Args:
-            year (str): Year
-
-        Raises:
-            Exception: Year incorrect
-        """
-        try:
-            year_int = int(year)
-        except:
-            raise Exception(f"'{year}' n'est pas une année")
 
 
 #######################################################################################################
@@ -125,10 +123,9 @@ class GESAnalysis(Observable):
             Exception: File is not opened or a year is invalid
         """
         file = self.get_filename(filename)
-        try:
-            self.__check_year(year)
-        except Exception as e:
-            raise Exception(str(e))
+        
+        self.__check_year(year)
+
         try:
             self.__file_open[file]["year"] = year
         except:
