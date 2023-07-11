@@ -138,3 +138,148 @@ def test_nb_elem_col_diff_data():
         export.export_data(data, tmp_file+".txt")
 # ------------------------------------------------------------------------------------------------------------------------
 # ------------------------------------------------------------------------------------------------------------------------
+
+
+
+# ------------------------------------------------------------------------------------------------------------------------
+# Tests : export_stat(self, data: List[List[str]], header_column: List[str], header_row: List[str], fileout: str)
+# ------------------------------------------------------------------------------------------------------------------------
+
+# ------------------------------------------------------------------------------------------------------------------------
+# Tests to check if the exportation of stats is valid
+# ------------------------------------------------------------------------------------------------------------------------
+def test_export_stat_valid_csv():
+    data = [["10", "11", "12"],
+            ["20", "21", "22"],
+            ["30", "31", "32"]]
+    header_columns = ["Zero", "Un", "Deux"]
+    header_rows = ["Dix", "Vingt", "Trente"]
+    data_dict = {
+        'header row': {
+            'name': ['header row'],
+            'unit': [],
+            'data': [['Dix'], ['Vingt'], ['Trente']],
+            'type': str
+        },
+        'Zero': {
+            'name': ['Zero'],
+            'unit': [],
+            'data': [[10], [20], [30]],
+            'type': int
+        },
+        'Un': {
+            'name': ['Un'],
+            'unit': [],
+            'data': [[11], [21], [31]],
+            'type': int
+        },
+        'Deux': {
+            'name': ['Deux'],
+            'unit': [],
+            'data': [[12], [22], [32]],
+            'type': int
+        }
+    }
+    export.export_stat(data, header_columns, header_rows, tmp_file+".csv")
+    assert data_dict == reader.read_file(tmp_file + ".csv")
+    os.remove(tmp_file + ".csv")
+
+
+def test_export_stat_valid_tsv():
+    data = [["10", "11", "12"],
+            ["20", "21", "22"],
+            ["30", "31", "32"]]
+    
+    header_columns = ["Zero", "Un", "Deux"]
+    header_rows = ["Dix", "Vingt", "Trente"]
+    data_dict = {
+        'header row': {
+            'name': ['header row'],
+            'unit': [],
+            'data': [['Dix'], ['Vingt'], ['Trente']],
+            'type': str
+        },
+        'Zero': {
+            'name': ['Zero'],
+            'unit': [],
+            'data': [[10], [20], [30]],
+            'type': int
+        },
+        'Un': {
+            'name': ['Un'],
+            'unit': [],
+            'data': [[11], [21], [31]],
+            'type': int
+        },
+        'Deux': {
+            'name': ['Deux'],
+            'unit': [],
+            'data': [[12], [22], [32]],
+            'type': int
+        }
+    }
+    export.export_stat(data, header_columns, header_rows, tmp_file+".tsv")
+    assert data_dict == reader.read_file(tmp_file + ".tsv")
+    os.remove(tmp_file + ".tsv")
+    
+    
+def test_export_stat_valid_txt():
+    data = [["10", "11", "12"],
+            ["20", "21", "22"],
+            ["30", "31", "32"]]
+    header_columns = ["Zero", "Un", "Deux"]
+    header_rows = ["Dix", "Vingt", "Trente"]
+    data_dict = {
+        'header row': {
+            'name': ['header row'],
+            'unit': [],
+            'data': [['Dix'], ['Vingt'], ['Trente']],
+            'type': str
+        },
+        'Zero': {
+            'name': ['Zero'],
+            'unit': [],
+            'data': [[10], [20], [30]],
+            'type': int
+        },
+        'Un': {
+            'name': ['Un'],
+            'unit': [],
+            'data': [[11], [21], [31]],
+            'type': int
+        },
+        'Deux': {
+            'name': ['Deux'],
+            'unit': [],
+            'data': [[12], [22], [32]],
+            'type': int
+        }
+    }
+    export.export_stat(data, header_columns, header_rows, tmp_file+".txt")
+    assert data_dict == reader.read_file(tmp_file + ".txt")
+    os.remove(tmp_file + ".txt")
+
+    
+# ------------------------------------------------------------------------------------------------------------------------
+# Tests to check if we get the correct error
+# ------------------------------------------------------------------------------------------------------------------------
+def test_invalid_number_columns_elem():
+    data = [["10", "11", "12"],
+            ["20", "21", "22"],
+            ["30", "31", "32"]]
+    header_columns = ["Zero", "Un"]
+    header_rows = ["Dix", "Vingt", "Trente"]
+    with pytest.raises(ValueError, match="Il y a 3 éléments alors qu'il y a 2 colonnes"):
+        export.export_stat(data, header_columns, header_rows, tmp_file + ".csv")
+
+
+def test_inalid_number_row_elem():
+    data = [["10", "11", "12"],
+            ["20", "21", "22"],
+            ["30", "31", "32"]]
+    header_columns = ["Zero", "Un", "Deux"]
+    header_rows = ["Dix", "Vingt"]
+    with pytest.raises(ValueError, match="Il y a 3 lignes d'éléments alors qu'il y a 2 en-têtes de lignes"):
+        export.export_stat(data, header_columns, header_rows, tmp_file + ".tsv")
+# ------------------------------------------------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------------------------------------------------
