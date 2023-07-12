@@ -57,7 +57,7 @@ class MissionsWidget(QtWidgets.QWidget, Observer):
         splitter_left_widget = QtWidgets.QWidget(splitter)
         splitter_left_layout = QtWidgets.QVBoxLayout(splitter_left_widget)
         self.__file_mission_widget = FileOpenUI(self.__files, self.__category, self.__controller, splitter_left_widget)
-        self.__stat_mission_widget = MissionStatWidget(splitter_left_widget)
+        self.__stat_mission_widget = MissionStatWidget(self.__controller, splitter_left_widget)
         splitter_left_layout.addWidget(self.__file_mission_widget)
         splitter_left_layout.addWidget(self.__stat_mission_widget)
         splitter_left_widget.setLayout(splitter_left_layout)

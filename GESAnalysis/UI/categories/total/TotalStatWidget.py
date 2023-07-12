@@ -1,11 +1,16 @@
 from PyQt5 import QtWidgets, QtCore
 from PyQt5.QtWidgets import QWidget
+from GESAnalysis.FC.Controleur import Controleur
+
+from GESAnalysis.UI.ExportStatDialog import ExportStatDialog
 
 
 class TotalStatWidget(QtWidgets.QWidget):
     
-    def __init__(self, parent: QWidget | None = ...) -> None:
+    def __init__(self, controller: Controleur, parent: QWidget | None = ...) -> None:
         super(TotalStatWidget, self).__init__(parent)
+        
+        self.__controller = controller
 
         self.__years_dict = {}
         self.__name_dict = {}
@@ -15,6 +20,7 @@ class TotalStatWidget(QtWidgets.QWidget):
 
         self.__combobox_year = QtWidgets.QComboBox(self)
         self.__tab_stats = QtWidgets.QTableWidget(self)
+        self.__export_stat_button = QtWidgets.QPushButton("Exporter", self)
 
         self.__can_fill = False
 
@@ -33,12 +39,16 @@ class TotalStatWidget(QtWidgets.QWidget):
 
         self.__combobox_year.addItems(self.__years_dict.keys())
         self.__combobox_year.currentTextChanged.connect(self.__refill_table)
+        
+        self.__export_stat_button.clicked.connect(self.__open_dialog_export_stat)
         if len(self.__years_dict.keys()) == 0:
             self.__combobox_year.hide()
+            self.__export_stat_button.hide()
 
         layout_principal.addWidget(label, alignment=QtCore.Qt.AlignHCenter | QtCore.Qt.AlignTop)
         layout_principal.addWidget(self.__combobox_year)
         layout_principal.addWidget(self.__tab_stats)
+        layout_principal.addWidget(self.__export_stat_button)
 
         self.setLayout(layout_principal)
 
@@ -96,11 +106,30 @@ class TotalStatWidget(QtWidgets.QWidget):
         self.__combobox_year.addItems(self.__years_dict.keys())
         if len(self.__years_dict.keys()) == 0:
             self.__combobox_year.hide()
+            self.__export_stat_button.hide()
         else:
             if self.__combobox_year.isHidden():
                 self.__combobox_year.show()
+            if self.__export_stat_button.isHidden():
+                self.__export_stat_button.show()
 
         self.__construct_tab()
+        
+    
+    def __open_dialog_export_stat(self):
+        header_columns = self.__column_stats
+        header_rows = self.__name_stat_list
+        
+        data = []
+        for row in range(len(header_rows)):
+            l = []
+            for col in range(len(header_columns)):
+                item = self.__tab_stats.item(row, col)
+                l.append(item.text())
+            data.append(l)
+        
+        export_dialog = ExportStatDialog(data, header_columns, header_rows, self.__controller, self)
+        export_dialog.exec()
 
 
     def sizeHint(self) -> QtCore.QSize:

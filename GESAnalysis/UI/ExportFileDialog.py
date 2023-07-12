@@ -2,6 +2,7 @@ from typing import List
 from PyQt5 import QtWidgets, QtGui
 from GESAnalysis.FC.Controleur import Controleur
 from GESAnalysis.FC.GESAnalysis import GESAnalysis
+from GESAnalysis.UI import common
 
 
 class ExportFileDialog(QtWidgets.QDialog):
@@ -122,58 +123,20 @@ class ExportFileDialog(QtWidgets.QDialog):
         self.__path_file_save = self.export_file.text()
         
         if self.__path_file_to_export == "":
-            self.message_warning("Vous devez entrer un fichier à exporter")
+            common.message_warning("Vous devez entrer un fichier à exporter", self)
             return
         if self.__path_file_save == "":
-            self.message_warning("Vous devez entrer un fichier de sauvegarde")
+            common.message_warning("Vous devez entrer un fichier de sauvegarde", self)
             return
         
         try:
             self.__controller.export_file(self.__path_file_to_export, self.__path_file_save)
-            self.message_ok("Exportation réussie !")
+            common.message_ok("Exportation réussie !", self)
             super().accept()
         except Exception as e:
-            self.message_error(str(e))
+            common.message_error(str(e), self)
             self.clear_input()
-            
-            
-    
-    def message_warning(self, string: str) -> None:
-        """ Display a warning box to the user
 
-        Args:
-            string (str): The message
-        """
-        dlg = QtWidgets.QMessageBox.warning(
-            self,
-            "Avertissement",
-            string
-        )
-        
-    def message_error(self, string: str) -> None:
-        """ Display a error box to the user
-
-        Args:
-            string (str): The message
-        """
-        dlg = QtWidgets.QMessageBox.critical(
-            self,
-            "Erreur",
-            string
-        )
-        
-        
-    def message_ok(self, string: str) -> None:
-        """ Display a ok box to the user
-
-        Args:
-            string (str): The message
-        """
-        dlg = QtWidgets.QMessageBox.information(
-            self,
-            "OK",
-            string
-        )
 
     def clear_input(self) -> None:
         """ Clear input from the widgets and delete values
