@@ -53,7 +53,7 @@ class TotalWidget(QtWidgets.QWidget, Observer):
         splitter_left_widget = QtWidgets.QWidget(splitter)
         splitter_left_layout = QtWidgets.QVBoxLayout(splitter_left_widget)
         self.__file_total_widget = FileOpenUI(self.__files, self.__category, self.__controller, splitter_left_widget)
-        self.__stat_total_widget = TotalStatWidget(splitter_left_widget)
+        self.__stat_total_widget = TotalStatWidget(self.__controller, splitter_left_widget)
         splitter_left_layout.addWidget(self.__file_total_widget)
         splitter_left_layout.addWidget(self.__stat_total_widget)
         splitter_left_widget.setLayout(splitter_left_layout)

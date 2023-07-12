@@ -164,12 +164,12 @@ class MissionStatWidget(QtWidgets.QWidget):
         self.__construct_tab()
         
     def __open_dialog_export_stat(self):
-        header_columns = self.__mode_stat_list
-        header_rows = self.__position_stat_list
+        header_rows = self.__mode_stat_list
+        header_columns = self.__position_stat_list
         data = []
-        for mode_ind in range(len(header_columns)):
+        for mode_ind in range(len(header_rows)):
             l = []
-            for position_ind in range(len(header_rows)):
+            for position_ind in range(len(header_columns)):
                 item = self.__tab_stats.item(mode_ind, position_ind)
                 l.append(item.text())
             data.append(l)
