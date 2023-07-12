@@ -1,7 +1,7 @@
 from PyQt5 import QtWidgets, QtGui
 
 from GESAnalysis.FC.Controleur import Controleur
-import GESAnalysis.UI.common as common
+from GESAnalysis.UI import common
 
 
 class OpenFileDialog(QtWidgets.QDialog):
@@ -99,10 +99,10 @@ class OpenFileDialog(QtWidgets.QDialog):
 
         if self.selected_file == "":
             # Need to choose a file
-            self.message_warning("Vous devez entrer un fichier")
+            common.message_warning("Vous devez entrer un fichier", self)
             return
         elif self.selected_year == "":
-            self.message_warning("Vous devez entrer une année")
+            common.message_warning("Vous devez entrer une année", self)
             return
         
         # Send notification to controller to read file
@@ -112,33 +112,9 @@ class OpenFileDialog(QtWidgets.QDialog):
             super().accept()
         # In case of error, display a message with the corresponding error
         except Exception as e:
-            self.message_error(str(e))
+            common.message_error(str(e), self)
             self.clear_input()
 
-
-    def message_warning(self, string: str) -> None:
-        """ Display a warning box to the user
-
-        Args:
-            string (str): The message
-        """
-        dlg = QtWidgets.QMessageBox.warning(
-            self,
-            "Avertissement",
-            string
-        )
-        
-    def message_error(self, string: str) -> None:
-        """ Display a error box to the user
-
-        Args:
-            string (str): The message
-        """
-        dlg = QtWidgets.QMessageBox.critical(
-            self,
-            "Erreur",
-            string
-        )
 
     def clear_input(self) -> None:
         """ Clear input from the widgets and delete values

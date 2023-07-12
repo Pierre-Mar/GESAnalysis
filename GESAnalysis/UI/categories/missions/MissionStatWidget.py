@@ -1,11 +1,16 @@
 from PyQt5 import QtWidgets, QtCore
 from PyQt5.QtCore import QEvent, QObject
 from PyQt5.QtWidgets import QSizePolicy
+from GESAnalysis.FC.Controleur import Controleur
+
+from GESAnalysis.UI.ExportStatDialog import ExportStatDialog
 
 class MissionStatWidget(QtWidgets.QWidget):
     
-    def __init__(self, parent: QtWidgets.QWidget | None = ...) -> None:
+    def __init__(self, controller: Controleur, parent: QtWidgets.QWidget | None = ...) -> None:
         super(MissionStatWidget, self).__init__(parent)
+        
+        self.__controller = controller
         
         self.__years_dict = {}
         self.__mode_dict = {}
@@ -16,7 +21,8 @@ class MissionStatWidget(QtWidgets.QWidget):
         
         self.__combobox_choice = QtWidgets.QComboBox(self)
         self.__combobox_year = QtWidgets.QComboBox(self)
-        self.__tab_stats = QtWidgets.QTableWidget()
+        self.__tab_stats = QtWidgets.QTableWidget(self)
+        self.__export_stat_button = QtWidgets.QPushButton("Exporter", self)
         
         self.__can_fill = False
         
@@ -39,13 +45,18 @@ class MissionStatWidget(QtWidgets.QWidget):
         
         self.__combobox_year.addItems(self.__years_dict.keys())
         self.__combobox_year.currentTextChanged.connect(self.__refill_table)
+        
+        self.__export_stat_button.clicked.connect(self.__open_dialog_export_stat)
+        
         if len(self.__years_dict.keys()) == 0:
             self.__combobox_year.hide()
+            self.__export_stat_button.hide()
         
         layout_principal.addWidget(label, alignment=QtCore.Qt.AlignHCenter | QtCore.Qt.AlignTop)
         layout_principal.addWidget(self.__combobox_choice)
         layout_principal.addWidget(self.__combobox_year)
         layout_principal.addWidget(self.__tab_stats)
+        layout_principal.addWidget(self.__export_stat_button)
         
         self.setLayout(layout_principal)
         
@@ -143,11 +154,27 @@ class MissionStatWidget(QtWidgets.QWidget):
         self.__combobox_year.addItems(self.__years_dict.keys())
         if len(self.__years_dict.keys()) == 0:
             self.__combobox_year.hide()
+            self.__export_stat_button.hide()
         else:
             if self.__combobox_year.isHidden():
                 self.__combobox_year.show()
+            if self.__export_stat_button.isHidden():
+                self.__export_stat_button.show()
                 
         self.__construct_tab()
+        
+    def __open_dialog_export_stat(self):
+        header_columns = self.__mode_stat_list
+        header_rows = self.__position_stat_list
+        data = []
+        for mode_ind in range(len(header_columns)):
+            l = []
+            for position_ind in range(len(header_rows)):
+                item = self.__tab_stats.item(mode_ind, position_ind)
+                l.append(item.text())
+            data.append(l)
+        export_dialog = ExportStatDialog(data, header_columns, header_rows, self.__controller, self)
+        export_dialog.exec()
         
     def sizeHint(self) -> QtCore.QSize:
         return QtCore.QSize(300, 500)

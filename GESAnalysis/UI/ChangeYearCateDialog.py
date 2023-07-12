@@ -1,5 +1,5 @@
 from PyQt5 import QtWidgets
-import GESAnalysis.UI.common as common
+from GESAnalysis.UI import common
 
 
 class ChangeYearCateDialog(QtWidgets.QDialog):
@@ -87,21 +87,7 @@ class ChangeYearCateDialog(QtWidgets.QDialog):
             self.__controleur.set_category_year(self.__modify_file, selected_year, selected_category, self.__category_file)
             super().accept()
         except Exception as e:
-            self.message_error(str(e))
-        
-        
-        
-    def message_error(self, string: str) -> None:
-        """ Display a error box to the user
-
-        Args:
-            string (str): The message
-        """
-        dlg = QtWidgets.QMessageBox.critical(
-            self,
-            "Erreur",
-            string
-        )
+            common.message_error(str(e), self)
         
     
     def clear_input(self) -> None:
