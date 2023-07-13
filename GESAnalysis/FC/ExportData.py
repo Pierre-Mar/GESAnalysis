@@ -189,8 +189,7 @@ class ExportData:
         """
         try:
             with open(fileout, "w") as write_fileout:
-                columns = ["header row"] + header_column
-                write_column = sep.join(columns) + "\n"
+                write_column = "header_row" + sep + sep.join(header_column) + "\n"
                 write_fileout.write(write_column)
                 
                 for num_line in range(len(data)):
