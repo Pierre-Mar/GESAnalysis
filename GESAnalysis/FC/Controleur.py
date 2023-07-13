@@ -27,6 +27,7 @@ class Controleur:
         if not len(list_file):
             return
         
+        # Close each file in the model
         for file in list_file:
             self.__gesanalysis.close_file(file)
         
@@ -40,33 +41,43 @@ class Controleur:
             file (str): Path to file
             year (str): Year
             category (str): Category
-
-        Raises:
-            Exception: Exception from read_file
         """
-        try:
-            self.__gesanalysis.read_file(file, year, category)
-            self.__gesanalysis.update(category)
-        except Exception as e:
-            raise Exception(str(e))
+        self.__gesanalysis.read_file(file, year, category)
+        self.__gesanalysis.update(category)
 
 
-    def export_file(self, filein, fileout):
-        try:
-            self.__gesanalysis.export(filein, fileout)
-        except Exception as e:
-            raise Exception(str(e))
+    def export_file(self, filein: str, fileout: str) -> None:
+        """ Export the data of filein in fileout
+
+        Args:
+            filein (str): Path of file to export
+            fileout (str): Path of file to save the data
+        """
+        self.__gesanalysis.export(filein, fileout)
 
 
-    def export_stat(self, data, header_column, header_row, fileout):
+    def export_stat(self, data: List[List[str]], header_column: List[str], header_row: List[str], fileout: str):
+        """Export the stat of data whis the header of columns and rows in the file 'fileout'
+
+        Args:
+            data (List[List[str]]): Data
+            header_column (List[str]): Header of columns
+            header_row (List[str]): Header of rows
+            fileout (str): Path to file to save data
+        """
         self.__gesanalysis.export_stat(data, header_column, header_row, fileout)
         
     
-    def set_category_year(self, filename, year, category, old_category):
-        try:
-            self.__gesanalysis.set_year(filename, year)
-            self.__gesanalysis.set_category(filename, category)
-            self.__gesanalysis.update(old_category)
-            self.__gesanalysis.update(category)
-        except Exception as e:
-            raise Exception(str(e))
+    def set_category_year(self, filename: str, year: str, category: str, old_category: str):
+        """ Set the new year and category of a file
+
+        Args:
+            filename (str): File
+            year (str): New year
+            category (str): New category
+            old_category (str): Old category
+        """
+        self.__gesanalysis.set_year(filename, year)
+        self.__gesanalysis.set_category(filename, category)
+        self.__gesanalysis.update(old_category)
+        self.__gesanalysis.update(category)
