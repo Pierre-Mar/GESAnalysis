@@ -128,8 +128,8 @@ def test_export_stat_valid():
     header_columns = ["Zero", "Un", "Deux"]
     header_rows = ["Dix", "Vingt", "Trente"]
     data_dict = {
-        'header row': {
-            'name': ['header row'],
+        'header_row': {
+            'name': ['header_row'],
             'unit': [],
             'data': [['Dix'], ['Vingt'], ['Trente']],
             'type': str
