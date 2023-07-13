@@ -182,6 +182,6 @@ class MainWindow(QtWidgets.QMainWindow):
         """
         current_tab_ind = self.__tab_widget_categories.currentIndex()
         for category, data_category in self.__dict_categories.items():
-            if data_category == current_tab_ind:
+            if data_category["index"] == current_tab_ind:
                 return category
         return None
