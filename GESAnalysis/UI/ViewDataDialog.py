@@ -1,18 +1,20 @@
 from PyQt5 import QtWidgets, QtCore
 from typing import List, Union
+from GESAnalysis.FC.GESAnalysis import GESAnalysis
 
 
 class ViewDataDialog(QtWidgets.QDialog):
-    """ Open a dialog to display the data of all the files open in the model
+    """ Dialog to display the data of all the files open in the model
     """
     
-    def __init__(self, model, parent: QtWidgets.QWidget | None = ...) -> None:
+    def __init__(self, model: GESAnalysis, parent: QtWidgets.QWidget | None = ...) -> None:
         """ Initialise the class
 
         Args:
             model (GESAnalysis): Model
             parent (QtWidgets.QWidget | None, optional): Parent of this dialog. Defaults to ....
         """
+        # Initialise the parent class
         super(ViewDataDialog, self).__init__(parent)
         
         # Set the model
@@ -21,7 +23,10 @@ class ViewDataDialog(QtWidgets.QDialog):
         # Create UI
         self.__init_UI()
     
-    
+
+#######################################################################################################
+#  Initialise the UI                                                                                  #
+#######################################################################################################
     def __init_UI(self) -> None:
         """ Initialise the UI
         """
@@ -32,7 +37,7 @@ class ViewDataDialog(QtWidgets.QDialog):
         # Create the layout for the dialog
         principal_layout = QtWidgets.QHBoxLayout(self)
         
-        # Get the file who are opened in the model
+        # Get all files who are opened in the model
         file_open = self.__gesanalysis.get_file_open()
         
         # To display all the data, we create a tab for each file
@@ -41,6 +46,7 @@ class ViewDataDialog(QtWidgets.QDialog):
             # For each file, create a widget and his layout to display the data from the file
             file_widget = QtWidgets.QWidget()
             file_layout = QtWidgets.QHBoxLayout(file_widget)
+            file_widget.setLayout(file_layout)
             
             # Create the table widget to display the data of the file
             table_data_widget = QtWidgets.QTableWidget(file_widget)
@@ -62,7 +68,7 @@ class ViewDataDialog(QtWidgets.QDialog):
                     # Transform the data to string
                     data_str = self.__transform_data_to_str(data, data_file[column]["type"])
                     item_data = QtWidgets.QTableWidgetItem(data_str)
-                    # Remove flags to edit the item
+                    # Remove edit flags (User can't change the item)
                     item_data.setFlags(QtCore.Qt.ItemIsSelectable |  QtCore.Qt.ItemIsEnabled)
                     table_data_widget.setItem(data_ind, column_ind, item_data)
                     
@@ -74,6 +80,7 @@ class ViewDataDialog(QtWidgets.QDialog):
 
         # Add the principal widget to the dialog
         principal_layout.addWidget(tab_widget)
+        self.setLayout(principal_layout)
         
         
     def __transform_data_to_str(self, data_list: List[Union[bool, int, float, str]], type_data: type) -> str:
@@ -91,5 +98,3 @@ class ViewDataDialog(QtWidgets.QDialog):
             # Transform all elements to string
             data_list_to_str = map(str, data_list_to_str)
         return ",".join(data_list_to_str)
-            
-        

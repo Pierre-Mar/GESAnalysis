@@ -12,7 +12,7 @@ import GESAnalysis.UI.categories.common as common
 
 
 class TotalEmission(QtWidgets.QWidget, Observer):
-    """ Class to draw a graph representing the emission for each year
+    """ Widget to draw a graph representing the emission for each year
     """
     
     # Values use to draw the graph
@@ -24,16 +24,16 @@ class TotalEmission(QtWidgets.QWidget, Observer):
         """ Initialize the class by setting the data and draw the graph
 
         Args:
-            model (GESAnalysis): Model
-            controller (Controleur): Controller
             parent (QtWidgets.QWidget | None, optional): Parent of this widget. Defaults to ....
         """
+        # Initialise the parent class
         super(TotalEmission, self).__init__(parent)
         
-        self.__years_ind = {}
-        self.__name_ind = {}
-        self.__data_tot = {}
-        self.__unit = ""
+        # Data structure
+        self.__years_ind = {} # Dictionary of year
+        self.__name_ind = {}  # Dictionary of categories
+        self.__data_tot = {}  # Dictionary of data
+        self.__unit = ""      # Unit of data
         
         self.__fig = Figure()
         self.__axes = self.__fig.add_subplot(111)
@@ -47,7 +47,7 @@ class TotalEmission(QtWidgets.QWidget, Observer):
         
 
 #######################################################################################################
-#  Initialisation of the interface                                                                    #
+#  Initialise the UI                                                                                  #
 #######################################################################################################
     def __init_UI(self) -> None:
         """ Initialize the UI
@@ -61,9 +61,9 @@ class TotalEmission(QtWidgets.QWidget, Observer):
         layout_canvas.addWidget(self.__figCanvas)
         widget_canvas.setLayout(layout_canvas)
         
+        # Layout of this widget
         layout_principal = QtWidgets.QHBoxLayout(self)
         layout_principal.addWidget(widget_canvas)
-
         self.setLayout(layout_principal)
     
 

@@ -441,6 +441,14 @@ class DistanceMode(QtWidgets.QWidget):
         
         
     def __rearrange_data_dict(self, data_dict):
+        """ Arrange data for the graph
+
+        Args:
+            data_dict : Data
+
+        Returns:
+            Data for graph
+        """
         dictionary = {}
         for mode, data_mode in data_dict.items():
             dictionary[mode] = {
@@ -460,6 +468,14 @@ class DistanceMode(QtWidgets.QWidget):
     
     
     def __update_structure(self, data_dict):
+        """ Update the structure for dictionary
+
+        Args:
+            data_dict : Dictionary
+
+        Returns:
+            Dictionary for graph
+        """
         data_class = {}
         for data in data_dict.keys():
             data_class[data] = {}

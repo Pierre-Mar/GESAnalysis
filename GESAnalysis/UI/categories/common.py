@@ -1,14 +1,28 @@
+#######################################################################################################
+#  Common methods by different class of differents categories                                         #
+#######################################################################################################
+
+
 from typing import Dict, List, Union, Optional
+
+from GESAnalysis.FC.GESAnalysis import GESAnalysis
 
 
 def check_value(
-    model,
-    column,
+    model: GESAnalysis,
+    column: str,
 ) -> str:
-    """ Check the unit of distance for each year is the same
+    """ Check the unit of a column for each file in the model if it's the same
+
+    Args:
+        model (GESAnalysis): Model
+        column (str): Column from model
 
     Raises:
-        ValueError: A year has a different unit of distance or the values are not integers or float
+        ValueError: A file has a different unit or the values are not integers or float
+
+    Returns:
+        str: Unit
     """
     unit = ""
     for values_ges in model.get_data().values():
