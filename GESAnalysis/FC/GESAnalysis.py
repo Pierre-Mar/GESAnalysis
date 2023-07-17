@@ -15,6 +15,8 @@ class GESAnalysis(Observable):
     
     
     def __init__(self) -> None:
+        """ Initialise the class
+        """
         super().__init__()
         self.__file_open = {} # Dictionary to associate the name of file and his data
         
@@ -46,6 +48,8 @@ class GESAnalysis(Observable):
         
     
     def __sort_by_year(self) -> None:
+        """ Sort the dictionary by year
+        """
         self.__file_open = dict(sorted(self.__file_open.items(), key=lambda item: item[1]["year"]))
         
     
@@ -85,7 +89,15 @@ class GESAnalysis(Observable):
         self.__export.export_data(data_file, fileout)
         
         
-    def export_stat(self, data, header_column, header_row, fileout):
+    def export_stat(self, data: List[List[str]], header_column: List[str], header_row: List[str], fileout: str):
+        """ Export the stat of data and the headers in the file fileout
+
+        Args:
+            data (List[List[str]]): Stats
+            header_column (List[str]): Header of columns
+            header_row (List[str]): Header of rows
+            fileout (str): Path to file to save the stats
+        """
         self.__export.export_stat(data, header_column, header_row, fileout)
 
 

@@ -155,8 +155,8 @@ def test_export_stat_valid_csv():
     header_columns = ["Zero", "Un", "Deux"]
     header_rows = ["Dix", "Vingt", "Trente"]
     data_dict = {
-        'header row': {
-            'name': ['header row'],
+        'header_row': {
+            'name': ['header_row'],
             'unit': [],
             'data': [['Dix'], ['Vingt'], ['Trente']],
             'type': str
@@ -193,8 +193,8 @@ def test_export_stat_valid_tsv():
     header_columns = ["Zero", "Un", "Deux"]
     header_rows = ["Dix", "Vingt", "Trente"]
     data_dict = {
-        'header row': {
-            'name': ['header row'],
+        'header_row': {
+            'name': ['header_row'],
             'unit': [],
             'data': [['Dix'], ['Vingt'], ['Trente']],
             'type': str
@@ -230,8 +230,8 @@ def test_export_stat_valid_txt():
     header_columns = ["Zero", "Un", "Deux"]
     header_rows = ["Dix", "Vingt", "Trente"]
     data_dict = {
-        'header row': {
-            'name': ['header row'],
+        'header_row': {
+            'name': ['header_row'],
             'unit': [],
             'data': [['Dix'], ['Vingt'], ['Trente']],
             'type': str

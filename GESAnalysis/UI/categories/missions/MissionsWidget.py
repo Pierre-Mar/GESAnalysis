@@ -12,6 +12,8 @@ import GESAnalysis.UI.categories.common as common
 
 
 class MissionsWidget(QtWidgets.QWidget, Observer):
+    """ Widget use to regroup the graphs, the files opener and the stats of the category "Missions"
+    """
      
     def __init__(
         self,
@@ -25,14 +27,18 @@ class MissionsWidget(QtWidgets.QWidget, Observer):
         Args:
             model (GESAnalysis): Model
             controller (Controleur): Controller
+            category (str): Category
             parent (QtWidgets.QWidget | None, optional): Parent of this widget. Defaults to ....
         """
+        # Initialise the parent class
         super(MissionsWidget, self).__init__(parent)
         
+        # Set parameters to attributes
         self.__gesanalysis = model
         self.__controller = controller
         self.__category = category
         
+        # Add this widget to the list of observers to update his interface
         self.__gesanalysis.add_observer(self, self.__category)
         
         self.__files = {}        # Dictionary where the key is the file in 'category' and a bool if it's read or not
@@ -45,12 +51,17 @@ class MissionsWidget(QtWidgets.QWidget, Observer):
         
         self.__init_UI()
         
-        
+
+#######################################################################################################
+#  Initialise the UI                                                                                  #
+#######################################################################################################
     def __init_UI(self) -> None:
         """ Initialise the UI
         """
+        # Set parameter of this widget
         self.setSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding)
-        layout_principal = QtWidgets.QHBoxLayout(self)
+        
+        # Splitter to divide the sections
         splitter = QtWidgets.QSplitter(self)
         
         # Widget for left-splitter (file open + stats)
@@ -74,11 +85,15 @@ class MissionsWidget(QtWidgets.QWidget, Observer):
         splitter.addWidget(self.__tab_graphs_widget)
         splitter.setSizes([200, 1000])
         
+        # layout of this widget
+        layout_principal = QtWidgets.QHBoxLayout(self)
         layout_principal.addWidget(splitter)
-        
         self.setLayout(layout_principal)
         
-        
+
+#######################################################################################################
+#  Configure data                                                                                     #
+#######################################################################################################
     def __configure_data(self) -> None:
         """ Configure the data for the canvas inside this widget (distance/emission)
         """
@@ -188,7 +203,7 @@ class MissionsWidget(QtWidgets.QWidget, Observer):
             self.__years_ind[year] = {"index": ind_year}
             ind_year += 1
          
-        # Create structure to calculate the distance
+        # Create structure to calculate the distance and the emission
         data_dist = {}
         for mode in self.__mode_ind.keys():
             data_dist[mode] = {
@@ -208,7 +223,7 @@ class MissionsWidget(QtWidgets.QWidget, Observer):
                         "emission": 0
                     }
                     
-        # Now calculate the distance
+        # Now calculate the distance and the emission
         for file, data_file in self.__files.items():
             if not self.__files[file]["read"]:
                 continue
@@ -263,12 +278,18 @@ class MissionsWidget(QtWidgets.QWidget, Observer):
         return mode
 
 
+#######################################################################################################
+#  Methods associated to an action                                                                    #
+#######################################################################################################
     def close_files(self) -> None:
         """ Close files from this widget
         """
         self.__file_mission_widget.close_files()
         
-        
+
+#######################################################################################################
+#  Getters                                                                                            #
+#######################################################################################################
     def get_selected_files(self) -> List[str]:
         """ Get selected files from FileOpenUI
 
@@ -276,8 +297,11 @@ class MissionsWidget(QtWidgets.QWidget, Observer):
             List[str]: List of file names's
         """
         return self.__file_mission_widget.get_selected_files()
-    
-    
+
+
+#######################################################################################################
+#  Update widgets                                                                                     #
+#######################################################################################################  
     def update(self):
         """ Update all the widget of this widget when the model change
         """
@@ -302,9 +326,33 @@ class MissionsWidget(QtWidgets.QWidget, Observer):
         # Update the graph for emission
         self.__emissions_canvas.update_canvas(self.__mode_ind, self.__years_ind, self.__data)
         
-        
+    
+#######################################################################################################
+#  Overwrite method to resize the widget                                                              #
+####################################################################################################### 
     def sizeHint(self) -> QtCore.QSize:
+        """ Return the ideal length of the widget
+
+        Returns:
+            QtCore.QSize: Width and height
+        """
         return QtCore.QSize(1280, 720)
     
+    
     def minimumSizeHint(self) -> QtCore.QSize:
+        """ Return the minimal and ideal length of the widget
+
+        Returns:
+            QtCore.QSize: Width and height
+        """
         return QtCore.QSize(640, 360)
+    
+    
+    def sizePolicy(self) -> QtWidgets.QSizePolicy:
+        """ Return the size policy of the widget.
+            The width of the widget can extend but the height is fixed
+
+        Returns:
+            QtWidgets.QSizePolicy: Size policy
+        """
+        return QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding)

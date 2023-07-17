@@ -1,6 +1,13 @@
+#######################################################################################################
+#  This file is used where different class had common methods or variables                            #
+#######################################################################################################
+
+
 from PyQt5 import QtWidgets
 
+
 categories = ["Achats", "Déplacements domicile-travail", "Fluides", "Matériel Informatique", "Missions", "Total"]
+
 
 def message_warning(string: str, parent) -> None:
     """ Display a warning box to the user
@@ -13,7 +20,8 @@ def message_warning(string: str, parent) -> None:
         "Avertissement",
         string
     )
-    
+
+
 def message_error(string: str, parent) -> None:
     """ Display a error box to the user
 

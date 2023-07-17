@@ -3,8 +3,7 @@ from typing import List, Tuple
 
 
 class Observable:
-    """ Class to notify to update the UI when the data
-        change
+    """ Update the UI when the model change
     """
     
     def __init__(self) -> None:

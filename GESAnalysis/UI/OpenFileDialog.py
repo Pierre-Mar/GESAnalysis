@@ -1,11 +1,10 @@
 from PyQt5 import QtWidgets, QtGui
-
 from GESAnalysis.FC.Controleur import Controleur
 from GESAnalysis.UI import common
 
 
 class OpenFileDialog(QtWidgets.QDialog):
-    """ Class to open a dialog to select a file from the user and read it
+    """ Dialog to select a file from the user and read it
     """
     
     def __init__(self, controller: Controleur, parent: QtWidgets.QWidget | None = ...) -> None:
@@ -15,35 +14,41 @@ class OpenFileDialog(QtWidgets.QDialog):
             controller (Controleur): Controller
             parent (QtWidgets.QWidget | None, optional): Parent to this dialog. Defaults to ....
         """
+        # Initialise the parent class
         super(OpenFileDialog, self).__init__(parent)
         
+        # Set parameter to attribute
         self.__controller = controller
         
-        self.selected_file = None
-        self.selected_year = None
-        self.selected_category = None
+        self.selected_file = None     # Path of the file to read
+        self.selected_year = None     # Year of the file 
+        self.selected_category = None # Category of the file
         
         self.__init_UI()
-        
-        
+
+
+#######################################################################################################
+#  Initialise the UI                                                                                  #
+#######################################################################################################
     def __init_UI(self) -> None:
         """ Initialise the UI 
         """
-        # Set parameters to dialog
+        # Set parameters to this dialog
         self.setWindowTitle("Ouvrir Fichier")
         self.setFixedWidth(600)
         
+        # Create the dialog box with the button 'Ok' and 'Cancel'
         buttons = QtWidgets.QDialogButtonBox.Ok | QtWidgets.QDialogButtonBox.Cancel
-        
-        # Create the dialog box and the button 'Ok' and 'Cancel'
         button_box = QtWidgets.QDialogButtonBox(buttons)
         button_box.accepted.connect(self.accept)
         button_box.rejected.connect(self.reject)
         
+        # Create a form widget
         form_widget = QtWidgets.QWidget(self)
         form_layout = QtWidgets.QFormLayout(form_widget)
+        form_widget.setLayout(form_layout)
         
-        # Label and line edit to choose file
+        # Label and lineedit to choose file
         choose_file_label = QtWidgets.QLabel("Localisation :", form_widget)
         self.choose_file = QtWidgets.QLineEdit(form_widget)
         # Add a icon to line edit
@@ -51,30 +56,34 @@ class OpenFileDialog(QtWidgets.QDialog):
         action_search_file = QtWidgets.QAction(QtGui.QIcon("GESAnalysis/UI/assets/folder-horizontal.png"), "open folder", form_widget)
         action_search_file.triggered.connect(self.open_file_dialog)
         
-        # Connect this action to line edit
+        # Connect this action to lineedit
         self.choose_file.setClearButtonEnabled(True)
         self.choose_file.addAction(action_search_file, QtWidgets.QLineEdit.TrailingPosition)
         
+        # Add label and lineedit to the layout
         form_layout.addRow(choose_file_label, self.choose_file)
         
-        # Line edit to get the year
+        # Add label and lineedit to get the year in the layout
         choose_year_label = QtWidgets.QLabel("Année :", form_widget)
-        self.choose_year = QtWidgets.QLineEdit(form_widget)
-        
+        self.choose_year = QtWidgets.QLineEdit(form_widget)       
         form_layout.addRow(choose_year_label, self.choose_year)
         
-        # List view for choose a category
+        # Listview to choose a category
         choose_category_label = QtWidgets.QLabel("Catégorie :", form_widget)
         self.choose_category = QtWidgets.QComboBox(form_widget)
         self.choose_category.addItems(common.categories)
         form_layout.addRow(choose_category_label, self.choose_category)
         
+        # Layout of this dialog
         layout = QtWidgets.QVBoxLayout(self)
-        
         layout.addWidget(form_widget)
         layout.addWidget(button_box)
+        self.setLayout(layout)
         
-        
+
+#######################################################################################################
+#  Methods connected to an action                                                                     #
+#######################################################################################################
     def open_file_dialog(self) -> None:
         """ Open a file dialog to navigate between folders to select the file
         """
@@ -85,6 +94,7 @@ class OpenFileDialog(QtWidgets.QDialog):
         )[0]
         # If the user cancel the operation, no need to save into the variable
         if self.selected_file:
+            # Display the file selected by the user in the lineedit
             self.choose_file.setText(self.selected_file)
 
 
@@ -97,8 +107,8 @@ class OpenFileDialog(QtWidgets.QDialog):
         self.selected_year = self.choose_year.text()
         self.selected_category = self.choose_category.currentText()
 
+        # Display a warning in case the user don't complete all the informations
         if self.selected_file == "":
-            # Need to choose a file
             common.message_warning("Vous devez entrer un fichier", self)
             return
         elif self.selected_year == "":
@@ -110,7 +120,7 @@ class OpenFileDialog(QtWidgets.QDialog):
             self.__controller.open_file(self.selected_file, self.selected_year, self.selected_category)
             # Close dialog if the file was read
             super().accept()
-        # In case of error, display a message with the corresponding error
+        # In case of error, display a message with the corresponding error and clear the lineedits
         except Exception as e:
             common.message_error(str(e), self)
             self.clear_input()
