@@ -148,7 +148,9 @@ class MainWindow(QtWidgets.QMainWindow):
         """ Open a dialog to read a file
         """
         self.file_dialog = OpenFileDialog(self.__controller, self)
-        self.file_dialog.exec()
+        if self.file_dialog.exec_():
+            category = self.file_dialog.selected_category
+            self.__tab_widget_categories.setCurrentIndex(self.__dict_categories[category]["index"])
     
     
     def export_file(self) -> None:

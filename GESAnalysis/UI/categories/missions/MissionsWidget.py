@@ -102,6 +102,7 @@ class MissionsWidget(QtWidgets.QWidget, Observer):
         ind_position = 0
         unit_distance = ""
         unit_emission = ""
+        unit_emission_contrails = ""
         # Get all the mode, position and for each file
         for file, data_file in self.__gesanalysis.get_data().items():
             if data_file["category"] != self.__category:
@@ -157,6 +158,15 @@ class MissionsWidget(QtWidgets.QWidget, Observer):
                 if not compare_column or len(distance) != len(mode) or len(distance) != len(position):
                     self.__files[file]["read"] = False
                     self.__files[file]["warning"].append(f"Colonne 'emission' a un nombre de ligne différent")
+                    
+            emission_contrails = common.get_column(data, "emission withcontrails")
+            if emission_contrails is None:
+                self.__files[file]["read"] = False
+                self.__files[file]["warning"].append(f"Colonne 'emission avec trainées' non-trouvée")
+            else:
+                if not compare_column or len(emission_contrails) != len(emission):
+                    self.__files[file]["read"] = False
+                    self.__files[file]["warning"].append(f"Colonne 'emission avec trainées' a un nombre de ligne différent")
             
             # Check the unit of distance
             unit = common.get_unit(data, "distance")
@@ -180,7 +190,19 @@ class MissionsWidget(QtWidgets.QWidget, Observer):
                     unit_emission = unit
                 if unit != unit_emission:
                     self.__files[file]["read"] = False
-                    self.__files[file]["warning"].append(f"Colonne 'emission' a une unité différente")   
+                    self.__files[file]["warning"].append(f"Colonne 'emission' a une unité différente")
+                    
+            # Same with emission with contrails
+            unit = common.get_unit(data, "emission withcontrails")
+            if unit is None:
+                self.__files[file]["warning"].append(f"Colonne 'emission avec trainées' n'a pas d'unité")
+            else:
+                unit = "/".join(unit)
+                if unit_emission_contrails == "":
+                    unit_emission_contrails = unit
+                if unit != unit_emission_contrails:
+                    self.__files[file]["read"] = False
+                    self.__files[file]["warning"].append(f"Colonne 'emission avec trainées' a une unité différente")   
             
             # Get the year
             year = data_file["year"]
@@ -216,11 +238,13 @@ class MissionsWidget(QtWidgets.QWidget, Observer):
                     data_dist[mode]["data"][position][year] = {
                         "mission": [],
                         "total_distance": 0,
-                        "total_emission": 0
+                        "total_emission": 0,
+                        "total_emission_contrails": 0
                     }
                     data_dist[mode]["sum"][year] = {
                         "distance": 0,
-                        "emission": 0
+                        "emission": 0,
+                        "emission_contrails": 0
                     }
                     
         # Now calculate the distance and the emission
@@ -235,6 +259,7 @@ class MissionsWidget(QtWidgets.QWidget, Observer):
             position = common.get_column(data, "position")
             distance = common.get_column(data, "distance")
             emission = common.get_column(data, "emission")
+            emission_contrails = common.get_column(data, "emission withcontrails")
             year = data_file["year"]
             
             for i in range(len(mission)):
@@ -245,17 +270,21 @@ class MissionsWidget(QtWidgets.QWidget, Observer):
                 # Add the distance
                 sum_distance = sum(distance[i])
                 sum_emission = sum(emission[i])
+                sum_emission_contrails = sum(emission_contrails[i])
                 for mis in mission[i]:
-                    data_dist[mode_val]["data"][pos_val][year]["mission"].append((mis, sum_distance, sum_emission))
+                    data_dist[mode_val]["data"][pos_val][year]["mission"].append((mis, sum_distance, sum_emission, sum_emission_contrails))
                     data_dist[mode_val]["data"][pos_val][year]["total_distance"] += sum_distance
                     data_dist[mode_val]["data"][pos_val][year]["total_emission"] += sum_emission
+                    data_dist[mode_val]["data"][pos_val][year]["total_emission_contrails"] += sum_emission_contrails
                     data_dist[mode_val]["sum"][year]["distance"] += sum_distance
                     data_dist[mode_val]["sum"][year]["emission"] += sum_emission
+                    data_dist[mode_val]["sum"][year]["emission"] += sum_emission_contrails
                 
         self.__data = {
             "data": data_dist,
             "unit_distance": unit_distance,
-            "unit_emission": unit_emission
+            "unit_emission": unit_emission,
+            "unit_emission_contrails": unit_emission_contrails
         }
         
         

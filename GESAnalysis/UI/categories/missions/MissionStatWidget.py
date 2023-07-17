@@ -60,7 +60,7 @@ class MissionStatWidget(QtWidgets.QWidget):
         
         # add different choices to the combobox
         self.__combobox_choice.currentTextChanged.connect(self.__refill_table)
-        self.__combobox_choice.addItems(["Missions", "Distance", "Emission"])
+        self.__combobox_choice.addItems(["Missions", "Distance", "Emission", "Emission avec trainées"])
         
         # Add years to the combobox
         self.__combobox_year.addItems(self.__years_dict.keys())
@@ -124,8 +124,10 @@ class MissionStatWidget(QtWidgets.QWidget):
             corres_data_dict = "mission"
         elif selected_category == "Distance":
             corres_data_dict = "total_distance"
-        else:
+        elif selected_category == "Emission":
             corres_data_dict = "total_emission"
+        else:
+            corres_data_dict = "total_emission_contrails"
         
         # Dictionary of position and calculate the total
         total_position_dict = {}
