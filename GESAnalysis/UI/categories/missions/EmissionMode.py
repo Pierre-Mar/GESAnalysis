@@ -30,8 +30,10 @@ class EmissionMode(QtWidgets.QWidget):
         self.__emission_dict = {}    # Dictionary where the key is a year and the value a list with distance for all mode
         self.__is_pourcentage = False
         self.__accumulate = False
+        self.__with_contrails = False
         self.__is_bars_selected = True
-        self.__unit = ""
+        self.__unit_emission = ""
+        self.__unit_emission_contrails = ""
         
         # Create figure
         self.__fig = Figure()
@@ -79,9 +81,15 @@ class EmissionMode(QtWidgets.QWidget):
         self.button_accumulate.setChecked(self.__accumulate)
         self.button_accumulate.toggled.connect(self.__click_accumulate)
         
+        # Create a check button to display the emission with contrails
+        self.button_contrails = QtWidgets.QCheckBox("Trainées")
+        self.button_contrails.setChecked(self.__with_contrails)
+        self.button_contrails.toggled.connect(self.__click_contrails)
+        
         # Add these buttons into the widget
         layout_pourcentage_accu.addWidget(self.button_pourcentage)
         layout_pourcentage_accu.addWidget(self.button_accumulate)
+        layout_pourcentage_accu.addWidget(self.button_contrails)
         layout_pourcentage_accu.setAlignment(QtCore.Qt.AlignCenter)
         
         # Widget for choose bars or curve
@@ -216,7 +224,15 @@ class EmissionMode(QtWidgets.QWidget):
         label_y = "Nombre d'émissions"
         if self.__accumulate:
             label_y += " en cumulées"
-        label_y +=  " (%)" if self.__is_pourcentage else f" ({self.__unit})"
+        
+        # Set unit to y-label
+        if self.__is_pourcentage:
+            label_y += " (%)"
+        else:
+            if self.__with_contrails:
+                label_y += f" ({self.__unit_emission_contrails})"
+            else:
+                label_y += f" ({self.__unit_emission})"
         self.__axes.set_ylabel(label_y)
         
         # Draw the graph
@@ -269,11 +285,17 @@ class EmissionMode(QtWidgets.QWidget):
         # - mission: a list with the number of the mission for a certain mode
         # - value: a list with the emission due to the mission by the moe
         x_label_value = {}
+        
+        # Use the correct dictionary with contrails or not
+        use_dict = self.__emission_dict["normal"]
+        if self.__with_contrails:
+            use_dict = self.__emission_dict["contrails"]
+            
         for mode in self.__mode_dict.keys():
             x_label_value[mode] = {"mission" : [], "value": []}
         
-        data_year = self.__emission_dict[year]["data"]
-        data_year_sum = self.__emission_dict[year]["sum"]
+        data_year = use_dict[year]["data"]
+        data_year_sum = use_dict[year]["sum"]
         value_accumulate = 0
         for val_ind, val in enumerate(data_year):
             emission, mode = val
@@ -325,8 +347,14 @@ class EmissionMode(QtWidgets.QWidget):
         """
         # Structure is the same as bars
         x_label_value = {"mission": [], "value": []}
-        data_year = self.__emission_dict[year]["data"]
-        data_year_sum = self.__emission_dict[year]["sum"]
+        
+        # Use the correct dictionary with contrails or not
+        use_dict = self.__emission_dict["normal"]
+        if self.__with_contrails:
+            use_dict = self.__emission_dict["contrails"]
+        
+        data_year = use_dict[year]["data"]
+        data_year_sum = use_dict[year]["sum"]
         value_accumulate = 0
         if self.__accumulate:
             x_label_value["mission"].append(0)
@@ -390,6 +418,16 @@ class EmissionMode(QtWidgets.QWidget):
         self.__draw()
         
         
+    def __click_contrails(self, state: bool) -> None:
+        """ When an user click on the button "Trainées", the graph display the emission with contrails
+
+        Args:
+            state (bool): Button is checked or not
+        """
+        self.__with_contrails = state
+        self.__draw()
+        
+        
     def __select_bar_graph(self, selected):
         """ Check if the radio button to draw bars is selected or not
 
@@ -437,7 +475,8 @@ class EmissionMode(QtWidgets.QWidget):
         self.__mode_dict = self.__update_structure(mode_ind)
         self.__years_dict = self.__update_structure(years_ind)
         self.__emission_dict = self.__rearrange_data(data_dict["data"].copy())
-        self.__unit = data_dict["unit_emission"]       
+        self.__unit_emission = data_dict["unit_emission"]
+        self.__unit_emission_contrails = data_dict["unit_emission_contrails"]
         
         self.__update_buttons_layout(
             self.__years_dict,
@@ -459,8 +498,14 @@ class EmissionMode(QtWidgets.QWidget):
             Data for graph
         """
         dictionary = {}
+        dictionary["normal"] = {}
+        dictionary["contrails"] = {}
         for year in self.__years_dict.keys():
-            dictionary[year] = {
+            dictionary["normal"][year] = {
+                "data" :[],
+                "sum": 0
+            }
+            dictionary["contrails"][year] = {
                 "data" :[],
                 "sum": 0
             }
@@ -472,12 +517,17 @@ class EmissionMode(QtWidgets.QWidget):
                     missions = year_data["mission"]
                     for value in missions:
                         emis = value[2]
-                        dictionary[year]["data"].append((emis, mode))
-                        dictionary[year]["sum"] += emis
+                        emis_contrails = value[3]
+                        dictionary["normal"][year]["data"].append((emis, mode))
+                        dictionary["normal"][year]["sum"] += emis
+                        dictionary["contrails"][year]["data"].append((emis_contrails, mode))
+                        dictionary["contrails"][year]["sum"] += emis_contrails
         
         # Sort value of emission by descending order
-        for data_year in dictionary.values():
-            data_year["data"].sort(key=lambda a:a[0], reverse=True)
+        for d in dictionary.values():
+            for data_year in d.values():
+                data_year["data"].sort(key=lambda a:a[0], reverse=True)
+                data_year["data"].sort(key=lambda a:a[0], reverse=True)
 
         return dictionary
     
