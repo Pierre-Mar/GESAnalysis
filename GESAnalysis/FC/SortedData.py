@@ -29,21 +29,24 @@ class SortedData:
             list: List of index indicating the position of the data
         """
         if data_dict is None:
-            raise TypeError("cannot access to values because the dictionary is null")
+            raise TypeError("Accès impossible au données car le dictionnaire est invalide")
         
         # Check the column name
         check_column = self.__check_column(data_dict, column)
         if check_column is None:
-            raise KeyError(f"there is no column '{column}' in data")
-                
-        list_data = data_dict[check_column]["data"]
+            raise KeyError(f"La colonne '{column}' n'existe pas")
 
+        list_data = data_dict[check_column]["data"].copy()
+        for i in range(len(list_data)):
+            list_data[i] = sum(list_data[i])
+            
         sorted_list_data = [i for i in sorted(enumerate(list_data), key=operator.itemgetter(1), reverse=reversed)]
-        
+
         # Link between the index of data before and after the sort
         sorted_index_list_data = [0 for i in range(len(sorted_list_data))]
         for i in range(len(sorted_list_data)):
             sorted_index_list_data[sorted_list_data[i][0]] = i
+
         return sorted_index_list_data
     
     

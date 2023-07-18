@@ -14,9 +14,12 @@ class ExportData:
         pass
     
 
+#######################################################################################################
+#  Export the data to a file                                                                          #
+#######################################################################################################
     def export_data(
         self,
-        data_dict: Optional[Dict[str, Dict[str, List[Union[str, int, float, bool]]]]],
+        data_dict: Optional[Dict[str, Dict[str, List[Union[List[Union[int, float, bool, str]], str]]]]],
         fileout: str
     ) -> bool:
         """ Export the dictionary of data into the file 'fileout'
@@ -32,21 +35,56 @@ class ExportData:
             bool: True if all the data has been written in the file
         """
         if data_dict is None:
-            raise TypeError("cannot access to values because the dictionary is null")
-        
+            raise TypeError("Accès impossible au données car le dictionnaire est invalide")
         
         # Check the name of file
         self.__verif_fileout(fileout)
         
-        match self.__file_ext:
-            case ".csv":
-                return self.__write_in_file(data_dict, fileout, ',')
-            case ".tsv":
-                return self.__write_in_file(data_dict, fileout, '\t')
-            case _:
-                return self.__write_in_file(data_dict, fileout, ',')
+        if self.__file_ext == ".csv":
+            return self.__write_in_file(data_dict, fileout, ';')
+        elif self.__file_ext == ".tsv":
+            return self.__write_in_file(data_dict, fileout, '\t')
+        else:
+            return self.__write_in_file(data_dict, fileout, ';')
+        
     
-    
+    def export_stat(self, data: List[List[str]], header_column: List[str], header_row: List[str], fileout: str):
+        """ Export the stat inside data with headers : columns and rows, in the file fileout
+
+        Args:
+            data (List[List[str]]): Stats
+            header_column (List[str]): Header of columns
+            header_row (List[str]): Header of rows
+            fileout (str): Path to file to save the data
+
+        Raises:
+            ValueError: _description_
+
+        Returns:
+            bool: True if the data was export
+        """
+        # Check the file
+        self.__verif_fileout(fileout)
+        
+        # Check if there are the same number lines
+        # Same with columns
+        self.__verif_number_lines(data)
+        if len(header_column) != len(data[0]):
+            raise ValueError(f"Il y a {len(data[0])} éléments alors qu'il y a {len(header_column)} colonnes")
+
+        if len(data) != len(header_row):
+            raise ValueError(f"Il y a {len(data)} lignes d'éléments alors qu'il y a {len(header_row)} en-têtes de lignes")
+        
+        # Write data
+        if self.__file_ext == ".csv":
+            return self.__write_stat(data, header_column, header_row, fileout, ";")
+        elif self.__file_ext == ".tsv":
+            return self.__write_stat(data, header_column, header_row, fileout, '\t')
+        else:
+            return self.__write_stat(data, header_column, header_row, fileout, ";")
+        
+
+
     def __verif_fileout(self, fileout: str) -> None:
         """ Check 'fileout' if it's a CSV, TSV or TXT file
 
@@ -54,7 +92,7 @@ class ExportData:
             fileout (str): Path to the file to write the data
 
         Raises:
-            TypeError: 'fileout' is not a CSV, TSV or TXT file
+            Exception: 'fileout' is not a CSV, TSV or TXT file
         """
         # Get the extension of the file
         root_filename, self.__file_ext = os.path.splitext(fileout)
@@ -69,12 +107,15 @@ class ExportData:
         file = path_to_file[len(path_to_file) - 1]
         
         if not self.__file_ext in self.__accepted_extension:
-            raise TypeError(f"cannot export data to '{file+self.__file_ext}'. Should be a CSV, TSV or TXT file")
+            raise Exception(f"Exportation impossible de '{file+self.__file_ext}'. Le fichier doit être de type CSV, TSV ou TXT")
     
-    
+
+#######################################################################################################
+#  Write the data into the file                                                                       #
+#######################################################################################################
     def __write_in_file(
         self,
-        data: Dict[str, Dict[str, List[Union[str, int, float, bool]]]],
+        data: Dict[str, Dict[str, List[Union[List[Union[int, float, bool, str]], str]]]],
         fileout: str,
         sep: str
     ) -> bool:
@@ -111,24 +152,61 @@ class ExportData:
                 for l in range(nb_lines):
                     ph = ""
                     for c in range(nb_columns):
+                        # Transform all elements into string
+                        elem_col_str = [str(x) for x in elems_columns[c][l]]
+                        # Add separator depending on which column
                         if c == nb_columns-1:
-                            ph += str(elems_columns[c][l]) + '\n'
+                            ph += ','.join(elem_col_str) + '\n'
                         else:
-                            ph += str(elems_columns[c][l]) + sep
+                            ph += ','.join(elem_col_str) + sep
                     
                     file_out.write(ph)
         # if we catch an error, we remove the file
         except IOError:
             os.remove(fileout)
-            raise IOError(f"cannot open and write into the file '{fileout}'")
+            raise IOError(f"Problème rencontré pendant l'écriture du fichier '{fileout}'")
         except ValueError as v:
             os.remove(fileout)
             raise ValueError(str(v))
         return True
     
     
+    def __write_stat(self, data: List[List[str]], header_column: List[str], header_row: List[str], fileout: str, sep: str):
+        """ Write data and headers in the file fileout. The elements are separated by sep
+
+        Args:
+            data (List[List[str]]): Stats
+            header_column (List[str]): Header of columns
+            header_row (List[str]): Header of rows
+            fileout (str): Path to file to save the data
+            sep (str): Separator
+
+        Raises:
+            ValueError: Problem occurs during the export
+
+        Returns:
+            bool: True if the export is a success
+        """
+        try:
+            with open(fileout, "w") as write_fileout:
+                write_column = "header_row" + sep + sep.join(header_column) + "\n"
+                write_fileout.write(write_column)
+                
+                for num_line in range(len(data)):
+                    ph = header_row[num_line] + sep
+                    
+                    join_list = sep.join(data[num_line])
+                    ph += join_list + '\n'
+                    
+                    write_fileout.write(ph)
+        except:
+            os.remove(fileout)
+            raise ValueError("Problème rencontré lors de l'exportation des statistiques")
+        return True
+    
+    
     def __verif_number_lines(self, elems_col: List[List[Union[bool, str, float, int]]]) -> None:
-        """ Check that the number of elements of each row is the same
+        """ Check the number of elements of each row is the same
 
         Args:
             elems_col (list): List where the values of each columns is in a list
@@ -136,17 +214,19 @@ class ExportData:
         Raises:
             ValueError: This number is not equal for each row
         """
-        print(elems_col)
         nb_elements = len(elems_col[0])
         for i in range(1, len(elems_col)):
             nb_elements_line = len(elems_col[i])
             if nb_elements_line != nb_elements:
-                raise ValueError(f"{nb_elements_line} elements in line {i+1} instead of {nb_elements} elements")
+                raise ValueError(f"La ligne {i+1} a {nb_elements_line} éléments au lieu de {nb_elements} éléments")
 
 
+#######################################################################################################
+#  Getters                                                                                            #
+#######################################################################################################
     def __get_data(
         self,
-        data_dict: Dict[str, Dict[str, List[Union[str, int, float, bool]]]]
+        data_dict: Dict[str, Dict[str, List[Union[List[Union[int, float, bool, str]], str]]]]
     ) -> List[List[Union[bool, str, float, int]]]:
         """ Get the data of each column and put it in a list
 

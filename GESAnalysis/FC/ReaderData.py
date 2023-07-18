@@ -1,13 +1,24 @@
 import os
 import platform
 import csv
-import pandas
-import openpyxl
-from typing import Union, Dict, List, Tuple, Optional
+from typing import Union, Dict, List, Tuple
 
 
 class ReaderData:
     """ Class to read data from a CSV, TSV, TXT or XLSX file
+    
+        Exemple : File format :
+            nom_col1,nom_col2.unite,nom_col3.suite_nom.unite,nom_col4.suite_nom.unite.suite_unite
+            d11,d12,d13,d14,
+            d21,d22,d23,d24
+                
+            The dictionary will be :
+            {
+                "nom_col1": { "name": ["nom_col1"], "unit": None, "data": [[d11], [d21]], "type": type(data)},
+                "nom_col2.unite": { "name": ["nom_col2"], "unit": ["unite"], "data": [[d12], [d22]] },
+                "nom_col3.suite_nom.unite": { "name": ["nom_col3", "suite_nom"], "unit": ["unite"], "data": [[d13], [d23]] },
+                "nom_col4.suite_nom.unite.suite_unite": { "name": ["nom_col4", "suite_nom"], "unit": ["unite", "suite_unite"], "data": [[d14], [d24]] },
+            }
     """
     
     __accepted_extension = [".csv", ".txt", ".tsv", ".xlsx"]
@@ -26,7 +37,7 @@ class ReaderData:
         pass
 
 
-    def read_file(self, filename: str, sep: str = None, engine: str ='pandas') -> Dict[str, Dict[str, List[Union[str, int, float, bool]]]]:
+    def read_file(self, filename: str, sep: str = None, engine: str ='pandas') -> Dict[str, Dict[str, List[Union[List[Union[int, float, bool, str]], str]]]]:
         """ Read the file 'filename' with or without a separator, for CSV, TSV and TXT files, and
             a reading engine, for XLSX files
 
@@ -36,20 +47,7 @@ class ReaderData:
             engine (str, optional): Reading engine for XLSX file (pandas, openpyxl). Defaults to pandas
 
         Returns:
-            dict: Dictionary with the name, unit and data of each column in the file if the reading is correct
-            
-            Exemple : File format :
-                nom_col1,nom_col2.unite,nom_col3.suite_nom.unite,nom_col4.suite_nom.unite.suite_unite
-                d11,d12,d13,d14,
-                d21,d22,d23,d24
-                
-            The dictionary will be :
-            {
-                "nom_col1": { "name": ["nom_col1"], "unit": None, "data": [d11, d21] },
-                "nom_col2.unite": { "name": ["nom_col2"], "unit": ["unite"], "data": [d12, d22] },
-                "nom_col3.suite_nom.unite": { "name": ["nom_col3", "suite_nom"], "unit": ["unite"], "data": [d13, d23] },
-                "nom_col4.suite_nom.unite.suite_unite": { "name": ["nom_col4", "suite_nom"], "unit": ["unite", "suite_unite"], "data": [d14, d24] },
-            }
+            dict: Dictionary with the name, unit, data and type of each column in the file if the reading is correct
         """
         # Verification of the file
         self.__verify_file(filename)
@@ -92,11 +90,11 @@ class ReaderData:
         
         # Check if the file exists
         if not os.path.isfile(filename):
-            raise FileNotFoundError(f"file '{file+self.__ext}' not exist")
+            raise FileNotFoundError(f"Le fichier '{file+self.__ext}' n'existe pas")
         
         # Check if the file is supported by the application
         if not self.__ext in self.__accepted_extension:
-            raise TypeError(f"cannot read data from '{file+self.__ext}'. Should be a CSV, TSV, TXT or XLSX file")
+            raise TypeError(f"Exportation impossible de '{file+self.__ext}'. Le fichier doit être de type CSV, TSV, TXT ou XLSX")
     
     
     def __detect_delimiter(self, filename: str) -> str:
@@ -119,7 +117,7 @@ class ReaderData:
         return dialect.delimiter
     
 
-    def __read_csv_tsv_txt(self, filename: str, sep:str = ',') -> Dict[str, Dict[str, List[Union[str, int, float, bool]]]]:
+    def __read_csv_tsv_txt(self, filename: str, sep:str = ',') -> Dict[str, Dict[str, List[Union[List[Union[int, float, bool, str]], str]]]]:
         """ Reading the data from a CSV, TSV or TXT file and the separator between values
 
         Args:
@@ -164,25 +162,31 @@ class ReaderData:
                 nb_elems_line = len(list_lines)
                 # Check that the number of elements of a row is equal to the number of columns
                 if nb_elems_line != nb_column:
-                    raise ValueError(f"{nb_elems_line} elements in line {lines_iter+1} but there is {nb_column} columns")
+                    raise ValueError(f"La ligne {lines_iter+1} a {nb_elems_line} éléments mais il y a {nb_column} colonnes")
                 
                 # Add the row elements into data
                 # The elements are in a list where the key is the name of the column
                 for elem_index in range(len(list_lines)):
-                    new_elem = self.__convert_element(list_lines[elem_index])
-                    
-                    # Check that the element is the same type
-                    # If it's the 1st element, we skip it
-                    type_new_elem = type(new_elem)
-                    type_new_elem_str = str(type_new_elem).split("'")[1]
-                    if lines_iter != 1 and not isinstance(data[name_column[elem_index]]["data"][0], type_new_elem):
-                        type_elem_ref = type(data[name_column[elem_index]]["data"][0])
-                        type_elem_ref_str = str(type_elem_ref).split("'")[1]
-                        print(str(type_elem_ref))
-                        raise TypeError(f"Element at row {lines_iter+1} and column {'.'.join(data[name_column[elem_index]]['name'])} has type {type_new_elem_str} instead of type {type_elem_ref_str}")
+                    elem, type_elem = self.__convert_element(list_lines[elem_index])
+                    # If it's the first element, we add his type to the dictionary
+                    if lines_iter == 1:
+                        data[name_column[elem_index]]["type"] = type_elem
+                    # Else, we compare if it's the same type
+                    else:
+                        correct_type = data[name_column[elem_index]]["type"]
+                        # If it's an int or a float, we accept both of them
+                        if correct_type == int and type_elem == float:
+                            correct_type = float
+                            data[name_column[elem_index]]["type"] = correct_type
+                        elif correct_type == float and type_elem == int:
+                            for i in range(len(elem)):
+                                elem[i] = float(elem[i])
+                            type_elem = float
+                        if type_elem != correct_type:
+                            raise TypeError(f"L'élément à la ligne {lines_iter+1} et colonne {'.'.join(data[name_column[elem_index]]['name'])} est du type {self.__type_to_str(type_elem)} au lieu du type {self.__type_to_str(correct_type)}")
                     
                     # Add into data
-                    data[name_column[elem_index]]["data"].append(new_elem)
+                    data[name_column[elem_index]]["data"].append(elem)
                     
                 # Next line
                 lines = file.readline()
@@ -191,29 +195,40 @@ class ReaderData:
                 
         return data
     
-    
-    def __convert_element(self, elem: str) -> Union[bool, str, int, float]:
-        """ Convert the element 'elem' in his corresponding type
+
+    def __convert_element(self, val_str: str) -> Tuple[List[Union[bool, int, float, str]], type]:
+        """ Convert a value in a string to his corresponding type
 
         Args:
-            elem (str): Element to convert
+            val_str (str): The value in a string
 
         Returns:
-            bool | int | float | str : Element in the good type
+            type: The type of the value
         """
-        # Check if elem is a boolean
-        if elem.lower() == "true":
-            return True
-        elif elem.lower() == "false":
-            return False
-
-        # Check each type to get the good type
-        contructors = [int, float, str]
-        for c in contructors:
-            try:
-                return c(elem)
-            except ValueError:
-                pass
+        constructors = [int, float]
+        
+        # Change the value to their corresponding type
+        val_list = val_str.split(',')
+        val_list_save = val_list.copy()
+        for i in range(len(val_list)):
+            if val_list[i].lower() == "true":
+                val_list[i] = True
+            elif val_list[i].lower() == "false":
+                val_list[i] = False
+            else:
+                for c in constructors:
+                    try:
+                        val_list[i] = c(val_list[i])
+                        break
+                    except ValueError:
+                        pass   
+        # Check if their are all the same type
+        type_val_ref = type(val_list[0])
+        for i in range(1, len(val_list)):
+            # If there is one who have not the same type, return list of string
+            if not isinstance(val_list[i], type_val_ref):
+                return val_list_save, str
+        return val_list, type_val_ref
             
     
     def __parser_name_unit(self, name_col: str) -> Tuple[List[str], List[str]]:
@@ -252,7 +267,7 @@ class ReaderData:
         return (name_list[0:index_spe_name_unit], name_list[index_spe_name_unit:len(name_list)])
 
 
-    def __read_xlsx(self, filename: str, engine: str = 'pandas') -> Dict[str, Dict[str, List[Union[str, int, float, bool]]]]:
+    def __read_xlsx(self, filename: str, engine: str = 'pandas') -> Dict[str, Dict[str, List[Union[List[Union[int, float, bool, str]], str]]]]:
         """ Read a XLSX file with the engine 'pandas' or 'openpyxl'
         Lecture d'un fichier excel avec comme moteur pandas ou openpyxl
 
@@ -268,14 +283,20 @@ class ReaderData:
         """
         match engine:
             case 'pandas':
-                return self.__read_xlsx_pandas(filename)
+                try:
+                    return self.__read_xlsx_pandas(filename)
+                except:
+                    return self.__read_xlsx_openpyxl(filename)
             case 'openpyxl':
-                return self.__read_xlsx_openpyxl(filename)
+                try:
+                    return self.__read_xlsx_openpyxl(filename)
+                except:
+                    return self.__read_xlsx_pandas(filename)
             case _:
-                raise ValueError(f"'{engine}' is not an engine to read a file. Use 'pandas' or 'openpyxl'")
+                raise ValueError(f"'{engine}' n'est pas un moteur de lecture. Utilisez 'pandas' ou 'openpyxl'")
             
        
-    def __read_xlsx_pandas(self, filename: str) -> Dict[str, Dict[str, List[Union[str, int, float, bool]]]]:
+    def __read_xlsx_pandas(self, filename: str) -> Dict[str, Dict[str, List[Union[List[Union[int, float, bool, str]], str]]]]:
         """ Read a XLSX file with pandas
 
         Args:
@@ -288,14 +309,15 @@ class ReaderData:
             dict: Dictionary with the data of the file if the reading is correct
         """
         try:
+            import pandas
             # Read the file
             data = pandas.read_excel(filename)
             return self.__transform_data_pandas(data.to_dict('split'))       
         except:
-            raise IOError("unexcepted problem. Cannot read the excel file with 'pandas'. Try with 'openpyxl'")
+            raise IOError("Problème rencontré. Lecture impossible avec 'pandas'. Essayez avec 'openpyxl'")
     
     
-    def __read_xlsx_openpyxl(self, filename: str) -> Dict[str, Dict[str, List[Union[str, int, float, bool]]]]:
+    def __read_xlsx_openpyxl(self, filename: str) -> Dict[str, Dict[str, List[Union[List[Union[int, float, bool, str]], str]]]]:
         """ Read a XLSX file with openpyxl
 
         Args:
@@ -308,6 +330,7 @@ class ReaderData:
             dict: Dictionary with the data of the file if the reading is correct
         """
         try:
+            import openpyxl
             # Open the file and activate the sheet
             wb = openpyxl.load_workbook(filename=filename)
             sheet = wb.active
@@ -334,14 +357,15 @@ class ReaderData:
                 # Get the value in the cell of row row and column col
                 for col in range(1, nb_columns+1):
                     cell = sheet.cell(row=row, column=col)
-                    data[name_column[col-1]]["data"].append(cell.value)
-
+                    if row == 2:
+                        data[name_column[col-1]]["type"] = type(cell.value)
+                    data[name_column[col-1]]["data"].append([cell.value])
             return data
         except:
-            raise IOError("unexcepted problem. Cannot read the excel file with 'openpyxl'. Try with 'pandas'")
+            raise IOError("Problème rencontré. Lecture impossible avec 'openpyxl'. Essayez avec 'pandas'")
         
         
-    def __transform_data_pandas(self, data: Dict[str, List[Union[str, bool, int, float]]]) -> Dict[str, Dict[str, List[Union[str, int, float, bool]]]]:
+    def __transform_data_pandas(self, data: Dict[str, List[Union[str, bool, int, float]]]) -> Dict[str, Dict[str, List[Union[List[Union[int, float, bool, str]], str]]]]:
         """ Transorm a dictionary from pandas to our corresponding dictionary
         Pandas dictionary:
         {
@@ -366,5 +390,22 @@ class ReaderData:
             data_transform[str(columns[c])]["unit"] = u
             data_transform[str(columns[c])]["data"] = []
             for l in range(len(values_columns)):
-                data_transform[str(columns[c])]["data"].append(values_columns[l][c])
+                val = values_columns[l][c]
+                # Add type if it's the first value
+                if l == 0:
+                    data_transform[str(columns[c])]['type'] = type(val)
+                data_transform[str(columns[c])]["data"].append([val])
+                
         return data_transform
+
+
+    def __type_to_str(self, type: type) -> str:
+        """ Transform a type to a string
+
+        Args:
+            type (type): The type
+
+        Returns:
+            str: the type in a string
+        """
+        return str(type).split("'")[1]

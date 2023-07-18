@@ -9,19 +9,16 @@ export = ExportData()
 reader = ReaderData()
 tmp_file = "tmp" # For each function, add the extension
 
-# Définition of paths of files depending on the OS
+# Definition of paths of files depending on the OS
 os_name = platform.system()
-people = "tests/resources/people.csv"
-hw_5 = "tests/resources/hw_5.tsv"
-username = "tests/resources/username.txt"
-excel = "tests/resources/file_example_XLSX_10.xlsx"
-export_invalid = "tests/resources/export_invalid.py"
-if os_name == 'Windows':
-    people = r"tests\resources\people.csv"
-    hw_5 = r"tests\resources\hw_5.tsv"
-    username = r"tests\resources\username.txt"
-    excel = r"tests\resources\file_example_XLSX_10.xlsx"
-    export_invalid = r"tests\resources\export_invalid.py"
+path = "tests/resources/"
+if os_name == "Windows":
+    path = "tests\\resources\\"
+people = path + "people.csv"
+hw_5 = path + "hw_5.tsv"
+username = path + "username.txt"
+excel = path + "file_example_XLSX_10.xlsx"
+export_invalid = path + "export_invalid.py"
 
 
 # ------------------------------------------------------------------------------------------------------------------------
@@ -96,17 +93,27 @@ def test_invalid_file_export():
     """ Check the exportation to an invalid file gives an error
     """
     data = {
-        "Langage": ["Français", "Anglais"],
-        "Mot": ["Bonjour", "Hello"]
+        "Langage": {
+            "name": ["Langage"],
+            "unit": [],
+            "data": [["Français"], ["Anglais"]],
+            "type": str
+        },
+        "Mot": {
+            "name": ["Mot"],
+            "unit": [],
+            "data": [["Bonjour"], ["Hello"]],
+            "type": str
+        }
     }
-    with pytest.raises(TypeError, match="cannot export data to 'export_invalid.py'. Should be a CSV, TSV or TXT file"):
+    with pytest.raises(Exception, match="Exportation impossible de 'export_invalid.py'. Le fichier doit être de type CSV, TSV ou TX"):
         export.export_data(data, export_invalid)
 
 
 def test_invalid_data():
     """ Check if a dictionary of data is None, then we catch the error
     """
-    with pytest.raises(TypeError, match="cannot access to values because the dictionary is null"):
+    with pytest.raises(TypeError, match="Accès impossible au données car le dictionnaire est invalide"):
         export.export_data(None, tmp_file+".txt")
 
 
@@ -116,16 +123,163 @@ def test_nb_elem_col_diff_data():
     data = {
         "Langage": {
             "name": ["Langage"],
-            "unit": None,
-            "data": ["Français", "Anglais"]   
+            "unit": [],
+            "data": [["Français"], ["Anglais"]],
+            "type": str
         },
         "Mot": {
             "name": ["Mot"],
-            "unit": None,
-            "data": ["Bonjour"]
+            "unit": [],
+            "data": [["Bonjour"]],
+            "type": str
         }
     }
-    with pytest.raises(ValueError, match="1 elements in line 2 instead of 2 elements"):
+    with pytest.raises(ValueError, match="La ligne 2 a 1 éléments au lieu de 2 éléments"):
         export.export_data(data, tmp_file+".txt")
+# ------------------------------------------------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------------------------------------------------
+
+
+
+# ------------------------------------------------------------------------------------------------------------------------
+# Tests : export_stat(self, data: List[List[str]], header_column: List[str], header_row: List[str], fileout: str)
+# ------------------------------------------------------------------------------------------------------------------------
+
+# ------------------------------------------------------------------------------------------------------------------------
+# Tests to check if the exportation of stats is valid
+# ------------------------------------------------------------------------------------------------------------------------
+def test_export_stat_valid_csv():
+    data = [["10", "11", "12"],
+            ["20", "21", "22"],
+            ["30", "31", "32"]]
+    header_columns = ["Zero", "Un", "Deux"]
+    header_rows = ["Dix", "Vingt", "Trente"]
+    data_dict = {
+        'header_row': {
+            'name': ['header_row'],
+            'unit': [],
+            'data': [['Dix'], ['Vingt'], ['Trente']],
+            'type': str
+        },
+        'Zero': {
+            'name': ['Zero'],
+            'unit': [],
+            'data': [[10], [20], [30]],
+            'type': int
+        },
+        'Un': {
+            'name': ['Un'],
+            'unit': [],
+            'data': [[11], [21], [31]],
+            'type': int
+        },
+        'Deux': {
+            'name': ['Deux'],
+            'unit': [],
+            'data': [[12], [22], [32]],
+            'type': int
+        }
+    }
+    export.export_stat(data, header_columns, header_rows, tmp_file+".csv")
+    assert data_dict == reader.read_file(tmp_file + ".csv")
+    os.remove(tmp_file + ".csv")
+
+
+def test_export_stat_valid_tsv():
+    data = [["10", "11", "12"],
+            ["20", "21", "22"],
+            ["30", "31", "32"]]
+    
+    header_columns = ["Zero", "Un", "Deux"]
+    header_rows = ["Dix", "Vingt", "Trente"]
+    data_dict = {
+        'header_row': {
+            'name': ['header_row'],
+            'unit': [],
+            'data': [['Dix'], ['Vingt'], ['Trente']],
+            'type': str
+        },
+        'Zero': {
+            'name': ['Zero'],
+            'unit': [],
+            'data': [[10], [20], [30]],
+            'type': int
+        },
+        'Un': {
+            'name': ['Un'],
+            'unit': [],
+            'data': [[11], [21], [31]],
+            'type': int
+        },
+        'Deux': {
+            'name': ['Deux'],
+            'unit': [],
+            'data': [[12], [22], [32]],
+            'type': int
+        }
+    }
+    export.export_stat(data, header_columns, header_rows, tmp_file+".tsv")
+    assert data_dict == reader.read_file(tmp_file + ".tsv")
+    os.remove(tmp_file + ".tsv")
+    
+    
+def test_export_stat_valid_txt():
+    data = [["10", "11", "12"],
+            ["20", "21", "22"],
+            ["30", "31", "32"]]
+    header_columns = ["Zero", "Un", "Deux"]
+    header_rows = ["Dix", "Vingt", "Trente"]
+    data_dict = {
+        'header_row': {
+            'name': ['header_row'],
+            'unit': [],
+            'data': [['Dix'], ['Vingt'], ['Trente']],
+            'type': str
+        },
+        'Zero': {
+            'name': ['Zero'],
+            'unit': [],
+            'data': [[10], [20], [30]],
+            'type': int
+        },
+        'Un': {
+            'name': ['Un'],
+            'unit': [],
+            'data': [[11], [21], [31]],
+            'type': int
+        },
+        'Deux': {
+            'name': ['Deux'],
+            'unit': [],
+            'data': [[12], [22], [32]],
+            'type': int
+        }
+    }
+    export.export_stat(data, header_columns, header_rows, tmp_file+".txt")
+    assert data_dict == reader.read_file(tmp_file + ".txt")
+    os.remove(tmp_file + ".txt")
+
+    
+# ------------------------------------------------------------------------------------------------------------------------
+# Tests to check if we get the correct error
+# ------------------------------------------------------------------------------------------------------------------------
+def test_invalid_number_columns_elem():
+    data = [["10", "11", "12"],
+            ["20", "21", "22"],
+            ["30", "31", "32"]]
+    header_columns = ["Zero", "Un"]
+    header_rows = ["Dix", "Vingt", "Trente"]
+    with pytest.raises(ValueError, match="Il y a 3 éléments alors qu'il y a 2 colonnes"):
+        export.export_stat(data, header_columns, header_rows, tmp_file + ".csv")
+
+
+def test_inalid_number_row_elem():
+    data = [["10", "11", "12"],
+            ["20", "21", "22"],
+            ["30", "31", "32"]]
+    header_columns = ["Zero", "Un", "Deux"]
+    header_rows = ["Dix", "Vingt"]
+    with pytest.raises(ValueError, match="Il y a 3 lignes d'éléments alors qu'il y a 2 en-têtes de lignes"):
+        export.export_stat(data, header_columns, header_rows, tmp_file + ".tsv")
 # ------------------------------------------------------------------------------------------------------------------------
 # ------------------------------------------------------------------------------------------------------------------------
