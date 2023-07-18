@@ -42,8 +42,14 @@ NB : Lorsque vous ouvrez un nouveau terminal, si vous voulez lancer le programme
 
 ### Lecture de données
 
-L'application lit les données des BGES depuis les fichiers du type CSV, TSV, TXT et EXCEL (xlsx).  
-Tout autre type de fichier ne sera pas lu.
+L'application lit les données des BGES depuis les fichiers du type CSV, TSV, TXT et EXCEL (xlsx). Tout autre type de fichier ne sera pas lu.  
+L'interface s'organise de la façon suivante :
+    * Menu
+    * Onglets indiquant les catégories des BGES où chaque onglet possède :
+        - Fenêtre indiquant les fichiers ouverts de la catégorie actuelle
+        - Tableau de statistiques avec des boutons pour afficher plusieurs données dans le tableau
+        - Onglets avec les graphiques avec des boutons pour personnaliser les graphiques
+![](.assets_readme/interface.png)
 
 #### Ouverture de fichier
 
@@ -51,7 +57,6 @@ L'ouverture de fichier se fait par le menu "**Fichier > Ouvrir**". Une fenêtre 
 Après la lecture, l'interface met à jour les graphiques et les statistiques selon les fichiers ouverts et la catégorie.
 
 VIDEO MONTRANT UN EXEMPLE D'OUVERTURE REUSSIE
-![](.assets_readme/giphy.gif)
 
 #### Fermeture de fichier
 
@@ -69,6 +74,7 @@ l'exportation des données fonctionne avec :
     * La conversion de fichiers (csv, tsv, txt, xlsx) -> (csv, tsv, txt)
     * Les statistiques exportées vers un fichier (csv, tsv, txt)
     * Les graphiques exportés vers une image
+![](.assets_readme/export_buttons.png)
 
 ### Erreurs
 
