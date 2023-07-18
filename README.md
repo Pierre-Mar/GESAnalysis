@@ -40,9 +40,6 @@ NB : Lorsque vous ouvrez un nouveau terminal, si vous voulez lancer le programme
 
 ## Fonctionnalités
 
-### Lecture de données
-
-L'application lit les données des BGES depuis les fichiers du type CSV, TSV, TXT et EXCEL (xlsx). Tout autre type de fichier ne sera pas lu.  
 L'interface s'organise de la façon suivante :
 * Menu
 * Onglets indiquant les catégories des BGES où chaque onglet possède :
@@ -50,6 +47,11 @@ L'interface s'organise de la façon suivante :
     - Tableau de statistiques avec des boutons pour afficher plusieurs données dans le tableau
     - Onglets avec les graphiques avec des boutons pour personnaliser les graphiques
 ![](.assets_readme/interface.png)
+
+### Lecture de données
+
+L'application lit les données des BGES depuis les fichiers du type CSV, TSV, TXT et EXCEL (xlsx).  
+Tout autre type de fichier ne sera pas lu.
 
 #### Ouverture de fichier
 
