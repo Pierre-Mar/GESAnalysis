@@ -44,11 +44,11 @@ NB : Lorsque vous ouvrez un nouveau terminal, si vous voulez lancer le programme
 
 L'application lit les données des BGES depuis les fichiers du type CSV, TSV, TXT et EXCEL (xlsx). Tout autre type de fichier ne sera pas lu.  
 L'interface s'organise de la façon suivante :
-    * Menu
-    * Onglets indiquant les catégories des BGES où chaque onglet possède :
-        - Fenêtre indiquant les fichiers ouverts de la catégorie actuelle
-        - Tableau de statistiques avec des boutons pour afficher plusieurs données dans le tableau
-        - Onglets avec les graphiques avec des boutons pour personnaliser les graphiques
+* Menu
+* Onglets indiquant les catégories des BGES où chaque onglet possède :
+    - Fenêtre indiquant les fichiers ouverts de la catégorie actuelle
+    - Tableau de statistiques avec des boutons pour afficher plusieurs données dans le tableau
+    - Onglets avec les graphiques avec des boutons pour personnaliser les graphiques
 ![](.assets_readme/interface.png)
 
 #### Ouverture de fichier
@@ -61,8 +61,8 @@ VIDEO MONTRANT UN EXEMPLE D'OUVERTURE REUSSIE
 #### Fermeture de fichier
 
 La fermeture de fichier se fait en commençant par sélectionner les fichiers de la catégorie actuelle. Puis par :
-    * Le menu "**Fichier > Fermer**"
-    * Le menu contextuelle en faisant un clic droit sur les fichiers puis "**Fermer**"
+* Le menu "**Fichier > Fermer**"
+* Le menu contextuelle en faisant un clic droit sur les fichiers puis "**Fermer**"
 Les fichiers, qui ont été selectionné, seront fermés et l'interface sera mise à jour.
 
 VIDEO MONTRANT LES EXEMPLES DE FERMETURE PAR LES 2 MOYENS
@@ -71,9 +71,9 @@ VIDEO MONTRANT LES EXEMPLES DE FERMETURE PAR LES 2 MOYENS
 ### Exportation des données
 
 l'exportation des données fonctionne avec :
-    * La conversion de fichiers (csv, tsv, txt, xlsx) -> (csv, tsv, txt)
-    * Les statistiques exportées vers un fichier (csv, tsv, txt)
-    * Les graphiques exportés vers une image
+* La conversion de fichiers (csv, tsv, txt, xlsx) -> (csv, tsv, txt)
+* Les statistiques exportées vers un fichier (csv, tsv, txt)
+* Les graphiques exportés vers une image
 ![](.assets_readme/export_buttons.png)
 
 ### Erreurs
