@@ -45,7 +45,8 @@ L'interface s'organise de la façon suivante :
 * Onglets indiquant les catégories des BGES où chaque onglet possède :
     - Fenêtre indiquant les fichiers ouverts de la catégorie actuelle
     - Tableau de statistiques avec des boutons pour afficher plusieurs données dans le tableau
-    - Onglets avec les graphiques avec des boutons pour personnaliser les graphiques
+    - Onglets avec les graphiques avec des boutons pour personnaliser les graphiques  
+
 ![](.assets_readme/interface.png)
 
 ### Lecture de données
@@ -75,7 +76,8 @@ VIDEO MONTRANT LES EXEMPLES DE FERMETURE PAR LES 2 MOYENS
 l'exportation des données fonctionne avec :
 * La conversion de fichiers (csv, tsv, txt, xlsx) -> (csv, tsv, txt)
 * Les statistiques exportées vers un fichier (csv, tsv, txt)
-* Les graphiques exportés vers une image
+* Les graphiques exportés vers une image  
+
 ![](.assets_readme/export_buttons.png)
 
 ### Erreurs
