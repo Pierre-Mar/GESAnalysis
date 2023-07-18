@@ -82,7 +82,10 @@ l'exportation des données fonctionne avec :
 ### Erreurs
 
 2 types d'erreurs peuvent être rencontrés lors de l'utilisation de GESAnalysis.  
-Le 1er est lors de la lecture ou l'exportation de fichiers. Lorsque celle-ci ce produit, une fenêtre s'ouvre et indique l'erreur rencontrée.
+Le 1er est lors de la lecture ou l'exportation de fichiers. Lorsque celle-ci ce produit, une fenêtre s'ouvre et indique l'erreur rencontrée.  
 
+https://github.com/Pierre-Mar/GESAnalysis/assets/94572991/8427129c-4c49-4785-a0a1-f3c11661eff6
 
-Le 2e est lors de la réalisation des graphiques et des statistiques. Lorsque l'application ne trouve pas une colonne d'un fichier, une icône apparaît à coté de ce fichier et indique les avertissements lorsque le curseur de la souris passe sur le fichier.
+Le 2e est lors de la réalisation des graphiques et des statistiques. Lorsque l'application ne trouve pas une colonne d'un fichier, une icône apparaît à coté de ce fichier et indique les avertissements lorsque le curseur de la souris passe sur le fichier.  
+
+https://github.com/Pierre-Mar/GESAnalysis/assets/94572991/ed33bd4e-7204-44b1-a890-4682e1678c58
