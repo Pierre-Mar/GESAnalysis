@@ -59,8 +59,8 @@ Tout autre type de fichier ne sera pas lu.
 L'ouverture de fichier se fait par le menu "**Fichier > Ouvrir**". Une fenêtre s'ouvre pour que vous renseignez le chemin du fichier, l'année et la catégorie du BGES.  
 Après la lecture, l'interface met à jour les graphiques et les statistiques selon les fichiers ouverts et la catégorie.
 
-VIDEO MONTRANT UN EXEMPLE D'OUVERTURE REUSSIE
-
+![](.assets_readme/open_file.mp4)
+![](.assets_readme/open_file_gif.gif)
 #### Fermeture de fichier
 
 La fermeture de fichier se fait en commençant par sélectionner les fichiers de la catégorie actuelle. Puis par :
