@@ -51,7 +51,7 @@ L'ouverture de fichier se fait par le menu "**Fichier > Ouvrir**". Une fenêtre 
 Après la lecture, l'interface met à jour les graphiques et les statistiques selon les fichiers ouverts et la catégorie.
 
 VIDEO MONTRANT UN EXEMPLE D'OUVERTURE REUSSIE
-<!-- ![](.assets_readme/giphy.gif) -->
+![](.assets_readme/giphy.gif)
 
 #### Fermeture de fichier
 
