@@ -66,10 +66,9 @@ https://github.com/Pierre-Mar/GESAnalysis/assets/94572991/b78fdc75-b1e9-4b1c-aff
 La fermeture de fichier se fait en commençant par sélectionner les fichiers de la catégorie actuelle. Puis par :
 * Le menu "**Fichier > Fermer**"
 * Le menu contextuelle en faisant un clic droit sur les fichiers puis "**Fermer**"
-Les fichiers, qui ont été selectionné, seront fermés et l'interface sera mise à jour.
+Les fichiers, qui ont été selectionné, seront fermés et l'interface sera mise à jour.  
 
-VIDEO MONTRANT LES EXEMPLES DE FERMETURE PAR LES 2 MOYENS
-
+https://github.com/Pierre-Mar/GESAnalysis/assets/94572991/67a35c21-f11a-43d9-863e-1480b858dc8c
 
 ### Exportation des données
 
