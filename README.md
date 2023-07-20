@@ -59,7 +59,7 @@ Tout autre type de fichier ne sera pas lu.
 L'ouverture de fichier se fait par le menu "**Fichier > Ouvrir**". Une fenêtre s'ouvre pour que vous renseignez le chemin du fichier, l'année et la catégorie du BGES.  
 Après la lecture, l'interface met à jour les graphiques et les statistiques selon les fichiers ouverts et la catégorie.  
 
-https://github.com/Pierre-Mar/GESAnalysis/assets/94572991/b78fdc75-b1e9-4b1c-aff9-1b72cffb5a09
+![](.assets_readme/open_file.gif)
 
 #### Fermeture de fichier
 
@@ -68,7 +68,7 @@ La fermeture de fichier se fait en commençant par sélectionner les fichiers de
 * Le menu contextuelle en faisant un clic droit sur les fichiers puis "**Fermer**"
 Les fichiers, qui ont été selectionné, seront fermés et l'interface sera mise à jour.  
 
-https://github.com/Pierre-Mar/GESAnalysis/assets/94572991/67a35c21-f11a-43d9-863e-1480b858dc8c
+![](.assets_readme/close_file.gif)
 
 ### Exportation des données
 
@@ -84,8 +84,8 @@ l'exportation des données fonctionne avec :
 2 types d'erreurs peuvent être rencontrés lors de l'utilisation de GESAnalysis.  
 Le 1er est lors de la lecture ou l'exportation de fichiers. Lorsque celle-ci ce produit, une fenêtre s'ouvre et indique l'erreur rencontrée.  
 
-https://github.com/Pierre-Mar/GESAnalysis/assets/94572991/8427129c-4c49-4785-a0a1-f3c11661eff6
+![](.assets_readme/error.gif)
 
 Le 2e est lors de la réalisation des graphiques et des statistiques. Lorsque l'application ne trouve pas une colonne d'un fichier, une icône apparaît à coté de ce fichier et indique les avertissements lorsque le curseur de la souris passe sur le fichier.  
 
-https://github.com/Pierre-Mar/GESAnalysis/assets/94572991/ed33bd4e-7204-44b1-a890-4682e1678c58
+![](.assets_readme/warning.gif)
