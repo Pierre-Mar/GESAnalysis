@@ -159,9 +159,10 @@ class TotalWidget(QtWidgets.QWidget, Observer):
                     self.__name_ind[name_val] = {"index": ind_name}
                     ind_name += 1
             
-            # Same for year      
-            self.__years_ind[year] = {"index": ind_year}
-            ind_year += 1
+            # Same for year
+            if year not in self.__years_ind.keys():
+                self.__years_ind[year] = {"index": ind_year}
+                ind_year += 1
             
         # Create structure for data
         data_total = {}
