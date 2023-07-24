@@ -90,6 +90,27 @@ def get_column(
     return None
 
 
+def get_data_from_columns(
+    reader: Dict[str, Dict[str, List[Union[str, int, float, bool]]]],
+    list_column: List[str]
+) -> Optional[List[Union[str, int, float, bool]]]:
+    """ Returns the data associated of a column in list_columns in the reader
+
+    Args:
+        reader (Dict[str, Dict[str, List[Union[str, int, float, bool]]]]): Dictionary
+        list_column (List[str]): List of columns
+
+    Returns:
+        Optional[List[Union[str, int, float, bool]]]: Data associated to a column from list_column
+    """
+    for col in list_column:
+        data_col = get_column(reader, col)
+        if data_col is not None:
+            return data_col
+    return None
+    
+
+
 def get_type(
     reader: Dict[str, Dict[str, List[Union[str, int, float, bool]]]],
     column: str
@@ -127,4 +148,24 @@ def get_unit(
     for c in name_col:
         if column == " ".join(reader[c]["name"]):
             return reader[c]["unit"]
+    return None
+
+
+def get_unit_from_columns(
+    reader: Dict[str, Dict[str, List[Union[str, int, float, bool]]]],
+    list_columns: List[str]
+) -> Optional[List[str]]:
+    """ Returns the unit of a column from a list of columns in the dictionary 'reader'
+
+    Args:
+        reader (Dict[str, Dict[str, List[Union[str, int, float, bool]]]]): Dictionary
+        list_columns (List[str]): List of columns
+
+    Returns:
+        Optional[List[str]]: Unit
+    """
+    for col in list_columns:
+        unit = get_unit(reader, col)
+        if unit is not None:
+            return unit
     return None

@@ -4,11 +4,16 @@ from GESAnalysis.FC.Controleur import Controleur
 from GESAnalysis.FC.GESAnalysis import GESAnalysis
 from GESAnalysis.FC.PATTERNS.Observer import Observer
 from GESAnalysis.UI.FileOpenUI import FileOpenUI
+from GESAnalysis.UI.categories import common
 
 
 class AchatsWidget(QtWidgets.QWidget, Observer):
     """ Widget use to regroup the graphs, the files opener and the stats of the category "Achats"
     """
+    
+    # Column to get the data from the files
+    column_nacres_key = ["code", "Code NACRES"]
+    column_amount = ["amount", "Montant"]
     
     def __init__(
         self,
@@ -37,7 +42,9 @@ class AchatsWidget(QtWidgets.QWidget, Observer):
         self.__gesanalysis.add_observer(self, self.__category)
         
         self.__files = {} # Dictionary where the key is the file in 'category' and a bool if it's read or not
-        
+        self.__years_ind = {} # Dictionary containing the year and the index
+        self.__data = {}  # Dictionary containing the data with the NACRES key and the amount, and the unit of the amount
+                
         self.__configure_data()
         
         self.__init_UI()
@@ -82,6 +89,8 @@ class AchatsWidget(QtWidgets.QWidget, Observer):
     def __configure_data(self) -> None:
         """ Configure data
         """
+        unit_amount = ""
+        ind_year = 0
         for file, data_file in self.__gesanalysis.get_data().items():
             if data_file["category"] != self.__category:
                 continue
@@ -89,6 +98,142 @@ class AchatsWidget(QtWidgets.QWidget, Observer):
             # Add file to self.__files and set bool
             self.__files[file] = {"read": True, "warning": [], "year": data_file["year"]}
             
+            data = data_file["data"]
+            
+            compare_columns = True
+            
+            # Get the data for the NACRES key 
+            nacres_keys = common.get_data_from_columns(data, self.column_nacres_key)
+            if nacres_keys is None:
+                compare_columns = False
+                self.__files[file]["read"] = False
+                self.__files[file]["warning"].append(f"Colonne pour le code NACRES non-trouvée")
+            
+            # Same with the amount
+            amount = common.get_data_from_columns(data, self.column_amount)
+            if amount is None:
+                compare_columns = False
+                self.__files[file]["read"] = False
+                self.__files[file]["warning"].append(f"Colonne pour le montant non-trouvée")
+            
+            # Compare the columns between the NACRES key and the amount
+            if compare_columns and len(nacres_keys) != len(amount):
+                self.__files[file]["read"] = False
+                self.__files[file]["warning"].append("Nombre de lignes différent entre le code NACRES et le montant")
+                
+            # Get the unit of amount
+            unit = common.get_unit_from_columns(data, self.column_amount)
+            if unit is None:
+                self.__files[file]["warning"].append(f"Colonne 'Montant' n'a pas d'unité")
+            else:
+                unit = "/".join(unit)
+                if unit_amount == "":
+                    unit_amount = unit
+                if unit != unit_amount:
+                    self.__files[file]["read"] = False
+                    self.__files[file]["warning"].append(f"Colonne 'Montant' a une unité différente")
+            
+            # No need to continue if there are problems
+            if not self.__files[file]["read"]:
+                continue
+            
+            # Check if all the NACRES key is correct
+            nacres_key_correct = True
+            for key_line in nacres_keys:
+                for key in key_line:
+                    nacres_key = key.upper()
+                    if not self.__check_NACRES_key(nacres_key):
+                        nacres_key_correct = False
+                        break
+                
+                if not nacres_key_correct:
+                    self.__files[file]["read"] = False
+                    self.__files[file]["warning"].append("Des codes NACRES sont incorrectes")
+                    break
+            
+            year = data_file["year"]
+            if year not in self.__years_ind.keys():
+                self.__years_ind[year] = {"index": ind_year}
+                ind_year += 1
+                
+        # Create structure for data
+        data_achats = {}
+        for year in self.__years_ind.keys():
+            data_achats[year] = []
+            
+        # Fill the structure
+        for file, data_file in self.__files.items():
+            if not data_file["read"]:
+                continue
+            
+            data = self.__gesanalysis.get_data_from_file(file)
+            nacres_keys = common.get_data_from_columns(data, self.column_nacres_key)
+            amount = common.get_data_from_columns(data, self.column_amount)
+            year = data_file["year"]
+            
+            for i in range(len(nacres_keys)):
+                for j in range(len(nacres_keys[i])):
+                    data_achats[year].append((nacres_keys[i][j], sum(amount[i])))
+        
+        self.__data["data"] = data_achats
+        self.__data["unit"] = unit_amount
+            
+    
+    def __check_NACRES_key(self, key: str) -> bool:
+        """ Check if a NACRES key is correct. Use a parsing describe below:
+            A -> pB
+            B -> pC
+            C -> .D
+            C -> qE
+            D -> qE
+            E -> qF
+            F -> True
+            
+            p = { 'A', ..., 'Z' }
+            q = { '0', ..., '9' }
+
+        Args:
+            key (str): NACRES key
+
+        Returns:
+            bool: True if the key is correct or false
+        """
+        if len(key) == 4 or len(key) == 5:
+            return self.__A(key, 0)
+        return False
+    
+    #-- Methods uses for the parsing --#
+    def __A(self, key: str, index: int) -> bool:
+        if 'A' <= key[index] and key[index] <= 'Z':
+            return self.__B(key, index+1)
+        return False
+    
+    def __B(self, key: str, index: int) -> bool:
+        if 'A' <= key[index] and key[index] <= 'Z':
+            return self.__C(key, index+1)
+        return False
+    
+    def __C(self, key: str, index: int) -> bool:
+        if key[index] == '.':
+            return self.__D(key, index+1)
+        elif '0' <= key[index] and key[index] <= '9':
+            return self.__E(key, index+1)
+        return False
+    
+    def __D(self, key: str, index: int) -> bool:
+        if '0' <= key[index] and key[index] <= '9':
+            return self.__E(key, index+1)
+        return False
+    
+    def __E(self, key: str, index: int) -> bool:
+        if '0' <= key[index] and key[index] <= '9':
+            return self.__F()
+        return False
+    
+    def __F(self) -> bool:
+        return True
+        
+                
             
 #######################################################################################################
 #  Methods associated to an action                                                                    #
@@ -118,8 +263,15 @@ class AchatsWidget(QtWidgets.QWidget, Observer):
         """ Update this widget (from observers)
         """
         self.__files.clear()
+        self.__years_ind.clear()
+        self.__data.clear()
         
         self.__configure_data()
+        
+        print(self.__files)
+        print(self.__years_ind)
+        print(self.__data)
+        print("-------------")
         
         self.__file_achats_widget.update_widget(self.__files)
 
