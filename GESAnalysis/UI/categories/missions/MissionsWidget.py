@@ -221,9 +221,10 @@ class MissionsWidget(QtWidgets.QWidget, Observer):
                     self.__position_ind[position[i][0]] = {"index": ind_position}
                     ind_position += 1
             
-            # Add year to his dictionary        
-            self.__years_ind[year] = {"index": ind_year}
-            ind_year += 1
+            # Add year to his dictionary   
+            if year not in self.__years_ind.keys():     
+                self.__years_ind[year] = {"index": ind_year}
+                ind_year += 1
          
         # Create structure to calculate the distance and the emission
         data_dist = {}
