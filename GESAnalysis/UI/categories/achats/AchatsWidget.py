@@ -15,6 +15,7 @@ class AchatsWidget(QtWidgets.QWidget, Observer):
     column_nacres_key = ["code", "Code NACRES"]
     column_amount = ["amount", "Montant"]
     
+    
     def __init__(
         self,
         model: GESAnalysis,
@@ -41,9 +42,9 @@ class AchatsWidget(QtWidgets.QWidget, Observer):
         # Add this widget to the list of observers to update his interface
         self.__gesanalysis.add_observer(self, self.__category)
         
-        self.__files = {} # Dictionary where the key is the file in 'category' and a bool if it's read or not
+        self.__files = {}     # Dictionary where the key is the file in 'category' and a bool if it's read or not
         self.__years_ind = {} # Dictionary containing the year and the index
-        self.__data = {}  # Dictionary containing the data with the NACRES key and the amount, and the unit of the amount
+        self.__data = {}      # Dictionary containing the data with the NACRES key and the amount, and the unit of the amount
                 
         self.__configure_data()
         
@@ -233,8 +234,7 @@ class AchatsWidget(QtWidgets.QWidget, Observer):
     def __F(self) -> bool:
         return True
         
-                
-            
+                        
 #######################################################################################################
 #  Methods associated to an action                                                                    #
 #######################################################################################################
@@ -267,11 +267,6 @@ class AchatsWidget(QtWidgets.QWidget, Observer):
         self.__data.clear()
         
         self.__configure_data()
-        
-        print(self.__files)
-        print(self.__years_ind)
-        print(self.__data)
-        print("-------------")
         
         self.__file_achats_widget.update_widget(self.__files)
 
