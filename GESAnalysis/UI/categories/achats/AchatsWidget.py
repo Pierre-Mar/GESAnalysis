@@ -5,6 +5,7 @@ from GESAnalysis.FC.GESAnalysis import GESAnalysis
 from GESAnalysis.FC.PATTERNS.Observer import Observer
 from GESAnalysis.UI.FileOpenUI import FileOpenUI
 from GESAnalysis.UI.categories import common
+from GESAnalysis.UI.categories.achats.KeyAmount import KeyAmount
 
 
 class AchatsWidget(QtWidgets.QWidget, Observer):
@@ -71,7 +72,8 @@ class AchatsWidget(QtWidgets.QWidget, Observer):
         
         # Tab widget for right-splitter (graph)
         self.__tab_graph = QtWidgets.QTabWidget(splitter)
-        # TODO : Add graph for "Achats" here
+        self.__key_amount = KeyAmount(self.__tab_graph)
+        self.__tab_graph.addTab(self.__key_amount, "Montant")
         
         # Add components to the splitter
         splitter.addWidget(splitter_left_widget)
@@ -269,6 +271,8 @@ class AchatsWidget(QtWidgets.QWidget, Observer):
         self.__configure_data()
         
         self.__file_achats_widget.update_widget(self.__files)
+        
+        self.__key_amount.update_canvas(self.__years_ind, self.__data)
 
 
 #######################################################################################################

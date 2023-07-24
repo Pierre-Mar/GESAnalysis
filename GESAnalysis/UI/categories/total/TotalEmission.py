@@ -5,13 +5,10 @@ matplotlib.use('Qt5Agg')
 from PyQt5 import QtWidgets
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg, NavigationToolbar2QT
 from matplotlib.figure import Figure
-from GESAnalysis.FC.PATTERNS.Observer import Observer
 from typing import Tuple, List
 
-import GESAnalysis.UI.categories.common as common 
 
-
-class TotalEmission(QtWidgets.QWidget, Observer):
+class TotalEmission(QtWidgets.QWidget):
     """ Widget to draw a graph representing the emission for each year
     """
     
