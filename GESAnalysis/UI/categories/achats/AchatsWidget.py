@@ -126,7 +126,7 @@ class AchatsWidget(QtWidgets.QWidget, Observer):
                 
             # Get the unit of amount
             unit = common.get_unit_from_columns(data, self.column_amount)
-            if unit is None:
+            if len(unit) == 0:
                 self.__files[file]["warning"].append(f"Colonne 'Montant' n'a pas d'unité")
             else:
                 unit = "/".join(unit)
@@ -176,7 +176,12 @@ class AchatsWidget(QtWidgets.QWidget, Observer):
             
             for i in range(len(nacres_keys)):
                 for j in range(len(nacres_keys[i])):
-                    data_achats[year].append((nacres_keys[i][j], sum(amount[i])))
+                    # Remove the point inside the NACRES key
+                    try:
+                        key = nacres_keys[i][j].replace(".", "")
+                    except:
+                        key = nacres_keys[i][j]
+                    data_achats[year].append((key, sum(amount[i])))
         
         self.__data["data"] = data_achats
         self.__data["unit"] = unit_amount
