@@ -1,12 +1,13 @@
-from typing import Dict, Union
+from typing import Callable, Dict, Tuple, Union
 import matplotlib
 
 matplotlib.use('Qt5Agg')
 
-from PyQt5 import QtWidgets
+from PyQt5 import QtWidgets, QtCore
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg, NavigationToolbar2QT
 from matplotlib.figure import Figure
 from GESAnalysis.UI.ChangeNacresCodeDialog import ChangeNacresCodeDialog
+from functools import partial
 
 
 class KeyAmount(QtWidgets.QWidget):
@@ -63,16 +64,78 @@ class KeyAmount(QtWidgets.QWidget):
         layout_toolbar_button.addWidget(button_code)
         widget_toolbar_button.setLayout(layout_toolbar_button)
         
+        # Create list of radio buttons to select the year
+        self.__widget_buttons_years, self.__layout_buttons_years = self.__create_radiobuttons(
+            self.__years_ind,
+            self.__click_year_radiobutton
+        )
+        
         # Add to widget canvas
         layout_canvas = QtWidgets.QVBoxLayout(widget_canvas)
         layout_canvas.addWidget(widget_toolbar_button)
         layout_canvas.addWidget(self.__figCanvas)
+        layout_canvas.addWidget(self.__widget_buttons_years)
         widget_canvas.setLayout(layout_canvas)
         
         # Layout of this widget
         layout_principal = QtWidgets.QHBoxLayout(self)
         layout_principal.addWidget(widget_canvas)
         self.setLayout(layout_principal)
+        
+        
+    def __create_radiobuttons(self, data_dict:dict, fct: Callable) -> Tuple[QtWidgets.QWidget, QtWidgets.QHBoxLayout]:
+        """ Create a list of radiobuttons from the keys in a dictionary. 
+            When you press on the button, it called the function fct
+
+        Args:
+            data_dict (dict): Dictionary
+            fct (Callable): Function
+
+        Returns:
+            Tuple[QtWidgets.QWidget, QtWidgets.QHBoxLayout]: Widget, with buttons, and his layout
+        """
+        widget = QtWidgets.QWidget(self)
+        widget.setFixedHeight(40)
+        layout = QtWidgets.QHBoxLayout(widget)
+        
+        for data_ind, data_key in enumerate(data_dict.keys()):
+            data_dict[data_key]["button"] = QtWidgets.QRadioButton(data_key, widget)
+            data_dict[data_key]["checked"] = True if data_ind == 0 else False
+            data_dict[data_key]["button"].setChecked(data_dict[data_key]["checked"])
+            data_dict[data_key]["button"].toggled.connect(partial(fct, data_key))
+        layout.setAlignment(QtCore.Qt.AlignCenter)
+        
+        return widget, layout
+    
+    
+    def __remove_radiobuttons(self, data_dict, layout: QtWidgets.QHBoxLayout) -> None:
+        """ Remove the buttons in the dictionary and the layout
+
+        Args:
+            data_dict (dict): Dictionary
+            layout (QtWidgets.QHBoxLayout): Layout
+        """
+        for data_key in data_dict.keys():
+            layout.removeWidget(data_dict[data_key]["button"])
+            del data_dict[data_key]["checked"]
+            del data_dict[data_key]["button"]
+            
+            
+    def __update_radiobuttons(self, data_dict, layout: QtWidgets.QHBoxLayout, fct: Callable) -> None:
+        """ Update the radiobuttons in the layout and the dictionary.
+            When you click on the buttons, it calls the function fct
+
+        Args:
+            data_dict (dict): Dictionary
+            layout (QtWidgets.QHBoxLayout): Layout
+            fct (Callable): Function
+        """
+        for data_ind, data_key in enumerate(data_dict.keys()):
+            data_dict[data_key]["button"] = QtWidgets.QRadioButton(data_key)
+            data_dict[data_key]["checked"] = True if data_ind == 0 else False
+            data_dict[data_key]["button"].setChecked(data_dict[data_key]["checked"])
+            data_dict[data_key]["button"].toggled.connect(partial(fct, data_key))
+            layout.addWidget(data_dict[data_key]["button"])
         
 
 #######################################################################################################
@@ -130,6 +193,10 @@ class KeyAmount(QtWidgets.QWidget):
         data_for_graph = {}
         current_position = 0
         for year, data_year in self.__data_achats.items():
+            # If the year is not select, then pass to next year
+            if not self.__years_ind[year]["checked"]:
+                continue
+            
             for nacres_key, amount in data_year:
                 # If the key is not accepted by the nacres code (user), continue with the next key
                 if not self.__analyse_key_code_list(nacres_key):
@@ -227,6 +294,15 @@ class KeyAmount(QtWidgets.QWidget):
             if key[i] != code[i]:
                 return False
         return True
+    
+
+#######################################################################################################
+#  Mouse event to change the graph                                                                    #
+#######################################################################################################
+    def __click_year_radiobutton(self, year:str, state:bool) -> None:
+        self.__years_ind[year]["checked"] = state
+        if state or len(self.__years_ind.keys()) == 1:
+            self.__draw()
                         
         
 #######################################################################################################
@@ -255,13 +331,16 @@ class KeyAmount(QtWidgets.QWidget):
             data_dict : Dictionary of data
         """
         # Remove all data in the dictionaries
+        self.__remove_radiobuttons(self.__years_ind, self.__layout_buttons_years)
         self.__years_ind.clear()
         self.__data_achats.clear()
         self.__unit = ""
         
         # Update the data structure
-        self.__years_ind = years_ind
+        self.__years_ind = years_ind.copy()
         self.__data_achats = data_dict["data"]
         self.__unit = data_dict["unit"]
+        
+        self.__update_radiobuttons(self.__years_ind, self.__layout_buttons_years, self.__click_year_radiobutton)
         
         self.__draw()
