@@ -121,13 +121,19 @@ class DistanceMode(QtWidgets.QWidget):
         widget = QtWidgets.QWidget(self)
         widget.setFixedHeight(40)
         layout = QtWidgets.QHBoxLayout(widget)
+        layout.setAlignment(QtCore.Qt.AlignCenter)
+        
+        if len(data_dict.keys()) == 0:
+            widget.hide()
+            return widget, layout
+        
         for d in data_dict.keys():
             data_dict[d]["button"] = QtWidgets.QCheckBox(d)
             data_dict[d]["checked"] = True
             data_dict[d]["button"].setChecked(data_dict[d]["checked"])
             data_dict[d]["button"].toggled.connect(partial(fct, d))
             layout.addWidget(data_dict[d]["button"])
-        layout.setAlignment(QtCore.Qt.AlignCenter)
+        
         return widget, layout
     
     
@@ -144,11 +150,12 @@ class DistanceMode(QtWidgets.QWidget):
             del data_dict[d]["button"]
     
     
-    def __update_list_buttons(self, data_dict, layout: QtWidgets.QHBoxLayout, fct: Any) -> None:
+    def __update_list_buttons(self, data_dict, widget: QtWidgets.QWidget, layout: QtWidgets.QHBoxLayout, fct: Any) -> None:
         """ Update a layout of a list of buttons (used for modes, years and positions)
 
         Args:
             data_dict (dict): dictionary with data (mode, year, position)
+            widget (QtWidgets.QWidget): Widget
             layout (QHBoxLayout): Layout to put the buttons
             fct (Any): fun,ction associated when the user click on the button
         """
@@ -158,6 +165,11 @@ class DistanceMode(QtWidgets.QWidget):
             data_dict[d]["button"].setChecked(data_dict[d]["checked"])
             data_dict[d]["button"].toggled.connect(partial(fct, d))
             layout.addWidget(data_dict[d]["button"])
+            
+        if len(data_dict.keys()) == 0:
+            widget.hide()
+        else:
+            widget.show()
 
    
 #######################################################################################################
@@ -432,9 +444,9 @@ class DistanceMode(QtWidgets.QWidget):
         
         # Repaint the UI
         # Only need to change the button for years, modes and positions
-        self.__update_list_buttons(self.__years_dict, self.__layout_checkbuttons_years, self.__click_year)
-        self.__update_list_buttons(self.__mode_dict, self.__layout_checkbuttons_modes, self.__click_mode)
-        self.__update_list_buttons(self.__position_dict, self.__layout_checkbuttons_positions, self.__click_position)
+        self.__update_list_buttons(self.__years_dict, self.__widget_checkbuttons_years, self.__layout_checkbuttons_years, self.__click_year)
+        self.__update_list_buttons(self.__mode_dict, self.__widget_checkbuttons_modes, self.__layout_checkbuttons_modes, self.__click_mode)
+        self.__update_list_buttons(self.__position_dict, self.__widget_checkbuttons_positions, self.__layout_checkbuttons_positions, self.__click_position)
 
         # Draw the graph
         self.__draw()

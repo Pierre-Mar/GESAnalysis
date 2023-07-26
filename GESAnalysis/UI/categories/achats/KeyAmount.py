@@ -97,13 +97,18 @@ class KeyAmount(QtWidgets.QWidget):
         widget = QtWidgets.QWidget(self)
         widget.setFixedHeight(40)
         layout = QtWidgets.QHBoxLayout(widget)
+        layout.setAlignment(QtCore.Qt.AlignCenter)
+        
+        # If there are no key, then hide the widget and return it!
+        if len(data_dict.keys()) == 0:
+            widget.hide()
+            return widget, layout
         
         for data_ind, data_key in enumerate(data_dict.keys()):
             data_dict[data_key]["button"] = QtWidgets.QRadioButton(data_key, widget)
             data_dict[data_key]["checked"] = True if data_ind == 0 else False
             data_dict[data_key]["button"].setChecked(data_dict[data_key]["checked"])
             data_dict[data_key]["button"].toggled.connect(partial(fct, data_key))
-        layout.setAlignment(QtCore.Qt.AlignCenter)
         
         return widget, layout
     
@@ -121,12 +126,13 @@ class KeyAmount(QtWidgets.QWidget):
             del data_dict[data_key]["button"]
             
             
-    def __update_radiobuttons(self, data_dict, layout: QtWidgets.QHBoxLayout, fct: Callable) -> None:
+    def __update_radiobuttons(self, data_dict, widget:QtWidgets.QWidget, layout: QtWidgets.QHBoxLayout, fct: Callable) -> None:
         """ Update the radiobuttons in the layout and the dictionary.
             When you click on the buttons, it calls the function fct
 
         Args:
             data_dict (dict): Dictionary
+            widget (QtWidgets.QWidget): Widget
             layout (QtWidgets.QHBoxLayout): Layout
             fct (Callable): Function
         """
@@ -136,6 +142,11 @@ class KeyAmount(QtWidgets.QWidget):
             data_dict[data_key]["button"].setChecked(data_dict[data_key]["checked"])
             data_dict[data_key]["button"].toggled.connect(partial(fct, data_key))
             layout.addWidget(data_dict[data_key]["button"])
+            
+        if len(data_dict.keys()) == 0:
+            widget.hide()
+        else:
+            widget.show() 
         
 
 #######################################################################################################
@@ -341,6 +352,6 @@ class KeyAmount(QtWidgets.QWidget):
         self.__data_achats = data_dict["data"]
         self.__unit = data_dict["unit"]
         
-        self.__update_radiobuttons(self.__years_ind, self.__layout_buttons_years, self.__click_year_radiobutton)
+        self.__update_radiobuttons(self.__years_ind, self.__widget_buttons_years, self.__layout_buttons_years, self.__click_year_radiobutton)
         
         self.__draw()
