@@ -84,7 +84,6 @@ class KeyAmount(QtWidgets.QWidget):
         self.__axes.cla()
         
         data_graph_dict = self.__build_dict_graph()
-        print(data_graph_dict)
         
         # Transform dict to list
         dict_to_list = []
