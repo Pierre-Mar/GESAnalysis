@@ -128,9 +128,13 @@ class TotalWidget(QtWidgets.QWidget, Observer):
                 self.__files[file]["warning"].append(f"Colonne 'intensity' non-trouvée")
             
             # Compare the columns if they have the same number of lines
-            if not compare_columns or len(name) != len(intensity):
+            if compare_columns and len(name) != len(intensity):
                 self.__files[file]["read"] = False
                 self.__files[file]["warning"].append(f"Colonne 'name' et 'intensity' n'ont pas les mêmes lignes")
+                
+            # If there are some warnings, we don't calculate
+            if not self.__files[file]["read"]:
+                continue
 
             # Get the unit
             unit = common.get_unit(data, "intensity")

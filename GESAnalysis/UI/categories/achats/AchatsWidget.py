@@ -126,6 +126,10 @@ class AchatsWidget(QtWidgets.QWidget, Observer):
             if compare_columns and len(nacres_keys) != len(amount):
                 self.__files[file]["read"] = False
                 self.__files[file]["warning"].append("Nombre de lignes différent entre le code NACRES et le montant")
+            
+            # No need to continue if there are problems
+            if not self.__files[file]["read"]:
+                continue
                 
             # Get the unit of amount
             unit = common.get_unit_from_columns(data, self.column_amount)

@@ -136,7 +136,7 @@ class MissionsWidget(QtWidgets.QWidget, Observer):
                 self.__files[file]["warning"].append(f"Colonne 'position' non-trouvée")
             
             # Check if there are the same number of lines between position and mode
-            if not compare_column or len(mode) != len(position):
+            if compare_column and len(mode) != len(position):
                 self.__files[file]["read"] = False
                 self.__files[file]["warning"].append(f"Colonnes 'mode' et 'position' n'ont pas les mêmes lignes")
 
@@ -146,7 +146,7 @@ class MissionsWidget(QtWidgets.QWidget, Observer):
                 self.__files[file]["read"] = False
                 self.__files[file]["warning"].append(f"Colonne 'distance' non-trouvée")
             else:
-                if not compare_column or len(distance) != len(mode) or len(distance) != len(position):
+                if compare_column and (len(distance) != len(mode) or len(distance) != len(position)):
                     self.__files[file]["read"] = False
                     self.__files[file]["warning"].append(f"Colonne 'distance' a un nombre de ligne différent")
                     
@@ -155,7 +155,7 @@ class MissionsWidget(QtWidgets.QWidget, Observer):
                 self.__files[file]["read"] = False
                 self.__files[file]["warning"].append(f"Colonne 'emission' non-trouvée")
             else:
-                if not compare_column or len(distance) != len(mode) or len(distance) != len(position):
+                if compare_column and (len(distance) != len(mode) or len(distance) != len(position)):
                     self.__files[file]["read"] = False
                     self.__files[file]["warning"].append(f"Colonne 'emission' a un nombre de ligne différent")
                     
@@ -164,9 +164,13 @@ class MissionsWidget(QtWidgets.QWidget, Observer):
                 self.__files[file]["read"] = False
                 self.__files[file]["warning"].append(f"Colonne 'emission avec trainées' non-trouvée")
             else:
-                if not compare_column or len(emission_contrails) != len(emission):
+                if compare_column and len(emission_contrails) != len(emission):
                     self.__files[file]["read"] = False
                     self.__files[file]["warning"].append(f"Colonne 'emission avec trainées' a un nombre de ligne différent")
+                    
+            # If there are some warnings, we don't calculate
+            if not self.__files[file]["read"]:
+                continue
             
             # Check the unit of distance
             unit = common.get_unit(data, "distance")
