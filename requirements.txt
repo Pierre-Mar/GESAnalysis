@@ -1,3 +1,4 @@
+altgraph==0.17.3
 contourpy==1.0.7
 coverage==7.2.6
 cycler==0.11.0
@@ -7,12 +8,15 @@ fonttools==4.39.4
 iniconfig==2.0.0
 kiwisolver==1.4.4
 matplotlib==3.7.1
+mplcursors==0.5.2
 numpy==1.24.3
 openpyxl==3.1.2
 packaging==23.1
 pandas==2.0.1
 Pillow==9.5.0
 pluggy==1.0.0
+pyinstaller==5.12.0
+pyinstaller-hooks-contrib==2023.3
 pyparsing==3.0.9
 PyQt5==5.15.9
 PyQt5-Qt5==5.15.2
