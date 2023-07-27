@@ -2,10 +2,11 @@ import matplotlib
 
 matplotlib.use('Qt5Agg')
 
-from PyQt5 import QtWidgets
+from PyQt5 import QtWidgets, QtCore
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg, NavigationToolbar2QT
 from matplotlib.figure import Figure
 from typing import Tuple, List
+from GESAnalysis.UI import common
 
 
 class TotalEmission(QtWidgets.QWidget):
@@ -27,10 +28,12 @@ class TotalEmission(QtWidgets.QWidget):
         super(TotalEmission, self).__init__(parent)
         
         # Data structure
-        self.__years_ind = {} # Dictionary of year
-        self.__name_ind = {}  # Dictionary of categories
-        self.__data_tot = {}  # Dictionary of data
-        self.__unit = ""      # Unit of data
+        self.__years_ind = {}       # Dictionary of year
+        self.__name_ind = {}        # Dictionary of categories
+        self.__data_tot = {}        # Dictionary of data
+        self.__unit = ""            # Unit of data
+        self.__data_agent = {}      # Dictionary containing the number of agent
+        self.__path_to_agent = None # Path to read the agent file
         
         self.__fig = Figure()
         self.__axes = self.__fig.add_subplot(111)
@@ -51,11 +54,35 @@ class TotalEmission(QtWidgets.QWidget):
         """
         widget_canvas = QtWidgets.QWidget(self)
         
-        # Add toolbar to control the graph
-        toolbar = NavigationToolbar2QT(self.__figCanvas, self)
+        # Add toolbar to control the graph and button to read "effectif"
+        widget_buttons = QtWidgets.QWidget(widget_canvas)
+        widget_buttons.setContentsMargins(0,0,0,0)
+        widget_buttons.setSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Fixed)
+        layout_buttons = QtWidgets.QHBoxLayout(widget_buttons)
+        toolbar = NavigationToolbar2QT(self.__figCanvas, widget_buttons)
+        read_agent_button = QtWidgets.QPushButton("Fichier Agents", widget_buttons)
+        read_agent_button.setFixedHeight(20)
+        read_agent_button.clicked.connect(self.__read_agent_file)
+        layout_buttons.addWidget(toolbar)
+        layout_buttons.addWidget(read_agent_button)
+        widget_buttons.setLayout(layout_buttons)
+        
+        # Create checkbutton to display the emission per agent (from effectif)
+        widget_checkbutton = QtWidgets.QWidget(self)
+        widget_checkbutton.setFixedHeight(40)
+        widget_checkbutton.setSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Fixed)
+        layout_checkbutton = QtWidgets.QHBoxLayout(widget_checkbutton)
+        self.__agent_checkbutton = QtWidgets.QCheckBox("Par Agents", widget_canvas)
+        self.__agent_checkbutton.setFixedHeight(20)
+        self.__agent_checkbutton.clicked.connect(self.__draw_graph_per_agents)
+        layout_checkbutton.addWidget(self.__agent_checkbutton)
+        layout_checkbutton.setAlignment(QtCore.Qt.AlignCenter)
+        widget_checkbutton.setLayout(layout_checkbutton)
+        
         layout_canvas = QtWidgets.QVBoxLayout(widget_canvas)
-        layout_canvas.addWidget(toolbar)
+        layout_canvas.addWidget(widget_buttons)
         layout_canvas.addWidget(self.__figCanvas)
+        layout_canvas.addWidget(widget_checkbutton)
         widget_canvas.setLayout(layout_canvas)
         
         # Layout of this widget
@@ -114,6 +141,31 @@ class TotalEmission(QtWidgets.QWidget):
             current_space += self.__spacing
             x_labels[self.__years_ind[year]["index"]] = year
         return x_bars, x_labels
+    
+    
+#######################################################################################################
+#  Method associated to an action                                                                     #
+#######################################################################################################
+    def __read_agent_file(self) -> None:
+        """ Open a dialog to read a file who contains the number of agent for each year
+        """
+        pass
+    
+    
+    def __draw_graph_per_agents(self, state:bool) -> None:
+        """ Draw the graph per agent if the user clicked on the button "Par Agents"
+
+        Args:
+            state (bool): True if the button is checked, else False
+        """
+        if state:
+            if self.__path_to_agent is None:
+                self.__agent_checkbutton.setChecked(False)
+                common.message_warning(
+                    "Veuillez indiquer un fichier contenant les agents.\nPour cela, appuyer sur le bouton 'Fichier Agents' et renseigner le chemin du fichier",
+                self)
+                return
+        pass
             
 
 #######################################################################################################
