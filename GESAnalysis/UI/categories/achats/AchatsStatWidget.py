@@ -91,7 +91,9 @@ class AchatsStatWidget(QtWidgets.QWidget):
             total = 0
             selected_year = self.__combobox_year.currentText()
             # Row contains all the NACRES key of the year
-            for nacres_key, amount in self.__data_dict[selected_year]:
+            for data in self.__data_dict[selected_year]:
+                nacres_key = data[0]
+                amount = data[1]
                 if nacres_key not in self.__row_name_stats:
                     self.__row_name_stats.append(nacres_key)
                     self.__data_table[nacres_key] = {"Montant" : amount}

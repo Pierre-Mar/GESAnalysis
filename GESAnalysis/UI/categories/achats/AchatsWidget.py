@@ -16,6 +16,7 @@ class AchatsWidget(QtWidgets.QWidget, Observer):
     # Column to get the data from the files
     column_nacres_key = ["code", "Code NACRES"]
     column_amount = ["amount", "Montant"]
+    column_description = ["description"]
     
     
     def __init__(
@@ -121,6 +122,13 @@ class AchatsWidget(QtWidgets.QWidget, Observer):
                 compare_columns = False
                 self.__files[file]["read"] = False
                 self.__files[file]["warning"].append(f"Colonne pour le montant non-trouvée")
+                
+            # Same with the description
+            description = common.get_data_from_columns(data, self.column_description)
+            if description is not None:
+                if compare_columns and len(nacres_keys) != len(description):
+                    self.__files[file]["read"] = False
+                    self.__files["warning"].append("Nombre de lignes différent entre le code NACRES et sa description")
             
             # Compare the columns between the NACRES key and the amount
             if compare_columns and len(nacres_keys) != len(amount):
@@ -179,6 +187,7 @@ class AchatsWidget(QtWidgets.QWidget, Observer):
             data = self.__gesanalysis.get_data_from_file(file)
             nacres_keys = common.get_data_from_columns(data, self.column_nacres_key)
             amount = common.get_data_from_columns(data, self.column_amount)
+            description = common.get_data_from_columns(data, self.column_description)
             year = data_file["year"]
             
             for i in range(len(nacres_keys)):
@@ -188,7 +197,10 @@ class AchatsWidget(QtWidgets.QWidget, Observer):
                         key = nacres_keys[i][j].replace(".", "")
                     except:
                         key = nacres_keys[i][j]
-                    data_achats[year].append((key, sum(amount[i])))
+                    if description is None:
+                        data_achats[year].append((key, sum(amount[i])))
+                    else:
+                        data_achats[year].append((key, sum(amount[i]), description[i][j]))
         
         self.__data["data"] = data_achats
         self.__data["unit"] = unit_amount

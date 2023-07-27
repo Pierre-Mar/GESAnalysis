@@ -1,4 +1,5 @@
 from typing import Callable, Dict, Tuple, Union
+import math
 import matplotlib
 
 matplotlib.use('Qt5Agg')
@@ -37,6 +38,14 @@ class KeyAmount(QtWidgets.QWidget):
         self.__fig = Figure()
         self.__axes = self.__fig.add_subplot(111)
         self.__figCanvas = FigureCanvasQTAgg(self.__fig)
+        self.__bars = None
+        self.__annotation = None
+        
+        self.x_labels_code = []
+        self.x_position = []
+        self.y_amount_code = []
+        
+        self.cid = self.__fig.canvas.mpl_connect("motion_notify_event", self.hover)
         
         self.__init_UI()
         
@@ -157,38 +166,50 @@ class KeyAmount(QtWidgets.QWidget):
         """
         self.__axes.cla()
         
+        # Recreate annotation because we clear the axes
+        self.__annotation = self.__axes.annotate(
+            "Hello",
+            xy=(0,0),
+            xytext=(0,10),
+            textcoords="offset points",
+            bbox=dict(boxstyle="round", fc="white", ec="black", lw=2),
+                    arrowprops=dict(arrowstyle="->"))
+        self.__annotation.set_visible(False)
+        
         data_graph_dict = self.__build_dict_graph()
         
         # Transform dict to list
         dict_to_list = []
         for key, data_key in data_graph_dict.items():
-            dict_to_list.append((key, data_key["position"], data_key["amount"]))
+            dict_to_list.append((key, data_key["position"], data_key["amount"], data_key["description"]))
         
         # Sort this list by position
         dict_to_list.sort(key=lambda a:a[1])
         
-        # Separate this list into 3 lists
-        x_labels_code = []
-        x_position = []
-        y_amount_code = []
-        for key, pos, amount in dict_to_list:
-            x_labels_code.append(key)
-            x_position.append(pos)
-            y_amount_code.append(amount)
+        # Separate this list into 4 lists
+        self.x_labels_code = []
+        self.x_position = []
+        self.y_amount_code = []
+        self.descriptions = []
+        for key, pos, amount, description in dict_to_list:
+            self.x_labels_code.append(key)
+            self.x_position.append(pos)
+            self.y_amount_code.append(amount)
+            self.descriptions.append(description)
         
         # Draw the bars
-        self.__axes.bar(x_position, y_amount_code, width=self.__width)
+        self.__bars = self.__axes.bar(self.x_position, self.y_amount_code, width=self.__width)
         
         # Set labels on x-axis
-        self.__axes.set_xticks(x_position)
-        self.__axes.set_xticklabels(x_labels_code, rotation=90, fontsize=10)
+        self.__axes.set_xticks(self.x_position)
+        self.__axes.set_xticklabels(self.x_labels_code, rotation=90, fontsize=10)
         
         # Set a label for y-axis
         self.__axes.set_ylabel(f"Montant ({self.__unit})")
         
         # Set x limit
-        if len(x_position) > 0:
-            self.__axes.set_xlim(0-self.__width, x_position[len(x_position) - 1]+self.__width)
+        if len(self.x_position) > 0:
+            self.__axes.set_xlim(0-self.__width, self.x_position[len(self.x_position) - 1]+self.__width)
         
         # Draw on canvas
         self.__figCanvas.draw()
@@ -208,7 +229,12 @@ class KeyAmount(QtWidgets.QWidget):
             if not self.__years_ind[year]["checked"]:
                 continue
             
-            for nacres_key, amount in data_year:
+            for data in data_year:
+                nacres_key = data[0]
+                amount = data[1]
+                description = None
+                if len(data) == 3:
+                    description = data[2]
                 # If the key is not accepted by the nacres code (user), continue with the next key
                 if not self.__analyse_key_code_list(nacres_key):
                     continue
@@ -220,7 +246,8 @@ class KeyAmount(QtWidgets.QWidget):
                 else:
                     data_for_graph[nacres_key] = {
                         "position": current_position,
-                        "amount": amount
+                        "amount": amount,
+                        "description": description
                     }
                     current_position += self.__width + self.__spacing
 
@@ -311,9 +338,39 @@ class KeyAmount(QtWidgets.QWidget):
 #  Mouse event to change the graph                                                                    #
 #######################################################################################################
     def __click_year_radiobutton(self, year:str, state:bool) -> None:
+        """ When a user click on the radiobutton associated to the year, update the graph
+
+        Args:
+            year (str): Year
+            state (bool): Button is press or not
+        """
         self.__years_ind[year]["checked"] = state
         if state or len(self.__years_ind.keys()) == 1:
             self.__draw()
+            
+            
+    def hover(self, event) -> None:
+        """ When the user move his mouse on the graph, an event is receive and call the functions to execute
+
+        Args:
+            event : Event
+        """
+        is_visible = self.__annotation.get_visible()
+        if event.inaxes == self.__axes:
+            if self.__bars is None or self.__annotation is None:
+                return
+            
+            for bar in self.__bars:
+                is_contained, ind = bar.contains(event)
+                if is_contained:                        
+                    self.__annotation.set_visible(self.__update_annotation(bar))
+                    self.__fig.canvas.draw()
+                    return
+        
+        if is_visible and self.__annotation is not None:
+            self.__annotation.set_visible(False)
+            self.__fig.canvas.draw()
+            
                         
         
 #######################################################################################################
@@ -329,7 +386,46 @@ class KeyAmount(QtWidgets.QWidget):
             
             # Re-draw the graph due to the update of the code
             self.__draw()
+
+
+#######################################################################################################
+#  Method used by hover                                                                               #
+#######################################################################################################
+    def __update_annotation(self, bar) -> bool:
+        """ Update the annotation on the graph
+
+        Args:
+            bar : Bar
             
+        Returns:
+            bool: True if the update is valid, else False
+        """
+        x = bar.get_x() + bar.get_width()/2
+        y = bar.get_y() + bar.get_height()
+        
+        # Search the index of x to get the NACRES key and his description
+        # Return False if we don't find the position
+        x_index = self.__get_nacres_key_from_position(x)
+        if x_index == -1:
+            return False
+        key = self.x_labels_code[x_index]
+        desc = self.descriptions[x_index]
+        
+        self.__annotation.xy = (x,y)
+        text = f"{key}"
+        if desc is not None:
+            text += f" : {desc}"
+        self.__annotation.set_text(text)
+        self.__annotation.get_bbox_patch().set_alpha(0.4)
+        return True
+        
+    
+    def __get_nacres_key_from_position(self, position: Union[float, int]) -> bool:
+        for pos_index, pos in enumerate(self.x_position):
+            if math.isclose(position, pos):
+                return pos_index
+        return -1
+
         
 #######################################################################################################
 #  Update graph from Observer                                                                         #
