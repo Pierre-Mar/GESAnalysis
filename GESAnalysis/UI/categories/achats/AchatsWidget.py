@@ -122,6 +122,12 @@ class AchatsWidget(QtWidgets.QWidget, Observer):
                 compare_columns = False
                 self.__files[file]["read"] = False
                 self.__files[file]["warning"].append(f"Colonne pour le montant non-trouvée")
+            else:
+                # Check the type of amount
+                if common.get_type_from_columns(data, self.column_amount) not in [int, float]:
+                    compare_columns = False
+                    self.__files[file]["read"] = False
+                    self.__files[file]["warning"].append(f"Colonne pour le montant n'a pas de chiffres")
                 
             # Same with the description
             description = common.get_data_from_columns(data, self.column_description)
@@ -159,6 +165,7 @@ class AchatsWidget(QtWidgets.QWidget, Observer):
             nacres_key_correct = True
             for key_line in nacres_keys:
                 for key in key_line:
+                    key = str(key)
                     nacres_key = key.upper()
                     if not self.__check_NACRES_key(nacres_key):
                         nacres_key_correct = False
@@ -193,14 +200,15 @@ class AchatsWidget(QtWidgets.QWidget, Observer):
             for i in range(len(nacres_keys)):
                 for j in range(len(nacres_keys[i])):
                     # Remove the point inside the NACRES key
+                    key = str(nacres_keys[i][j])
                     try:
-                        key = nacres_keys[i][j].replace(".", "")
+                        key = key.replace(".", "")
                     except:
-                        key = nacres_keys[i][j]
+                        key = key
                     if description is None:
                         data_achats[year].append((key, sum(amount[i])))
                     else:
-                        data_achats[year].append((key, sum(amount[i]), description[i][j]))
+                        data_achats[year].append((key, sum(amount[i]), str(description[i][j])))
         
         self.__data["data"] = data_achats
         self.__data["unit"] = unit_amount

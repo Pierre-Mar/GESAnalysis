@@ -13,6 +13,10 @@ class TotalWidget(QtWidgets.QWidget, Observer):
     """ Widget use to regroup the graphs, the files opener and the stat of the category "Total"
     """
     
+    # Column to get the data from the files
+    column_name_categories = ["name"]
+    column_intensity_emissions = ["intensity"]
+    
     def __init__(
         self,
         model: GESAnalysis,
@@ -112,7 +116,7 @@ class TotalWidget(QtWidgets.QWidget, Observer):
             data = data_file["data"]
             
             # Get categories for emission
-            name = common.get_column(data, "name")
+            name = common.get_data_from_columns(data, self.column_name_categories)
             # If we don't find the column, put a warning
             if name is None:
                 compare_columns = False
@@ -120,12 +124,18 @@ class TotalWidget(QtWidgets.QWidget, Observer):
                 self.__files[file]["warning"].append(f"Colonne 'name' non-trouvée")
             
             # Get the carbon footprint
-            intensity = common.get_column(data, "intensity")
+            intensity = common.get_data_from_columns(data, self.column_intensity_emissions)
             # If we don't find the column, put a warning
             if intensity is None:
                 compare_columns = False
                 self.__files[file]["read"] = False
                 self.__files[file]["warning"].append(f"Colonne 'intensity' non-trouvée")
+            else:
+                # If the column 'intensity' is not of type int or float, then error
+                if common.get_type_from_columns(data, self.column_intensity_emissions) not in [int, float]:
+                    compare_columns = False
+                    self.__files[file]["read"] = False
+                    self.__files[file]["warning"].append(f"Colonne 'intensity' ne contient pas de chiffres")
             
             # Compare the columns if they have the same number of lines
             if compare_columns and len(name) != len(intensity):
@@ -158,10 +168,11 @@ class TotalWidget(QtWidgets.QWidget, Observer):
             
             # Add different categories to our dictionary
             for i in range(len(name)):
-                name_val = name[i][0]
-                if name_val not in self.__name_ind.keys():
-                    self.__name_ind[name_val] = {"index": ind_name}
-                    ind_name += 1
+                for j in range(len(name[i])):
+                    name_val = str(name[i][j])
+                    if name_val not in self.__name_ind.keys():
+                        self.__name_ind[name_val] = {"index": ind_name}
+                        ind_name += 1
             
             # Same for year
             if year not in self.__years_ind.keys():
@@ -182,16 +193,17 @@ class TotalWidget(QtWidgets.QWidget, Observer):
             
             data = self.__gesanalysis.get_data_from_file(file)
             
-            name = common.get_column(data, "name")
-            intensity = common.get_column(data, "intensity")
+            name = common.get_data(data, "name")
+            intensity = common.get_data(data, "intensity")
             year = data_file["year"]
             
             # Add value to their correct place
             for i in range(len(name)):
-                name_val = name[i][0]
-                intensity_val = sum(intensity[i])
-                
-                data_total[name_val]["data"][self.__years_ind[year]["index"]] += intensity_val
+                for j in range(len(name[i])):
+                    name_val = str(name[i][j])
+                    intensity_val = sum(intensity[i])
+                    
+                    data_total[name_val]["data"][self.__years_ind[year]["index"]] += intensity_val
         
         self.__data["data"] = data_total    
         self.__data["unit"] = unit_intensity

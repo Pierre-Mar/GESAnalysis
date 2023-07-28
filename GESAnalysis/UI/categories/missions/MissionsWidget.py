@@ -14,6 +14,14 @@ import GESAnalysis.UI.categories.common as common
 class MissionsWidget(QtWidgets.QWidget, Observer):
     """ Widget use to regroup the graphs, the files opener and the stats of the category "Missions"
     """
+    
+    # Column to get the data from the files
+    column_name_mission = ["name"]
+    column_mode = ["mode"]
+    column_position = ["position"]
+    column_distance = ["distance"]
+    column_emission = ["emission"]
+    column_emission_contrails = ["emission withcontrails"]
      
     def __init__(
         self,
@@ -115,21 +123,21 @@ class MissionsWidget(QtWidgets.QWidget, Observer):
             
             data = data_file["data"]
             
-            mission = common.get_column(data, "name")
+            mission = common.get_data_from_columns(data, self.column_name_mission)
             if mission is None:
                 compare_column = False
                 self.__files[file]["read"] = False
                 self.__files[file]["warning"].append(f"Colonne 'name' non-trouvée")
             
             # Get the mode
-            mode = common.get_column(data, "mode")
+            mode = common.get_data_from_columns(data, self.column_mode)
             if mode is None:
                 compare_column = False
                 self.__files[file]["read"] = False
                 self.__files[file]["warning"].append(f"Colonne 'mode' non-trouvée")
             
             # Get the position
-            position = common.get_column(data, "position")
+            position = common.get_data_from_columns(data, self.column_position)
             if position is None:
                 compare_column = False
                 self.__files[file]["read"] = False
@@ -141,29 +149,44 @@ class MissionsWidget(QtWidgets.QWidget, Observer):
                 self.__files[file]["warning"].append(f"Colonnes 'mode' et 'position' n'ont pas les mêmes lignes")
 
             # Check if the column distance exist and there is the same number of lines with mode and position
-            distance = common.get_column(data, "distance")
+            distance = common.get_data_from_columns(data, self.column_distance)
             if distance is None:
                 self.__files[file]["read"] = False
                 self.__files[file]["warning"].append(f"Colonne 'distance' non-trouvée")
             else:
+                # Check if there is the correct data type (int, float)
+                if common.get_type_from_columns(data, self.column_distance) not in [int, float]:
+                    compare_column = False
+                    self.__files[file]["read"] = False
+                    self.__files[file]["warning"].append(f"Colonne 'distance' ne contient pas de chiffres")
                 if compare_column and (len(distance) != len(mode) or len(distance) != len(position)):
                     self.__files[file]["read"] = False
                     self.__files[file]["warning"].append(f"Colonne 'distance' a un nombre de ligne différent")
                     
-            emission = common.get_column(data, "emission")
+            emission = common.get_data_from_columns(data, self.column_emission)
             if distance is None:
                 self.__files[file]["read"] = False
                 self.__files[file]["warning"].append(f"Colonne 'emission' non-trouvée")
             else:
+                # Check if there is the correct data type (int, float)
+                if common.get_type_from_columns(data, self.column_emission) not in [int, float]:
+                    compare_column = False
+                    self.__files[file]["read"] = False
+                    self.__files[file]["warning"].append(f"Colonne 'emission' ne contient pas de chiffres")
                 if compare_column and (len(distance) != len(mode) or len(distance) != len(position)):
                     self.__files[file]["read"] = False
                     self.__files[file]["warning"].append(f"Colonne 'emission' a un nombre de ligne différent")
                     
-            emission_contrails = common.get_column(data, "emission withcontrails")
+            emission_contrails = common.get_data_from_columns(data, self.column_emission_contrails)
             if emission_contrails is None:
                 self.__files[file]["read"] = False
                 self.__files[file]["warning"].append(f"Colonne 'emission avec trainées' non-trouvée")
             else:
+                # Check if there is the correct data type (int, float)
+                if common.get_type_from_columns(data, self.column_emission_contrails) not in [int, float]:
+                    compare_column = False
+                    self.__files[file]["read"] = False
+                    self.__files[file]["warning"].append(f"Colonne 'emission' ne contient pas de chiffres")
                 if compare_column and len(emission_contrails) != len(emission):
                     self.__files[file]["read"] = False
                     self.__files[file]["warning"].append(f"Colonne 'emission avec trainées' a un nombre de ligne différent")
@@ -217,12 +240,13 @@ class MissionsWidget(QtWidgets.QWidget, Observer):
             
             # Add the mode and the position into their dictionary
             for i in range(len(mode)):
-                mode_val = self.__analyse_mode(mode[i][0])
+                mode_val = self.__analyse_mode(str(mode[i][0]))
                 if mode_val not in self.__mode_ind.keys():
                     self.__mode_ind[mode_val] = {"index": ind_mode}
                     ind_mode += 1
-                if position[i][0] not in self.__position_ind.keys():
-                    self.__position_ind[position[i][0]] = {"index": ind_position}
+                position_val = str(position[i][0])
+                if position_val not in self.__position_ind.keys():
+                    self.__position_ind[position_val] = {"index": ind_position}
                     ind_position += 1
             
             # Add year to his dictionary   
@@ -259,24 +283,25 @@ class MissionsWidget(QtWidgets.QWidget, Observer):
             
             data = self.__gesanalysis.get_data_from_file(file)
             
-            mission = common.get_column(data, "name")
-            mode = common.get_column(data, "mode")
-            position = common.get_column(data, "position")
-            distance = common.get_column(data, "distance")
-            emission = common.get_column(data, "emission")
-            emission_contrails = common.get_column(data, "emission withcontrails")
+            mission = common.get_data(data, "name")
+            mode = common.get_data(data, "mode")
+            position = common.get_data(data, "position")
+            distance = common.get_data(data, "distance")
+            emission = common.get_data(data, "emission")
+            emission_contrails = common.get_data(data, "emission withcontrails")
             year = data_file["year"]
             
             for i in range(len(mission)):
                 
-                mode_val = self.__analyse_mode(mode[i][0])
-                pos_val = position[i][0]
+                mode_val = self.__analyse_mode(str(mode[i][0]))
+                pos_val = str(position[i][0])
                 
                 # Add the distance
                 sum_distance = sum(distance[i])
                 sum_emission = sum(emission[i])
                 sum_emission_contrails = sum(emission_contrails[i])
                 for mis in mission[i]:
+                    mis = str(mis)
                     data_dist[mode_val]["data"][pos_val][year]["mission"].append((mis, sum_distance, sum_emission, sum_emission_contrails))
                     data_dist[mode_val]["data"][pos_val][year]["total_distance"] += sum_distance
                     data_dist[mode_val]["data"][pos_val][year]["total_emission"] += sum_emission
