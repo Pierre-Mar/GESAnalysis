@@ -112,13 +112,23 @@ class TotalEmission(QtWidgets.QWidget):
         
         y_labels = ["" for i in range(len(self.__name_ind.keys()))]
         bottom = [0 for i in x_bars] # Useful for stacked bar
+        bar_container = None
         
         # Add bar to the graph
         for name, data_name in self.__data_tot.items():
             data_transform = self.__data_per_agent(data_name["data"])
 
-            self.__axes.bar(x_bars, data_transform, width=self.__width, bottom=bottom, linewidth=0.5, edgecolor='black')
+            bar_container = self.__axes.bar(x_bars, data_transform, width=self.__width, bottom=bottom, linewidth=0.5, edgecolor='black')
             for i in range(len(bottom)):
+                # Add text if we display the emission per agent
+                if self.__agent_checkbutton.isChecked():
+                    color = bar_container[0].get_facecolor()
+                    self.__axes.text(
+                        x_bars[i] + self.__width/2,
+                        bottom[i] + data_transform[i]/2,
+                        str(round(data_transform[i], 2)),
+                        color=color
+                    )
                 bottom[i] += data_transform[i]
             y_labels[self.__name_ind[name]["index"]] = name
         
