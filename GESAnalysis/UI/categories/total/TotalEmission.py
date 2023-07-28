@@ -115,12 +115,8 @@ class TotalEmission(QtWidgets.QWidget):
         
         # Add bar to the graph
         for name, data_name in self.__data_tot.items():
-            data_transform, year_transform = self.__data_per_agent(data_name["data"])
-            if self.__agent_checkbutton.isChecked() and year_transform != None:
-                common.message_error(f"il n'y a pas d'agents pour l'année {year_transform}", self)
-                self.__agent_checkbutton.setChecked(False)
-                self.__draw()
-                return
+            data_transform = self.__data_per_agent(data_name["data"])
+
             self.__axes.bar(x_bars, data_transform, width=self.__width, bottom=bottom, linewidth=0.5, edgecolor='black')
             for i in range(len(bottom)):
                 bottom[i] += data_transform[i]
@@ -156,27 +152,26 @@ class TotalEmission(QtWidgets.QWidget):
         return x_bars, x_labels
     
     
-    def __data_per_agent(self, data: list) -> Tuple[list, Optional[str]]:
+    def __data_per_agent(self, data: list) -> list:
         """ Transform the data to data per agent for the graph
 
         Args:
             data (list): Data
 
         Returns:
-            Tuple[list, Optional[str]]: Data per agent if the button 'Par Agents' is checked, else Data.
-            The year is returned in case there are no agents for this year, else None
+            list: Data per agent if the button 'Par Agents' is checked, else Data.
         """
         data_transform = data.copy()
         if not self.__agent_checkbutton.isChecked():
-            return data, None
+            return data
         
         for year, year_val in self.__years_ind.items():
             try:
                 index_year = year_val['index']
                 data_transform[index_year] /= self.__data_agent[year]
             except:
-                return data, year
-        return data_transform, None
+                return data
+        return data_transform
     
     
 #######################################################################################################
@@ -239,6 +234,7 @@ class TotalEmission(QtWidgets.QWidget):
     def update_canvas(self, name_ind, years_ind, data_dict) -> None:
         """ Update the structure when the model are updated
         """
+        self.__agent_checkbutton.setChecked(False)
         self.__years_ind = years_ind
         self.__name_ind = name_ind
         self.__data_tot = data_dict["data"]
