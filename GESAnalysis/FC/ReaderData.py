@@ -27,7 +27,8 @@ class ReaderData:
     # Units accepted for data
     __units = ["t", "kg", "g", "mg",                    # Units for mass
               "km", "hm", "dam", "m", "dm", "cm", "mm", # Units for length
-               "kg eCO2", "t eCO2"                      # Unit for CO2
+              "kg eCO2", "t eCO2",                      # Unit for CO2
+               "euro"                                   # Unit for amount
             ]
     
     

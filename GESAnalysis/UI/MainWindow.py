@@ -43,10 +43,6 @@ class MainWindow(QtWidgets.QMainWindow):
         self.__dict_categories = {}
         self.__number_categories = 0
         
-        # Length of the window (width and height)
-        self.width = 1280
-        self.height = 720
-        
         self.__init_UI()
         
 
@@ -58,8 +54,7 @@ class MainWindow(QtWidgets.QMainWindow):
         """
         # Set parameters to this window
         self.setWindowTitle("GESAnalysis")
-        self.resize(self.width, self.height)
-        self.setMinimumSize(640, 360)
+        self.showMaximized()
         
         # Create the menu
         self.__init_menu()
