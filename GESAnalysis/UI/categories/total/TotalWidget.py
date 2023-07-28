@@ -77,7 +77,7 @@ class TotalWidget(QtWidgets.QWidget, Observer):
         
         # Create the right-side of the splitter
         self.__tab_graph = QtWidgets.QTabWidget(splitter)
-        self.__total_emission = TotalEmission(self.__tab_graph)
+        self.__total_emission = TotalEmission(self.__controller, self.__tab_graph)
         self.__tab_graph.addTab(self.__total_emission, "Emission")
         
         splitter.addWidget(splitter_left_widget)

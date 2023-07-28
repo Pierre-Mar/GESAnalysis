@@ -1,11 +1,14 @@
 import matplotlib
+from GESAnalysis.FC.Controleur import Controleur
+
+from GESAnalysis.UI.AgentFileDialog import AgentFileDialog
 
 matplotlib.use('Qt5Agg')
 
 from PyQt5 import QtWidgets, QtCore
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg, NavigationToolbar2QT
 from matplotlib.figure import Figure
-from typing import Tuple, List
+from typing import Optional, Tuple, List
 from GESAnalysis.UI import common
 
 
@@ -18,14 +21,18 @@ class TotalEmission(QtWidgets.QWidget):
     __spacing = 0.8                                 # Spacing between bars of each mode
     
     
-    def __init__(self, parent: QtWidgets.QWidget | None = ...) -> None:
+    def __init__(self, controller: Controleur, parent: QtWidgets.QWidget | None = ...) -> None:
         """ Initialize the class by setting the data and draw the graph
 
         Args:
+            controller (Controleur): controller
             parent (QtWidgets.QWidget | None, optional): Parent of this widget. Defaults to ....
         """
         # Initialise the parent class
         super(TotalEmission, self).__init__(parent)
+        
+        # Set parameter to attribute
+        self.__controller = controller
         
         # Data structure
         self.__years_ind = {}       # Dictionary of year
@@ -108,9 +115,15 @@ class TotalEmission(QtWidgets.QWidget):
         
         # Add bar to the graph
         for name, data_name in self.__data_tot.items():
-            self.__axes.bar(x_bars, data_name["data"], width=self.__width, bottom=bottom, linewidth=0.5, edgecolor='black')
+            data_transform, year_transform = self.__data_per_agent(data_name["data"])
+            if self.__agent_checkbutton.isChecked() and year_transform != None:
+                common.message_error(f"il n'y a pas d'agents pour l'année {year_transform}", self)
+                self.__agent_checkbutton.setChecked(False)
+                self.__draw()
+                return
+            self.__axes.bar(x_bars, data_transform, width=self.__width, bottom=bottom, linewidth=0.5, edgecolor='black')
             for i in range(len(bottom)):
-                bottom[i] += data_name["data"][i]
+                bottom[i] += data_transform[i]
             y_labels[self.__name_ind[name]["index"]] = name
         
         # Set x labels
@@ -143,13 +156,43 @@ class TotalEmission(QtWidgets.QWidget):
         return x_bars, x_labels
     
     
+    def __data_per_agent(self, data: list) -> Tuple[list, Optional[str]]:
+        """ Transform the data to data per agent for the graph
+
+        Args:
+            data (list): Data
+
+        Returns:
+            Tuple[list, Optional[str]]: Data per agent if the button 'Par Agents' is checked, else Data.
+            The year is returned in case there are no agents for this year, else None
+        """
+        data_transform = data.copy()
+        if not self.__agent_checkbutton.isChecked():
+            return data, None
+        
+        for year, year_val in self.__years_ind.items():
+            try:
+                index_year = year_val['index']
+                data_transform[index_year] /= self.__data_agent[year]
+            except:
+                return data, year
+        return data_transform, None
+    
+    
 #######################################################################################################
 #  Method associated to an action                                                                     #
 #######################################################################################################
     def __read_agent_file(self) -> None:
         """ Open a dialog to read a file who contains the number of agent for each year
         """
-        pass
+        open_file_dialog = AgentFileDialog(self.__path_to_agent, self.__controller, self)
+        if open_file_dialog.exec_():
+            # If it's the same file, no need to continue, we already have the information
+            if open_file_dialog.selected_file == self.__path_to_agent:
+                return
+            
+            self.__path_to_agent = open_file_dialog.selected_file
+            self.__data_agent = open_file_dialog.data_agent_per_year
     
     
     def __draw_graph_per_agents(self, state:bool) -> None:
@@ -159,13 +202,35 @@ class TotalEmission(QtWidgets.QWidget):
             state (bool): True if the button is checked, else False
         """
         if state:
+            # If there are no agent, then send an error
             if self.__path_to_agent is None:
                 self.__agent_checkbutton.setChecked(False)
                 common.message_warning(
                     "Veuillez indiquer un fichier contenant les agents.\nPour cela, appuyer sur le bouton 'Fichier Agents' et renseigner le chemin du fichier",
-                self)
+                    self
+                )
                 return
-        pass
+
+            # Else, we check if all the year are in the dictionary
+            is_missing_year = False
+            missing_year = []
+            for year in self.__years_ind.keys():
+                if year not in self.__data_agent.keys():
+                    is_missing_year = True
+                    missing_year.append(year)
+            
+            if is_missing_year:
+                text = "Les années"
+                if len(missing_year) == 1:
+                    text = "L'année"
+                join_year = ",".join(missing_year)
+                common.message_warning(
+                    f"Il n'y a pas d'agents pour {text} '{join_year}'",
+                    self
+                )
+                return
+            
+        self.__draw()
             
 
 #######################################################################################################
