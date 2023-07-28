@@ -1,3 +1,11 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+#---------------------------------------------------------------------------------
+# Created By :
+# Name : Marjolin Pierre
+# E-Mail : pierre.marjolin@gmail.com
+# Github : Pierre-Mar
+#---------------------------------------------------------------------------------
 import os, platform
 
 from typing import Dict, List, Union
@@ -64,7 +72,6 @@ class GESAnalysis(Observable):
         return self.__reader.read_file(filename, sep, engine)
         
         
-    
     def __sort_by_year(self) -> None:
         """ Sort the dictionary by year
         """
@@ -136,7 +143,6 @@ class GESAnalysis(Observable):
             del self.__file_open[file]
         except:
             raise Exception(f"Le fichier '{file}' n'est pas ouvert")
-
 
 
 #######################################################################################################

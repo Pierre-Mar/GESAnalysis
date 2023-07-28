@@ -1,3 +1,11 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+#---------------------------------------------------------------------------------
+# Created By :
+# Name : Marjolin Pierre
+# E-Mail : pierre.marjolin@gmail.com
+# Github : Pierre-Mar
+#---------------------------------------------------------------------------------
 from typing import List
 from PyQt5 import QtWidgets, QtCore
 from GESAnalysis.FC.Controleur import Controleur
@@ -236,6 +244,7 @@ class AchatsWidget(QtWidgets.QWidget, Observer):
         if len(key) == 4 or len(key) == 5:
             return self.__A(key, 0)
         return False
+    
     
     #-- Methods uses for the parsing --#
     def __A(self, key: str, index: int) -> bool:

@@ -1,3 +1,11 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+#---------------------------------------------------------------------------------
+# Created By :
+# Name : Marjolin Pierre
+# E-Mail : pierre.marjolin@gmail.com
+# Github : Pierre-Mar
+#---------------------------------------------------------------------------------
 from typing import List
 from PyQt5 import QtWidgets, QtCore
 from GESAnalysis.FC.GESAnalysis import GESAnalysis
@@ -280,4 +288,3 @@ class TotalWidget(QtWidgets.QWidget, Observer):
             QtWidgets.QSizePolicy: Size policy
         """
         return QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding)
-        

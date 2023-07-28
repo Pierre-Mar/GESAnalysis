@@ -1,3 +1,11 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+#---------------------------------------------------------------------------------
+# Created By :
+# Name : Marjolin Pierre
+# E-Mail : pierre.marjolin@gmail.com
+# Github : Pierre-Mar
+#---------------------------------------------------------------------------------
 from typing import Optional
 from PyQt5 import QtWidgets
 from GESAnalysis.UI import common
@@ -282,4 +290,3 @@ class ChangeNacresCodeDialog(QtWidgets.QDialog):
                     
     def __T(self):
         return True
-        

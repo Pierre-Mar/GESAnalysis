@@ -1,3 +1,11 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+#---------------------------------------------------------------------------------
+# Created By :
+# Name : Marjolin Pierre
+# E-Mail : pierre.marjolin@gmail.com
+# Github : Pierre-Mar
+#---------------------------------------------------------------------------------
 from typing import List
 from PyQt5 import QtWidgets
 from GESAnalysis.FC.Controleur import Controleur
@@ -123,4 +131,3 @@ class MaterielWidget(QtWidgets.QWidget, Observer):
         
         # Update FileOpenUI
         self.__file_depl_widget.update_widget(self.__files)
-        
