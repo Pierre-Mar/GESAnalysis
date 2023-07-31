@@ -1,3 +1,11 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+#---------------------------------------------------------------------------------
+# Created By :
+# Name : Marjolin Pierre
+# E-Mail : pierre.marjolin@gmail.com
+# Github : Pierre-Mar
+#---------------------------------------------------------------------------------
 import os, platform
 
 from typing import Dict, List, Union
@@ -25,7 +33,7 @@ class GESAnalysis(Observable):
 #  Read the data from a file                                                                          #
 #######################################################################################################
     def read_file(self, filename: str, year:str, category:str, sep: str = None, engine: str = "pandas") -> None:
-        """ Read the file 'filename'
+        """ Read the file 'filename' and add to the dictionary of file open
 
         Args:
             filename (str): Path to file
@@ -47,6 +55,23 @@ class GESAnalysis(Observable):
         self.__sort_by_year()
         
     
+    def read_file_agent(self, filename: str, sep: str = None, engine: str = "pandas") -> dict:
+        """ Read the file 'filename'
+
+        Args:
+            filename (str): Path to file
+            sep (str, optional): Separator between values in 'filename'. Defaults to None.
+            engine (str, optional): Reading engine for XLSX files. Defaults to "pandas".
+        
+        Returns:
+            dict : Ditionary of data from the file
+        """
+        if filename is None:
+            raise Exception("Impossible de lire le fichier car le chemin est invalide")
+        
+        return self.__reader.read_file(filename, sep, engine)
+        
+        
     def __sort_by_year(self) -> None:
         """ Sort the dictionary by year
         """
@@ -118,7 +143,6 @@ class GESAnalysis(Observable):
             del self.__file_open[file]
         except:
             raise Exception(f"Le fichier '{file}' n'est pas ouvert")
-
 
 
 #######################################################################################################

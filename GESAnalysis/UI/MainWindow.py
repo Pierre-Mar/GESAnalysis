@@ -1,3 +1,11 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+#---------------------------------------------------------------------------------
+# Created By :
+# Name : Marjolin Pierre
+# E-Mail : pierre.marjolin@gmail.com
+# Github : Pierre-Mar
+#---------------------------------------------------------------------------------
 from typing import Any, Union
 from PyQt5 import QtWidgets
 from GESAnalysis.FC.Controleur import Controleur
@@ -43,10 +51,6 @@ class MainWindow(QtWidgets.QMainWindow):
         self.__dict_categories = {}
         self.__number_categories = 0
         
-        # Length of the window (width and height)
-        self.width = 1280
-        self.height = 720
-        
         self.__init_UI()
         
 
@@ -58,8 +62,7 @@ class MainWindow(QtWidgets.QMainWindow):
         """
         # Set parameters to this window
         self.setWindowTitle("GESAnalysis")
-        self.resize(self.width, self.height)
-        self.setMinimumSize(640, 360)
+        self.showMaximized()
         
         # Create the menu
         self.__init_menu()

@@ -1,3 +1,11 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+#---------------------------------------------------------------------------------
+# Created By :
+# Name : Marjolin Pierre
+# E-Mail : pierre.marjolin@gmail.com
+# Github : Pierre-Mar
+#---------------------------------------------------------------------------------
 from typing import List
 from PyQt5 import QtWidgets, QtCore
 from GESAnalysis.FC.Controleur import Controleur
@@ -63,7 +71,7 @@ class FluideWidget(QtWidgets.QWidget, Observer):
         
         # Tab widget for right-splitter (graph)
         self.__tab_graph = QtWidgets.QTabWidget(splitter)
-        # TODO : Add graph for "Fluide" here
+        # Add graph for "Fluide" here
         
         # Add components to the splitter
         splitter.addWidget(splitter_left_widget)

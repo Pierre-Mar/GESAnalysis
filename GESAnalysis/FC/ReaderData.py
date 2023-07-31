@@ -1,3 +1,11 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+#---------------------------------------------------------------------------------
+# Created By :
+# Name : Marjolin Pierre
+# E-Mail : pierre.marjolin@gmail.com
+# Github : Pierre-Mar
+#---------------------------------------------------------------------------------
 import os
 import platform
 import csv
@@ -27,7 +35,8 @@ class ReaderData:
     # Units accepted for data
     __units = ["t", "kg", "g", "mg",                    # Units for mass
               "km", "hm", "dam", "m", "dm", "cm", "mm", # Units for length
-              "co2e"                                    # Unit for CO2
+              "kg eCO2", "t eCO2",                      # Unit for CO2
+               "euro"                                   # Unit for amount
             ]
     
     

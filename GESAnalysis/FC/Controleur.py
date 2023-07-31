@@ -1,3 +1,11 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+#---------------------------------------------------------------------------------
+# Created By :
+# Name : Marjolin Pierre
+# E-Mail : pierre.marjolin@gmail.com
+# Github : Pierre-Mar
+#---------------------------------------------------------------------------------
 from typing import List
 
 from GESAnalysis.FC.GESAnalysis import GESAnalysis
@@ -44,6 +52,18 @@ class Controleur:
         """
         self.__gesanalysis.read_file(file, year, category)
         self.__gesanalysis.update(category)
+        
+    
+    def open_file_agent(self, file: str) -> dict:
+        """ Open/read a file and return his data
+
+        Args:
+            file (str): Path to file
+            
+        Returns:
+            dict : Dictionary of data from the file
+        """
+        return self.__gesanalysis.read_file_agent(file)
 
 
     def export_file(self, filein: str, fileout: str) -> None:

@@ -1,3 +1,11 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+#---------------------------------------------------------------------------------
+# Created By :
+# Name : Marjolin Pierre
+# E-Mail : pierre.marjolin@gmail.com
+# Github : Pierre-Mar
+#---------------------------------------------------------------------------------
 import GESAnalysis.UI.categories.common as common
 import matplotlib
 
@@ -60,7 +68,7 @@ class EmissionMode(QtWidgets.QWidget):
         layout_canvas.addWidget(self.__figCanvas)
         
         # Create a widget to display a list of buttons to choose the year
-        self.__widget_button_years, self.layout_button_years = self.__create_list_buttons(
+        self.__widget_button_years, self.__layout_button_years = self.__create_list_buttons(
             self.__years_dict,
             QtWidgets.QRadioButton if self.__is_bars_selected else QtWidgets.QCheckBox,
             self.__click_year_radiobutton if self.__is_bars_selected else self.__click_year_checkbutton
@@ -140,6 +148,11 @@ class EmissionMode(QtWidgets.QWidget):
         widget = QtWidgets.QWidget(self)
         widget.setFixedHeight(40)
         layout = QtWidgets.QHBoxLayout(widget)
+        layout.setAlignment(QtCore.Qt.AlignCenter)
+        
+        if len(data_dict) == 0:
+            widget.hide()
+            return widget, layout
         
         # For each key of the dictionary, we create a button
         for data_ind, data in enumerate(data_dict.keys()):
@@ -153,7 +166,6 @@ class EmissionMode(QtWidgets.QWidget):
             # Connect the button to the function
             data_dict[data]["button"].toggled.connect(partial(fct, data))
             layout.addWidget(data_dict[data]["button"])
-        layout.setAlignment(QtCore.Qt.AlignCenter)
         
         return widget, layout
     
@@ -179,6 +191,7 @@ class EmissionMode(QtWidgets.QWidget):
     def __update_buttons_layout(
         self,
         data_dict: Dict[str, Dict[str, Union[int, bool, QtWidgets.QRadioButton, QtWidgets.QCheckBox]]],
+        widget: QtWidgets.QWidget,
         layout: QtWidgets.QHBoxLayout,
         type_button: Union[QtWidgets.QRadioButton, QtWidgets.QCheckBox],
         fct: Callable
@@ -188,6 +201,7 @@ class EmissionMode(QtWidgets.QWidget):
 
         Args:
             data_dict (Dict[str, Dict[str, Union[int, bool, QtWidgets.QRadioButton, QtWidgets.QCheckBox]]]): Dictionary
+            widget (QtWidgets.QWidget): Widget
             layout (QtWidgets.QHBoxLayout): Layout
             type_button (Union[QtWidgets.QRadioButton, QtWidgets.QCheckBox]): New type of buttons
             fct (Callable): Function calls when the buttons is pressed
@@ -203,6 +217,11 @@ class EmissionMode(QtWidgets.QWidget):
             data_dict[data]["button"].setChecked(data_dict[data]["checked"])
             data_dict[data]["button"].toggled.connect(partial(fct, data))
             layout.addWidget(data_dict[data]["button"])
+            
+        if len(data_dict.keys()) == 0:
+            widget.hide()
+        else:
+            widget.show()
 
 
 #######################################################################################################
@@ -436,10 +455,11 @@ class EmissionMode(QtWidgets.QWidget):
         """
         if selected:
             self.__is_bars_selected = True
-            self.__remove_buttons_layout(self.__years_dict, self.layout_button_years)
+            self.__remove_buttons_layout(self.__years_dict, self.__layout_button_years)
             self.__update_buttons_layout(
                 self.__years_dict,
-                self.layout_button_years,
+                self.__widget_button_years,
+                self.__layout_button_years,
                 QtWidgets.QRadioButton if self.__is_bars_selected else QtWidgets.QCheckBox,
                 self.__click_year_radiobutton if self.__is_bars_selected else self.__click_year_checkbutton
             )
@@ -454,10 +474,11 @@ class EmissionMode(QtWidgets.QWidget):
         """
         if selected:
             self.__is_bars_selected = False
-            self.__remove_buttons_layout(self.__years_dict, self.layout_button_years)
+            self.__remove_buttons_layout(self.__years_dict, self.__layout_button_years)
             self.__update_buttons_layout(
                 self.__years_dict,
-                self.layout_button_years,
+                self.__widget_button_years,
+                self.__layout_button_years,
                 QtWidgets.QRadioButton if self.__is_bars_selected else QtWidgets.QCheckBox,
                 self.__click_year_radiobutton if self.__is_bars_selected else self.__click_year_checkbutton
             )
@@ -470,7 +491,7 @@ class EmissionMode(QtWidgets.QWidget):
     def update_canvas(self, mode_ind, years_ind, data_dict):
         """ Update the structure and the UI of the graph when it's call by MissionWidget.
         """
-        self.__remove_buttons_layout(self.__years_dict, self.layout_button_years)
+        self.__remove_buttons_layout(self.__years_dict, self.__layout_button_years)
         
         self.__mode_dict = self.__update_structure(mode_ind)
         self.__years_dict = self.__update_structure(years_ind)
@@ -480,7 +501,8 @@ class EmissionMode(QtWidgets.QWidget):
         
         self.__update_buttons_layout(
             self.__years_dict,
-            self.layout_button_years,
+            self.__widget_button_years,
+            self.__layout_button_years,
             QtWidgets.QRadioButton if self.__is_bars_selected else QtWidgets.QCheckBox,
             self.__click_year_radiobutton if self.__is_bars_selected else self.__click_year_checkbutton
         )

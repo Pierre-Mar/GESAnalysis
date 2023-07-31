@@ -1,14 +1,31 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+#---------------------------------------------------------------------------------
+# Created By :
+# Name : Marjolin Pierre
+# E-Mail : pierre.marjolin@gmail.com
+# Github : Pierre-Mar
+#---------------------------------------------------------------------------------
 from typing import List
 from PyQt5 import QtWidgets, QtCore
 from GESAnalysis.FC.Controleur import Controleur
 from GESAnalysis.FC.GESAnalysis import GESAnalysis
 from GESAnalysis.FC.PATTERNS.Observer import Observer
 from GESAnalysis.UI.FileOpenUI import FileOpenUI
+from GESAnalysis.UI.categories import common
+from GESAnalysis.UI.categories.achats.AchatsStatWidget import AchatsStatWidget
+from GESAnalysis.UI.categories.achats.KeyAmount import KeyAmount
 
 
 class AchatsWidget(QtWidgets.QWidget, Observer):
     """ Widget use to regroup the graphs, the files opener and the stats of the category "Achats"
     """
+    
+    # Column to get the data from the files
+    column_nacres_key = ["code", "Code NACRES"]
+    column_amount = ["amount", "Montant"]
+    column_description = ["description"]
+    
     
     def __init__(
         self,
@@ -36,8 +53,10 @@ class AchatsWidget(QtWidgets.QWidget, Observer):
         # Add this widget to the list of observers to update his interface
         self.__gesanalysis.add_observer(self, self.__category)
         
-        self.__files = {} # Dictionary where the key is the file in 'category' and a bool if it's read or not
-        
+        self.__files = {}     # Dictionary where the key is the file in 'category' and a bool if it's read or not
+        self.__years_ind = {} # Dictionary containing the year and the index
+        self.__data = {}      # Dictionary containing the data with the NACRES key and the amount, and the unit of the amount
+                
         self.__configure_data()
         
         self.__init_UI()
@@ -59,11 +78,14 @@ class AchatsWidget(QtWidgets.QWidget, Observer):
         splitter_left_widget = QtWidgets.QWidget(splitter)
         splitter_left_layout = QtWidgets.QVBoxLayout(splitter_left_widget)
         self.__file_achats_widget = FileOpenUI(self.__files, self.__category, self.__controller, splitter_left_widget)
+        self.__stats_achats_widget = AchatsStatWidget(self.__controller, self)
         splitter_left_layout.addWidget(self.__file_achats_widget)
+        splitter_left_layout.addWidget(self.__stats_achats_widget)
         
         # Tab widget for right-splitter (graph)
         self.__tab_graph = QtWidgets.QTabWidget(splitter)
-        # TODO : Add graph for "Achats" here
+        self.__key_amount = KeyAmount(self.__tab_graph)
+        self.__tab_graph.addTab(self.__key_amount, "Montant")
         
         # Add components to the splitter
         splitter.addWidget(splitter_left_widget)
@@ -82,6 +104,8 @@ class AchatsWidget(QtWidgets.QWidget, Observer):
     def __configure_data(self) -> None:
         """ Configure data
         """
+        unit_amount = ""
+        ind_year = 0
         for file, data_file in self.__gesanalysis.get_data().items():
             if data_file["category"] != self.__category:
                 continue
@@ -89,7 +113,171 @@ class AchatsWidget(QtWidgets.QWidget, Observer):
             # Add file to self.__files and set bool
             self.__files[file] = {"read": True, "warning": [], "year": data_file["year"]}
             
+            data = data_file["data"]
             
+            compare_columns = True
+            
+            # Get the data for the NACRES key 
+            nacres_keys = common.get_data_from_columns(data, self.column_nacres_key)
+            if nacres_keys is None:
+                compare_columns = False
+                self.__files[file]["read"] = False
+                self.__files[file]["warning"].append(f"Colonne pour le code NACRES non-trouvée")
+            
+            # Same with the amount
+            amount = common.get_data_from_columns(data, self.column_amount)
+            if amount is None:
+                compare_columns = False
+                self.__files[file]["read"] = False
+                self.__files[file]["warning"].append(f"Colonne pour le montant non-trouvée")
+            else:
+                # Check the type of amount
+                if common.get_type_from_columns(data, self.column_amount) not in [int, float]:
+                    compare_columns = False
+                    self.__files[file]["read"] = False
+                    self.__files[file]["warning"].append(f"Colonne pour le montant n'a pas de chiffres")
+                
+            # Same with the description
+            description = common.get_data_from_columns(data, self.column_description)
+            if description is not None:
+                if compare_columns and len(nacres_keys) != len(description):
+                    self.__files[file]["read"] = False
+                    self.__files["warning"].append("Nombre de lignes différent entre le code NACRES et sa description")
+            
+            # Compare the columns between the NACRES key and the amount
+            if compare_columns and len(nacres_keys) != len(amount):
+                self.__files[file]["read"] = False
+                self.__files[file]["warning"].append("Nombre de lignes différent entre le code NACRES et le montant")
+            
+            # No need to continue if there are problems
+            if not self.__files[file]["read"]:
+                continue
+                
+            # Get the unit of amount
+            unit = common.get_unit_from_columns(data, self.column_amount)
+            if len(unit) == 0:
+                self.__files[file]["warning"].append(f"Colonne 'Montant' n'a pas d'unité")
+            else:
+                unit = "/".join(unit)
+                if unit_amount == "":
+                    unit_amount = unit
+                if unit != unit_amount:
+                    self.__files[file]["read"] = False
+                    self.__files[file]["warning"].append(f"Colonne 'Montant' a une unité différente")
+            
+            # No need to continue if there are problems
+            if not self.__files[file]["read"]:
+                continue
+            
+            # Check if all the NACRES key is correct
+            nacres_key_correct = True
+            for key_line in nacres_keys:
+                for key in key_line:
+                    key = str(key)
+                    nacres_key = key.upper()
+                    if not self.__check_NACRES_key(nacres_key):
+                        nacres_key_correct = False
+                        break
+                
+                if not nacres_key_correct:
+                    self.__files[file]["read"] = False
+                    self.__files[file]["warning"].append("Des codes NACRES sont incorrectes")
+                    break
+            
+            year = data_file["year"]
+            if year not in self.__years_ind.keys():
+                self.__years_ind[year] = {"index": ind_year}
+                ind_year += 1
+                
+        # Create structure for data
+        data_achats = {}
+        for year in self.__years_ind.keys():
+            data_achats[year] = []
+            
+        # Fill the structure
+        for file, data_file in self.__files.items():
+            if not data_file["read"]:
+                continue
+            
+            data = self.__gesanalysis.get_data_from_file(file)
+            nacres_keys = common.get_data_from_columns(data, self.column_nacres_key)
+            amount = common.get_data_from_columns(data, self.column_amount)
+            description = common.get_data_from_columns(data, self.column_description)
+            year = data_file["year"]
+            
+            for i in range(len(nacres_keys)):
+                for j in range(len(nacres_keys[i])):
+                    # Remove the point inside the NACRES key
+                    key = str(nacres_keys[i][j])
+                    try:
+                        key = key.replace(".", "")
+                    except:
+                        key = key
+                    if description is None:
+                        data_achats[year].append((key, sum(amount[i])))
+                    else:
+                        data_achats[year].append((key, sum(amount[i]), str(description[i][j])))
+        
+        self.__data["data"] = data_achats
+        self.__data["unit"] = unit_amount
+            
+    
+    def __check_NACRES_key(self, key: str) -> bool:
+        """ Check if a NACRES key is correct. Use a parsing describe below:
+            A -> pB
+            B -> pC
+            C -> .D
+            C -> qE
+            D -> qE
+            E -> qF
+            F -> True
+            
+            p = { 'A', ..., 'Z' }
+            q = { '0', ..., '9' }
+
+        Args:
+            key (str): NACRES key
+
+        Returns:
+            bool: True if the key is correct or false
+        """
+        if len(key) == 4 or len(key) == 5:
+            return self.__A(key, 0)
+        return False
+    
+    
+    #-- Methods uses for the parsing --#
+    def __A(self, key: str, index: int) -> bool:
+        if 'A' <= key[index] and key[index] <= 'Z':
+            return self.__B(key, index+1)
+        return False
+    
+    def __B(self, key: str, index: int) -> bool:
+        if 'A' <= key[index] and key[index] <= 'Z':
+            return self.__C(key, index+1)
+        return False
+    
+    def __C(self, key: str, index: int) -> bool:
+        if key[index] == '.':
+            return self.__D(key, index+1)
+        elif '0' <= key[index] and key[index] <= '9':
+            return self.__E(key, index+1)
+        return False
+    
+    def __D(self, key: str, index: int) -> bool:
+        if '0' <= key[index] and key[index] <= '9':
+            return self.__E(key, index+1)
+        return False
+    
+    def __E(self, key: str, index: int) -> bool:
+        if '0' <= key[index] and key[index] <= '9':
+            return self.__F()
+        return False
+    
+    def __F(self) -> bool:
+        return True
+        
+                        
 #######################################################################################################
 #  Methods associated to an action                                                                    #
 #######################################################################################################
@@ -118,10 +306,16 @@ class AchatsWidget(QtWidgets.QWidget, Observer):
         """ Update this widget (from observers)
         """
         self.__files.clear()
+        self.__years_ind.clear()
+        self.__data.clear()
         
         self.__configure_data()
         
         self.__file_achats_widget.update_widget(self.__files)
+        
+        self.__stats_achats_widget.update_widget(self.__years_ind, self.__data)
+        
+        self.__key_amount.update_canvas(self.__years_ind, self.__data)
 
 
 #######################################################################################################
